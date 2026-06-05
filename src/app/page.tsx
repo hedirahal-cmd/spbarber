@@ -18,7 +18,9 @@ const CATEGORY_LABELS: Record<string, string> = {
 }
 
 export default function HomePage() {
-  const featured = PRODUCTS.filter((p) => p.id !== '5').slice(0, 6)
+  const packBarbe = PRODUCTS.find((p) => p.id === '5')!
+  const shampNoir = PRODUCTS.find((p) => p.id === '2')!
+  const featured = PRODUCTS.filter((p) => p.id !== '5' && p.id !== '2').slice(0, 6)
 
   return (
     <>
@@ -55,6 +57,47 @@ export default function HomePage() {
             <span className="hero-check-item"><span className="hero-check-v">✓</span> Paiement sécurisé</span>
             <span className="hero-check-item"><span className="hero-check-v">✓</span> Sélectionnés par des pros</span>
           </div>
+        </div>
+      </section>
+
+      {/* ── NOS 2 BESTSELLERS ── */}
+      <section className="best2-sec">
+        <div className="best2-head sec-head">
+          <div>
+            <div className="sec-ey">— Les incontournables —</div>
+            <h2 className="sec-title">NOS 2 BESTSELLERS</h2>
+          </div>
+        </div>
+        <div className="best2-grid">
+          {/* Pack Barbe — Meilleure vente */}
+          <Link href={`/products/${packBarbe.slug}`} className="best2-card">
+            <span className="best2-badge-mv">Meilleure vente</span>
+            <div className="best2-img">
+              <span className="best2-icon">{CATEGORY_ICONS[packBarbe.category] ?? '🎁'}</span>
+            </div>
+            <div className="best2-info">
+              <div className="best2-cat">Pack complet</div>
+              <div className="best2-name">{packBarbe.name}</div>
+              <div className="best2-benef">{packBarbe.benefit}</div>
+              <span className="best2-price">{formatPrice(packBarbe.price)}</span>
+              <span className="best2-btn">Voir le pack →</span>
+            </div>
+          </Link>
+
+          {/* Shampooing Noir — Forte marge */}
+          <Link href={`/products/${shampNoir.slug}`} className="best2-card">
+            <span className="best2-badge-fm">Forte marge</span>
+            <div className="best2-img">
+              <span className="best2-icon">{CATEGORY_ICONS[shampNoir.category] ?? '🧴'}</span>
+            </div>
+            <div className="best2-info">
+              <div className="best2-cat">Soin colorant</div>
+              <div className="best2-name">{shampNoir.name}</div>
+              <div className="best2-benef">{shampNoir.benefit}</div>
+              <span className="best2-price">{formatPrice(shampNoir.price)}</span>
+              <span className="best2-btn">Découvrir →</span>
+            </div>
+          </Link>
         </div>
       </section>
 

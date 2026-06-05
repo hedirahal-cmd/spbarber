@@ -23,7 +23,20 @@ const CATEGORY_LABELS: Record<string, string> = {
   accessoire: 'Accessoire',
 }
 
+function getBadge(id: string) {
+  if (id === '5') return <span className="pc-tagg">Meilleure vente</span>
+  if (id === '2') return <span className="pc-tag-fm">Forte marge</span>
+  if (id === '1') return <span className="pc-tagg">Bestseller</span>
+  return null
+}
+
 export default function ProductsPage() {
+  const sorted = [
+    ...PRODUCTS.filter((p) => p.id === '5'),
+    ...PRODUCTS.filter((p) => p.id === '2'),
+    ...PRODUCTS.filter((p) => p.id !== '5' && p.id !== '2'),
+  ]
+
   return (
     <>
       <section id="produits">
@@ -34,14 +47,14 @@ export default function ProductsPage() {
           </div>
         </div>
         <div className="prod-grid">
-          {PRODUCTS.map((product) => (
+          {sorted.map((product) => (
             <div key={product.id} className="prod-card">
               <Link href={`/products/${product.slug}`}>
                 <div className="pc-img">
                   <div className="pc-ph">
                     <span className="pc-icon">{CATEGORY_ICONS[product.category] ?? '✨'}</span>
                   </div>
-                  {product.id === '1' && <span className="pc-tagg">Bestseller</span>}
+                  {getBadge(product.id)}
                   {product.stock <= 10 && product.stock > 0 && (
                     <span className="pc-tag">Dernières unités</span>
                   )}

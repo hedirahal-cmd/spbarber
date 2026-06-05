@@ -1113,3 +1113,37 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
   .hero-trust-checks { gap: 10px; }
   .sac-grid { grid-template-columns: 1fr; }
 }
+
+/* ─ Badge Forte marge ─ */
+.pc-tag-fm { position: absolute; top: 12px; left: 12px; background: #c0392b; color: #fff; font-size: 8px; letter-spacing: 2px; text-transform: uppercase; font-weight: 700; padding: 4px 10px; }
+.best2-badge-fm { position: absolute; top: 14px; left: 14px; z-index: 2; background: #c0392b; color: var(--w); font-size: 8px; letter-spacing: 2px; text-transform: uppercase; font-weight: 700; padding: 5px 12px; }
+
+/* ─ Bestsellers duo ─ */
+.best2-sec { background: var(--b); padding: 0 48px 56px; }
+.best2-head { padding: 32px 0 24px; }
+.best2-head .sec-ey { color: rgba(248,246,243,.3); }
+.best2-head .sec-title { color: var(--w); }
+.best2-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 3px; }
+.best2-card { background: #141210; position: relative; overflow: hidden; display: flex; flex-direction: column; text-decoration: none; color: inherit; cursor: pointer; transition: opacity 0.2s; }
+.best2-card:hover { opacity: 0.93; }
+.best2-card:hover .best2-icon { opacity: 0.22; transform: scale(1.06); }
+.best2-badge-mv { position: absolute; top: 14px; left: 14px; z-index: 2; background: var(--gold); color: var(--w); font-size: 8px; letter-spacing: 2px; text-transform: uppercase; font-weight: 700; padding: 5px 12px; }
+.best2-img { height: 240px; display: flex; align-items: center; justify-content: center; background: linear-gradient(150deg, #1c1816, #0c0c0c); overflow: hidden; }
+.best2-icon { font-size: 80px; opacity: 0.14; transition: opacity 0.3s, transform 0.4s; }
+.best2-info { padding: 26px 30px 34px; border-top: 1px solid rgba(255,255,255,.05); }
+.best2-cat { font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: var(--gold); font-weight: 600; margin-bottom: 10px; }
+.best2-name { font-family: var(--fs); font-size: 24px; font-weight: 300; color: var(--w); line-height: 1.2; margin-bottom: 8px; }
+.best2-benef { font-size: 12px; color: rgba(248,246,243,.42); line-height: 1.6; margin-bottom: 22px; font-weight: 300; }
+.best2-price { font-family: var(--fd); font-size: 36px; color: var(--goldl); letter-spacing: 2px; display: block; margin-bottom: 22px; line-height: 1; }
+.best2-btn { display: inline-flex; align-items: center; gap: 8px; background: var(--gold); color: var(--w); font-family: var(--fb); font-size: 10px; letter-spacing: 3px; text-transform: uppercase; font-weight: 700; padding: 13px 24px; transition: background 0.2s; border: none; cursor: pointer; }
+.best2-btn:hover { background: var(--goldl); }
+@media (max-width: 960px) {
+  .best2-sec { padding: 0 20px 48px; }
+}
+@media (max-width: 768px) {
+  .best2-grid { grid-template-columns: 1fr; }
+  .best2-img { height: 180px; }
+  .best2-name { font-size: 20px; }
+  .best2-price { font-size: 30px; }
+  .best2-info { padding: 20px 22px 28px; }
+}
