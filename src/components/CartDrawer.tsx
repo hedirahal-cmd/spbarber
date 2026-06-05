@@ -1,7 +1,7 @@
 'use client'
 import { useCart } from '@/hooks/useCart'
 import { X, ShoppingBag } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { PaymentLogos } from './PaymentLogos'
 import { formatPrice } from '@/lib/utils'
 import { PRODUCTS } from '@/lib/products'
@@ -17,11 +17,14 @@ function formatEur(cents: number) {
   return (cents / 100).toFixed(2).replace('.', ',') + ' €'
 }
 
-function ProgressBar({ total }: { total: number }) {
+function ProgressBar({ total, isEmpty }: { total: number; isEmpty: boolean }) {
   let msg: React.ReactNode
   let pct: number
 
-  if (total >= FREE_GIFT) {
+  if (isEmpty) {
+    msg = <>Ajoutez un produit pour débloquer la <strong>livraison offerte dès 49 €</strong> 🚚</>
+    pct = 0
+  } else if (total >= FREE_GIFT) {
     msg = <><strong>Cadeau offert !</strong> + Livraison offerte 🎁</>
     pct = 100
   } else if (total >= FREE_SHIP) {
@@ -48,6 +51,13 @@ export function CartDrawer() {
 
   const cartTotal = total()
   const count = itemCount()
+
+  // Fermeture via touche Échap
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) { if (e.key === 'Escape') closeCart() }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [closeCart])
 
   const suggestions = PRODUCTS.filter(
     (p) => !p.is_dropshipping && !items.find((i) => i.product.id === p.id)
@@ -95,7 +105,7 @@ export function CartDrawer() {
           </button>
         </div>
 
-        <ProgressBar total={cartTotal} />
+        <ProgressBar total={cartTotal} isEmpty={items.length === 0} />
 
         <div className="cart-items">
           {items.length === 0 ? (

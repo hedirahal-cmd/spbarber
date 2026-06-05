@@ -20,7 +20,8 @@ const CATEGORY_LABELS: Record<string, string> = {
 export default function HomePage() {
   const packBarbe = PRODUCTS.find((p) => p.id === '5')!
   const shampNoir = PRODUCTS.find((p) => p.id === '2')!
-  const featured = PRODUCTS.filter((p) => p.id !== '5' && p.id !== '2').slice(0, 6)
+  const cireCheveux = PRODUCTS.find((p) => p.id === '1')!
+  const featured = PRODUCTS.filter((p) => p.id !== '5' && p.id !== '2' && p.id !== '1').slice(0, 6)
 
   return (
     <>
@@ -65,7 +66,7 @@ export default function HomePage() {
         <div className="best2-head sec-head">
           <div>
             <div className="sec-ey">— Les incontournables —</div>
-            <h2 className="sec-title">NOS 2 BESTSELLERS</h2>
+            <h2 className="sec-title">NOS BESTSELLERS</h2>
           </div>
         </div>
         <div className="best2-grid">
@@ -76,11 +77,26 @@ export default function HomePage() {
               <span className="best2-icon">{CATEGORY_ICONS[packBarbe.category] ?? '🎁'}</span>
             </div>
             <div className="best2-info">
-              <div className="best2-cat">Pack complet</div>
+              <div className="best2-cat">Pack complet · Barbe</div>
               <div className="best2-name">{packBarbe.name}</div>
               <div className="best2-benef">{packBarbe.benefit}</div>
               <span className="best2-price">{formatPrice(packBarbe.price)}</span>
               <span className="best2-btn">Voir le pack →</span>
+            </div>
+          </Link>
+
+          {/* Cire Cheveux — Bestseller coiffage */}
+          <Link href={`/products/${cireCheveux.slug}`} className="best2-card">
+            <span className="best2-badge-bs">Bestseller</span>
+            <div className="best2-img">
+              <span className="best2-icon">{CATEGORY_ICONS[cireCheveux.category] ?? '🪮'}</span>
+            </div>
+            <div className="best2-info">
+              <div className="best2-cat">Coiffant · Tenue forte</div>
+              <div className="best2-name">{cireCheveux.name}</div>
+              <div className="best2-benef">{cireCheveux.benefit}</div>
+              <span className="best2-price">{formatPrice(cireCheveux.price)}</span>
+              <span className="best2-btn">Découvrir →</span>
             </div>
           </Link>
 
@@ -124,22 +140,22 @@ export default function HomePage() {
           <Link href="/products/cire-cheveux-premium" className="prob-card">
             <div className="prob-icon">💆‍♂️</div>
             <div className="prob-title">Cheveux difficiles à coiffer</div>
-            <div className="prob-cta">Voir les solutions →</div>
+            <div className="prob-cta">Je veux mieux coiffer mes cheveux →</div>
           </Link>
           <Link href="/products/pack-barbe-complet" className="prob-card">
             <div className="prob-icon">🧔</div>
             <div className="prob-title">Barbe sèche ou qui gratte</div>
-            <div className="prob-cta">Voir les solutions →</div>
+            <div className="prob-cta">Je veux adoucir ma barbe →</div>
           </Link>
           <Link href="/products/shampooing-noir-colorant" className="prob-card">
             <div className="prob-icon">✨</div>
             <div className="prob-title">Cheveux blancs à masquer</div>
-            <div className="prob-cta">Voir les solutions →</div>
+            <div className="prob-cta">Je veux masquer mes cheveux blancs →</div>
           </Link>
           <Link href="/products" className="prob-card">
             <div className="prob-icon">⚡</div>
             <div className="prob-title">Routine capillaire complète</div>
-            <div className="prob-cta">Voir les packs →</div>
+            <div className="prob-cta">Je veux une routine complète →</div>
           </Link>
         </div>
       </section>

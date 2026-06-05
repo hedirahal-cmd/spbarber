@@ -26,10 +26,10 @@ export function Footer() {
         <div className="ft-col">
           <h4>Aide</h4>
           <ul>
-            <li><Link href="#">Livraison</Link></li>
-            <li><Link href="#">Retours</Link></li>
-            <li><Link href="#">FAQ</Link></li>
-            <li><Link href="#">Contact</Link></li>
+            <li><Link href="/livraison">Livraison</Link></li>
+            <li><Link href="/retours">Retours</Link></li>
+            <li><Link href="/faq">FAQ</Link></li>
+            <li><Link href="/contact">Contact</Link></li>
           </ul>
         </div>
 
