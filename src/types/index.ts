@@ -13,6 +13,9 @@ export interface Product {
   seo_title?: string
   seo_description?: string
   created_at: string
+  benefit?: string
+  trust?: string[]
+  related?: string[]
 }
 
 export interface ProductVariant {

@@ -5,6 +5,7 @@ import { useCart } from '@/hooks/useCart'
 import { formatPrice } from '@/lib/utils'
 import { Product, ProductVariant } from '@/types'
 import { PaymentLogos } from '@/components/PaymentLogos'
+import { PRODUCTS } from '@/lib/products'
 
 const CATEGORY_ICONS: Record<string, string> = {
   coiffant: '🪮',
@@ -20,7 +21,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   accessoire: 'Accessoire',
 }
 
-const FREE_SHIP = 5000
+const FREE_SHIP = 4900
 
 export function ProductDetail({ product }: { product: Product }) {
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | undefined>(
@@ -34,6 +35,10 @@ export function ProductDetail({ product }: { product: Product }) {
   const price = selectedVariant?.price ?? product.price
   const remaining = Math.max(0, FREE_SHIP - cartTotal)
   const pct = Math.min(100, (cartTotal / FREE_SHIP) * 100)
+
+  const relatedProducts = product.related
+    ? PRODUCTS.filter((p) => product.related!.includes(p.id))
+    : []
 
   function handleAddToCart() {
     addItem(product, selectedVariant)
@@ -74,7 +79,9 @@ export function ProductDetail({ product }: { product: Product }) {
           </div>
           <div className="fi-cat">{CATEGORY_LABELS[product.category] ?? product.category}</div>
           <h1 className="fi-title">{product.name}</h1>
-          <p className="fi-hook">{product.description}</p>
+          {product.benefit && (
+            <div className="fi-hook">{product.benefit}</div>
+          )}
 
           <div className="fi-stars-row">
             <span className="fi-stars">★★★★★</span>
@@ -84,7 +91,7 @@ export function ProductDetail({ product }: { product: Product }) {
 
           <div className="fi-price-block">
             <div className="fi-price">{formatPrice(price)}</div>
-            <div className="fi-price-note">Prix TTC · Livraison offerte dès 50€</div>
+            <div className="fi-price-note">Prix TTC · Livraison offerte dès 49€</div>
           </div>
 
           {/* Variants */}
@@ -103,6 +110,18 @@ export function ProductDetail({ product }: { product: Product }) {
                   </button>
                 ))}
               </div>
+            </div>
+          )}
+
+          {/* Trust checklist — avant le CTA */}
+          {product.trust && product.trust.length > 0 && (
+            <div className="fi-trust-list">
+              {product.trust.map((item, i) => (
+                <div key={i} className="fi-trust-item">
+                  <span className="fi-trust-v">✓</span>
+                  {item}
+                </div>
+              ))}
             </div>
           )}
 
@@ -163,6 +182,27 @@ export function ProductDetail({ product }: { product: Product }) {
           </div>
         </div>
       </div>
+
+      {/* Souvent achetés ensemble */}
+      {relatedProducts.length > 0 && (
+        <div className="sac-sec">
+          <div className="sac-ttl">Souvent achetés ensemble</div>
+          <div className="sac-grid">
+            {relatedProducts.map((rp) => (
+              <Link key={rp.id} href={`/products/${rp.slug}`} className="sac-card">
+                <div className="sac-img">
+                  {CATEGORY_ICONS[rp.category] ?? '✨'}
+                </div>
+                <div className="sac-info">
+                  <div className="sac-cat">{CATEGORY_LABELS[rp.category] ?? rp.category}</div>
+                  <div className="sac-name">{rp.name}</div>
+                  <div className="sac-price">{formatPrice(rp.price)}</div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   )
 }

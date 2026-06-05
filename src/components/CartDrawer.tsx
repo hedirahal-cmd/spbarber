@@ -1,13 +1,17 @@
 'use client'
 import { useCart } from '@/hooks/useCart'
-import { useRouter } from 'next/navigation'
 import { X, ShoppingBag } from 'lucide-react'
 import { useState } from 'react'
 import { PaymentLogos } from './PaymentLogos'
 import { formatPrice } from '@/lib/utils'
+import { PRODUCTS } from '@/lib/products'
 
-const FREE_SHIP = 5000
+const FREE_SHIP = 4900
 const FREE_GIFT = 7000
+
+const ICONS: Record<string, string> = {
+  coiffant: '🪮', soin: '🧴', barbe: '🧔', accessoire: '⚡',
+}
 
 function formatEur(cents: number) {
   return (cents / 100).toFixed(2).replace('.', ',') + ' €'
@@ -39,12 +43,15 @@ function ProgressBar({ total }: { total: number }) {
 }
 
 export function CartDrawer() {
-  const { items, isOpen, openCart, closeCart, removeItem, total, itemCount } = useCart()
-  const router = useRouter()
+  const { items, isOpen, openCart, closeCart, removeItem, addItem, total, itemCount } = useCart()
   const [loading, setLoading] = useState(false)
 
   const cartTotal = total()
   const count = itemCount()
+
+  const suggestions = PRODUCTS.filter(
+    (p) => !p.is_dropshipping && !items.find((i) => i.product.id === p.id)
+  ).slice(0, 2)
 
   async function handleCheckout() {
     if (items.length === 0) return
@@ -84,7 +91,7 @@ export function CartDrawer() {
         <div className="cart-head">
           <span className="cart-head-title">MON PANIER</span>
           <button className="cart-head-close" onClick={closeCart} aria-label="Fermer">
-            <X size={18} />
+            <X size={20} />
           </button>
         </div>
 
@@ -103,9 +110,7 @@ export function CartDrawer() {
                 <div key={`${item.product.id}-${item.variant?.id ?? ''}`} className="cart-row">
                   <div className="cart-row-ph">
                     <span style={{ fontSize: 28 }}>
-                      {item.product.category === 'coiffant' ? '🪮' :
-                       item.product.category === 'soin' ? '🧴' :
-                       item.product.category === 'barbe' ? '🧔' : '⚡'}
+                      {ICONS[item.product.category] ?? '✨'}
                     </span>
                   </div>
                   <div>
@@ -129,6 +134,29 @@ export function CartDrawer() {
           )}
         </div>
 
+        {/* Upsell strip */}
+        {items.length > 0 && suggestions.length > 0 && (
+          <div className="cart-upsell">
+            <div className="cart-upsell-ttl">Compléter votre routine</div>
+            {suggestions.map((p) => (
+              <div key={p.id} className="cart-upsell-row">
+                <div className="cart-upsell-ico">{ICONS[p.category] ?? '✨'}</div>
+                <div className="cart-upsell-inf">
+                  <div className="cart-upsell-nm">{p.name}</div>
+                  <div className="cart-upsell-pr">{formatPrice(p.price)}</div>
+                </div>
+                <button
+                  className="cart-upsell-btn"
+                  onClick={() => addItem(p)}
+                  aria-label={`Ajouter ${p.name}`}
+                >
+                  + Ajouter
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
         {items.length > 0 && (
           <div className="cart-foot">
             <div className="cart-total-row">
@@ -140,9 +168,23 @@ export function CartDrawer() {
               onClick={handleCheckout}
               disabled={loading}
             >
-              {loading ? 'Chargement...' : 'Valider ma commande →'}
+              {loading ? 'Chargement...' : '🔒 Valider ma commande →'}
             </button>
             <PaymentLogos />
+            <div className="cart-trust-foot">
+              <div className="cart-trust-item">
+                <span className="cart-trust-icon">🔒</span>
+                Paiement sécurisé
+              </div>
+              <div className="cart-trust-item">
+                <span className="cart-trust-icon">🚚</span>
+                Expédition 24–48h
+              </div>
+              <div className="cart-trust-item">
+                <span className="cart-trust-icon">↩️</span>
+                Retour facile 30j
+              </div>
+            </div>
           </div>
         )}
       </div>

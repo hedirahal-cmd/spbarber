@@ -30,39 +30,37 @@ export default function HomePage() {
               <span className="hero-proof-star">★★★★★</span> 4,9/5
             </span>
             <span className="hero-proof-sep">·</span>
-            <span className="hero-proof-item">+500 avis</span>
+            <span className="hero-proof-item">+500 avis vérifiés</span>
             <span className="hero-proof-sep">·</span>
             <span className="hero-proof-item">Utilisé par les pros</span>
           </div>
 
           <h1 className="h-title">
-            Des produits<em>de salon,<br />chez vous.</em>
+            Produits professionnels<em>pour cheveux & barbe.</em>
           </h1>
 
           <p className="h-sub">
-            Cires, shampooings, soins barbe et tondeuses — les mêmes formules que votre barbier.
+            Les soins utilisés par les meilleurs barbiers pour un résultat impeccable à la maison.
           </p>
 
           <div className="h-ctas">
             <Link href="/products" className="btn-hero-primary">
-              Voir les produits
+              Acheter maintenant
               <span className="btn-hero-arrow">→</span>
             </Link>
           </div>
 
-          <div className="hero-inline-trust">
-            <span>Livraison offerte dès 50€</span>
-            <span className="hero-trust-dot">·</span>
-            <span>Retour 30j</span>
-            <span className="hero-trust-dot">·</span>
-            <span>Expédié 48h</span>
+          <div className="hero-trust-checks">
+            <span className="hero-check-item"><span className="hero-check-v">✓</span> Livraison rapide</span>
+            <span className="hero-check-item"><span className="hero-check-v">✓</span> Paiement sécurisé</span>
+            <span className="hero-check-item"><span className="hero-check-v">✓</span> Sélectionnés par des pros</span>
           </div>
         </div>
       </section>
 
       {/* ── REA BAR ── */}
       <div className="rea-compact">
-        <div className="rea-c-item">🚚 Livraison offerte dès 50€</div>
+        <div className="rea-c-item">🚚 Livraison offerte dès 49€</div>
         <div className="rea-c-sep">|</div>
         <div className="rea-c-item">🎁 Cadeau dès 70€</div>
         <div className="rea-c-sep">|</div>
@@ -70,6 +68,38 @@ export default function HomePage() {
         <div className="rea-c-sep">|</div>
         <div className="rea-c-item">⚡ Expédié 48h</div>
       </div>
+
+      {/* ── BESOIN ── */}
+      <section id="besoin">
+        <div className="sec-head">
+          <div>
+            <div className="sec-ey">— Trouvez votre solution —</div>
+            <h2 className="sec-title">QUEL EST VOTRE BESOIN ?</h2>
+          </div>
+        </div>
+        <div className="prob-grid">
+          <Link href="/products/cire-cheveux-premium" className="prob-card">
+            <div className="prob-icon">💆‍♂️</div>
+            <div className="prob-title">Cheveux difficiles à coiffer</div>
+            <div className="prob-cta">Voir les solutions →</div>
+          </Link>
+          <Link href="/products/pack-barbe-complet" className="prob-card">
+            <div className="prob-icon">🧔</div>
+            <div className="prob-title">Barbe sèche ou qui gratte</div>
+            <div className="prob-cta">Voir les solutions →</div>
+          </Link>
+          <Link href="/products/shampooing-noir-colorant" className="prob-card">
+            <div className="prob-icon">✨</div>
+            <div className="prob-title">Cheveux blancs à masquer</div>
+            <div className="prob-cta">Voir les solutions →</div>
+          </Link>
+          <Link href="/products" className="prob-card">
+            <div className="prob-icon">⚡</div>
+            <div className="prob-title">Routine capillaire complète</div>
+            <div className="prob-cta">Voir les packs →</div>
+          </Link>
+        </div>
+      </section>
 
       {/* ── PRODUITS ── */}
       <section id="produits">
@@ -97,6 +127,7 @@ export default function HomePage() {
               </Link>
               <div className="pc-info">
                 <div className="pc-cat">{CATEGORY_LABELS[product.category] ?? product.category}</div>
+                {product.benefit && <div className="pc-benefit">{product.benefit}</div>}
                 <Link href={`/products/${product.slug}`}>
                   <div className="pc-name">{product.name}</div>
                 </Link>
@@ -161,6 +192,62 @@ export default function HomePage() {
           <div className="stat-l">Livraison</div>
         </div>
       </div>
+
+      {/* ── BARBIERS ── */}
+      <section className="barbers-sec">
+        <div className="sec-head">
+          <div>
+            <div className="sec-ey">— Recommandé par les experts —</div>
+            <h2 className="sec-title">CHOIX DES BARBIERS</h2>
+          </div>
+        </div>
+        <div className="barbers-grid">
+          <div className="barber-card">
+            <div className="barber-hd">
+              <div className="barber-av">✂️</div>
+              <div>
+                <div className="barber-name-txt">Samy P.</div>
+                <div className="barber-role-txt">Barbier · Fougères · 8 ans</div>
+              </div>
+            </div>
+            <div className="barber-stars-txt">★★★★★</div>
+            <p className="barber-quote-txt">
+              &ldquo;La Cire Premium est mon indispensable. Tenue impeccable du matin au soir — je l&apos;utilise sur tous mes clients depuis des années.&rdquo;
+            </p>
+            <div className="barber-fav-txt">Produit favori : <strong>Cire Cheveux Premium</strong></div>
+          </div>
+
+          <div className="barber-card">
+            <div className="barber-hd">
+              <div className="barber-av">🪒</div>
+              <div>
+                <div className="barber-name-txt">Karim M.</div>
+                <div className="barber-role-txt">Barbier · Rennes · 12 ans</div>
+              </div>
+            </div>
+            <div className="barber-stars-txt">★★★★★</div>
+            <p className="barber-quote-txt">
+              &ldquo;Le Pack Barbe, c&apos;est exactement ce que je recommande à mes clients qui veulent entretenir leur barbe à la maison comme en salon.&rdquo;
+            </p>
+            <div className="barber-fav-txt">Produit favori : <strong>Pack Barbe Complet</strong></div>
+          </div>
+
+          <div className="barber-card">
+            <div className="barber-hd">
+              <div className="barber-av">💈</div>
+              <div>
+                <div className="barber-name-txt">David L.</div>
+                <div className="barber-role-txt">Barbier · Paris · 6 ans</div>
+              </div>
+            </div>
+            <div className="barber-stars-txt">★★★★★</div>
+            <p className="barber-quote-txt">
+              &ldquo;Le Shampooing Noir est parfait pour raviver la couleur entre deux coupes. Aucun client ne revient sans vouloir en racheter.&rdquo;
+            </p>
+            <div className="barber-fav-txt">Produit favori : <strong>Shampooing Noir Colorant</strong></div>
+          </div>
+        </div>
+      </section>
 
       {/* ── SALON ── */}
       <section id="salon" className="salon-compact">
@@ -234,7 +321,7 @@ export default function HomePage() {
       {/* ── STICKY MOBILE ── */}
       <div className="sticky-mob">
         <Link href="/products" className="sticky-mob-btn">
-          Voir tous les produits
+          Acheter maintenant
         </Link>
       </div>
     </>

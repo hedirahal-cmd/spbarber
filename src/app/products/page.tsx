@@ -50,6 +50,7 @@ export default function ProductsPage() {
               </Link>
               <div className="pc-info">
                 <div className="pc-cat">{CATEGORY_LABELS[product.category] ?? product.category}</div>
+                {product.benefit && <div className="pc-benefit">{product.benefit}</div>}
                 <Link href={`/products/${product.slug}`}>
                   <div className="pc-name">{product.name}</div>
                 </Link>

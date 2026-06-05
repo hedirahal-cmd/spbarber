@@ -4,8 +4,9 @@ import { Menu, X } from 'lucide-react'
 import { useState } from 'react'
 
 const NAV_LINKS = [
-  { label: 'Cheveux', href: '/products' },
-  { label: 'Barbe', href: '/products/pack-barbe-complet' },
+  { label: 'Best Sellers', href: '/#produits' },
+  { label: 'Packs', href: '/products/pack-barbe-complet' },
+  { label: 'Tous les Produits', href: '/products' },
   { label: 'Notre Salon', href: '/#salon' },
 ]
 
@@ -14,24 +15,20 @@ export function Header() {
 
   return (
     <>
-      {/* Announcement bar */}
       <div className="ann">
-        Livraison offerte dès 50€ &nbsp;·&nbsp; <b>Cadeau offert dès 70€</b> &nbsp;·&nbsp; Expédition 48h
+        Livraison offerte dès <b className="ann-gold">49€</b> &nbsp;·&nbsp; <b>Cadeau offert dès 70€</b> &nbsp;·&nbsp; Expédition 48h
       </div>
 
-      {/* Nav */}
       <nav className="site-nav">
         <div className="site-nav-inner">
-          {/* Desktop centered links */}
-          <div className="site-nav-links-desktop" style={{ display: 'flex', gap: 52, alignItems: 'center' }}>
+          <div className="site-nav-links-desktop" style={{ display: 'flex', gap: 40, alignItems: 'center' }}>
             {NAV_LINKS.map(({ label, href }) => (
-              <Link key={href} href={href}>
+              <Link key={label} href={href}>
                 {label}
               </Link>
             ))}
           </div>
 
-          {/* Right: hamburger (mobile only) */}
           <div className="site-nav-right">
             <button
               className="hamburger"
@@ -43,11 +40,10 @@ export function Header() {
           </div>
         </div>
 
-        {/* Mobile menu */}
         {menuOpen && (
           <div className="mobile-menu">
             {NAV_LINKS.map(({ label, href }) => (
-              <Link key={href} href={href} onClick={() => setMenuOpen(false)}>
+              <Link key={label} href={href} onClick={() => setMenuOpen(false)}>
                 {label}
               </Link>
             ))}
