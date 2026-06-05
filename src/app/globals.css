@@ -1114,6 +1114,32 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
   .sac-grid { grid-template-columns: 1fr; }
 }
 
+/* ─ Pages légales ─ */
+.legal-page { background: var(--w); min-height: 60vh; padding: 40px 0 80px; }
+.legal-inner { max-width: 780px; margin: 0 auto; padding: 0 32px; }
+.legal-back { margin-bottom: 28px; }
+.legal-back a { font-size: 12px; color: var(--gt); text-decoration: none; letter-spacing: 1px; text-transform: uppercase; }
+.legal-back a:hover { color: var(--b); }
+.legal-h1 { font-family: var(--fd); font-size: clamp(28px, 5vw, 44px); color: var(--b); letter-spacing: 3px; text-transform: uppercase; margin-bottom: 6px; }
+.legal-updated { font-size: 11px; color: var(--gt); letter-spacing: 1px; margin-bottom: 40px; }
+.legal-section { margin-bottom: 36px; }
+.legal-section h2 { font-family: var(--fb); font-size: 14px; font-weight: 700; color: var(--b); text-transform: uppercase; letter-spacing: 2px; border-bottom: 1px solid rgba(0,0,0,.08); padding-bottom: 8px; margin-bottom: 14px; }
+.legal-section h3 { font-size: 13px; font-weight: 600; color: var(--b); margin: 14px 0 8px; }
+.legal-section p { font-size: 14px; color: #333; line-height: 1.75; margin-bottom: 12px; }
+.legal-section ul, .legal-section ol { font-size: 14px; color: #333; line-height: 1.75; padding-left: 24px; margin-bottom: 12px; }
+.legal-section li { margin-bottom: 5px; }
+.legal-section a { color: var(--gold); text-decoration: underline; }
+.legal-table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 12px 0 20px; }
+.legal-table th, .legal-table td { padding: 10px 14px; border: 1px solid rgba(0,0,0,.1); text-align: left; }
+.legal-table th { background: var(--b); color: var(--w); font-weight: 600; letter-spacing: 0.5px; }
+.legal-table tr:nth-child(even) td { background: rgba(0,0,0,.02); }
+.legal-contact { margin-top: 40px; padding: 18px 22px; background: #f4f2ef; border-left: 3px solid var(--gold); font-size: 13px; color: #333; }
+@media (max-width: 600px) {
+  .legal-inner { padding: 0 18px; }
+  .legal-table { font-size: 11px; }
+  .legal-table th, .legal-table td { padding: 7px 9px; }
+}
+
 /* ─ Badge Forte marge ─ */
 .pc-tag-fm { position: absolute; top: 12px; left: 12px; background: #c0392b; color: #fff; font-size: 8px; letter-spacing: 2px; text-transform: uppercase; font-weight: 700; padding: 4px 10px; }
 .best2-badge-fm { position: absolute; top: 14px; left: 14px; z-index: 2; background: #c0392b; color: var(--w); font-size: 8px; letter-spacing: 2px; text-transform: uppercase; font-weight: 700; padding: 5px 12px; }

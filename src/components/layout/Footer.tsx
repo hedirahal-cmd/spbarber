@@ -69,9 +69,9 @@ export function Footer() {
       <div className="ft-bottom">
         <span className="ft-copy">© {new Date().getFullYear()} SP Barber — Tous droits réservés</span>
         <div className="ft-legal">
-          <Link href="#">Confidentialité</Link>
-          <Link href="#">CGV</Link>
-          <Link href="#">Mentions légales</Link>
+          <Link href="/politique-confidentialite">Confidentialité</Link>
+          <Link href="/cgv">CGV</Link>
+          <Link href="/mentions-legales">Mentions légales</Link>
         </div>
       </div>
     </footer>
