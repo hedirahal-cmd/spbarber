@@ -53,13 +53,7 @@ export function CartDrawer() {
       const res = await fetch('/api/stripe/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          items: items.map((item) => ({
-            productId: item.product.id,
-            variantId: item.variant?.id,
-            quantity: item.quantity,
-          })),
-        }),
+        body: JSON.stringify({ items }),
       })
       const data = await res.json()
       if (data.url) {
