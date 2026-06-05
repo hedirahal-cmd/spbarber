@@ -2,237 +2,353 @@
 import { useState, useEffect, useCallback } from 'react'
 import { PRODUCTS } from '@/lib/products'
 
-type Tab = 'produits' | 'commandes' | 'legal' | 'avis'
+type NavSection = 'produits' | 'commandes' | 'legal' | 'avis'
 
 const ORDER_STATUSES = ['pending', 'paid', 'shipped', 'delivered', 'cancelled']
-
 const LEGAL_SLUGS = [
-  { slug: 'cgv', title: 'CGV (Conditions Générales de Vente)' },
-  { slug: 'mentions-legales', title: 'Mentions Légales' },
-  { slug: 'politique-confidentialite', title: 'Politique de Confidentialité (RGPD)' },
+  { slug: 'cgv', title: 'CGV' },
+  { slug: 'mentions-legales', title: 'Mentions légales' },
+  { slug: 'politique-confidentialite', title: 'Politique de confidentialité' },
 ]
 
-function formatEur(cents: number) {
-  return (cents / 100).toFixed(2).replace('.', ',') + ' €'
+const CAT_LABELS: Record<string, string> = {
+  coiffant: 'Coiffant', soin: 'Soin', barbe: 'Barbe', accessoire: 'Accessoire',
+}
+const CAT_COLORS: Record<string, string> = {
+  coiffant: '#2563eb', soin: '#7c3aed', barbe: '#b8903a', accessoire: '#16a34a',
 }
 
+function eur(c: number) { return (c / 100).toFixed(2).replace('.', ',') + ' €' }
 function statusLabel(s: string) {
-  const map: Record<string, string> = {
-    pending: 'En attente', paid: 'Payé', shipped: 'Expédié',
-    delivered: 'Livré', cancelled: 'Annulé',
+  return ({ pending: 'En attente', paid: 'Payé', shipped: 'Expédié', delivered: 'Livré', cancelled: 'Annulé' })[s] ?? s
+}
+function statusBadge(s: string): { bg: string; color: string } {
+  const m: Record<string, { bg: string; color: string }> = {
+    pending: { bg: '#fff7ed', color: '#c2410c' },
+    paid: { bg: '#eff6ff', color: '#1d4ed8' },
+    shipped: { bg: '#f5f3ff', color: '#6d28d9' },
+    delivered: { bg: '#f0fdf4', color: '#15803d' },
+    cancelled: { bg: '#fef2f2', color: '#b91c1c' },
   }
-  return map[s] ?? s
+  return m[s] ?? { bg: '#f4f4f5', color: '#71717a' }
 }
 
-function statusColor(s: string) {
-  const map: Record<string, string> = {
-    pending: '#b8903a', paid: '#2563eb', shipped: '#7c3aed',
-    delivered: '#16a34a', cancelled: '#dc2626',
-  }
-  return map[s] ?? '#666'
+// ─── Tokens de style ─────────────────────────────────────────────
+const S = {
+  sidebar: '#1c1c1c',
+  sidebarBorder: 'rgba(255,255,255,.08)',
+  sidebarText: 'rgba(255,255,255,.6)',
+  sidebarActive: '#ffffff',
+  sidebarActiveBg: 'rgba(255,255,255,.1)',
+  bg: '#f6f6f7',
+  card: '#ffffff',
+  border: '#e1e3e5',
+  text: '#202223',
+  muted: '#6d7175',
+  gold: '#b8903a',
+  input: { border: '1px solid #ababab', borderRadius: 4, padding: '8px 12px', fontSize: 14, width: '100%', color: '#202223', outline: 'none', background: '#fff', boxSizing: 'border-box' as const },
+  btnPrimary: { background: '#b8903a', color: '#fff', border: 'none', padding: '9px 20px', fontSize: 13, fontWeight: 600, cursor: 'pointer', borderRadius: 4 },
+  btnSecondary: { background: '#fff', color: '#202223', border: '1px solid #ababab', padding: '8px 16px', fontSize: 13, fontWeight: 500, cursor: 'pointer', borderRadius: 4 },
+  card_: { background: '#fff', border: '1px solid #e1e3e5', borderRadius: 8, boxShadow: '0 1px 3px rgba(0,0,0,.06)' },
 }
 
-// ─── Login ───
+// ─── Login ─────────────────────────────────────────────────────
 function LoginForm({ onLogin }: { onLogin: () => void }) {
   const [pwd, setPwd] = useState('')
   const [err, setErr] = useState('')
   const [loading, setLoading] = useState(false)
-
   async function submit(e: React.FormEvent) {
-    e.preventDefault()
-    setLoading(true)
-    setErr('')
+    e.preventDefault(); setLoading(true); setErr('')
     try {
-      const res = await fetch('/api/admin/auth', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password: pwd }),
-      })
-      if (res.ok) {
-        onLogin()
-      } else {
-        const d = await res.json()
-        setErr(d.error || 'Erreur')
-      }
-    } finally {
-      setLoading(false)
-    }
+      const res = await fetch('/api/admin/auth', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: pwd }) })
+      if (res.ok) { onLogin() } else { const d = await res.json(); setErr(d.error || 'Mot de passe incorrect') }
+    } finally { setLoading(false) }
   }
-
   return (
-    <div style={{ minHeight: '100vh', background: '#0c0c0c', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <form onSubmit={submit} style={{ background: '#141210', border: '1px solid rgba(255,255,255,.08)', padding: '40px 36px', width: 360, textAlign: 'center' }}>
-        <div style={{ fontFamily: 'var(--fd)', fontSize: 28, letterSpacing: 4, color: '#f8f6f3', marginBottom: 6 }}>
-          SP<span style={{ color: '#b8903a' }}>.</span>BARBER
+    <div style={{ minHeight: '100vh', background: S.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ ...S.card_, padding: '40px 36px', width: 380 }}>
+        <div style={{ marginBottom: 28, textAlign: 'center' }}>
+          <div style={{ fontFamily: 'var(--fd)', fontSize: 24, letterSpacing: 4, color: S.text, marginBottom: 4 }}>
+            SP<span style={{ color: S.gold }}>.</span>BARBER
+          </div>
+          <div style={{ fontSize: 13, color: S.muted }}>Connexion à l&apos;administration</div>
         </div>
-        <div style={{ fontSize: 10, letterSpacing: 3, color: 'rgba(248,246,243,.3)', textTransform: 'uppercase', marginBottom: 32 }}>
-          Administration
-        </div>
-        <input
-          type="password"
-          value={pwd}
-          onChange={(e) => setPwd(e.target.value)}
-          placeholder="Mot de passe"
-          autoFocus
-          style={{ width: '100%', padding: '12px 16px', background: 'rgba(255,255,255,.05)', border: '1px solid rgba(255,255,255,.12)', color: '#f8f6f3', fontSize: 14, marginBottom: 14, outline: 'none' }}
-        />
-        {err && <div style={{ color: '#dc2626', fontSize: 12, marginBottom: 12 }}>{err}</div>}
-        <button
-          type="submit"
-          disabled={loading}
-          style={{ width: '100%', padding: '13px', background: '#b8903a', color: '#fff', border: 'none', fontSize: 11, letterSpacing: 3, textTransform: 'uppercase', fontWeight: 700, cursor: 'pointer' }}
-        >
-          {loading ? '...' : 'Connexion'}
-        </button>
-      </form>
+        <form onSubmit={submit}>
+          <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: S.text, marginBottom: 6 }}>Mot de passe</label>
+          <input type="password" value={pwd} onChange={(e) => setPwd(e.target.value)} autoFocus style={{ ...S.input, marginBottom: err ? 8 : 16 }} />
+          {err && <div style={{ color: '#b91c1c', fontSize: 13, marginBottom: 12 }}>{err}</div>}
+          <button type="submit" disabled={loading} style={{ ...S.btnPrimary, width: '100%', padding: '11px 20px', fontSize: 14 }}>
+            {loading ? 'Connexion…' : 'Se connecter'}
+          </button>
+        </form>
+      </div>
     </div>
   )
 }
 
-// ─── Tab Produits ───
+// ─── Sidebar ───────────────────────────────────────────────────
+function Sidebar({ active, setActive, logout }: { active: NavSection; setActive: (s: NavSection) => void; logout: () => void }) {
+  const sections = [
+    { label: 'CATALOGUE', items: [{ id: 'produits' as NavSection, label: 'Produits' }] },
+    { label: 'VENTES', items: [{ id: 'commandes' as NavSection, label: 'Commandes' }] },
+    { label: 'CONTENU', items: [{ id: 'legal' as NavSection, label: 'Textes légaux' }, { id: 'avis' as NavSection, label: 'Avis clients' }] },
+  ]
+  return (
+    <div style={{ width: 232, background: S.sidebar, height: '100vh', position: 'fixed', top: 0, left: 0, display: 'flex', flexDirection: 'column', zIndex: 10 }}>
+      {/* Logo */}
+      <div style={{ padding: '22px 20px 16px', borderBottom: `1px solid ${S.sidebarBorder}` }}>
+        <div style={{ fontFamily: 'var(--fd)', fontSize: 18, letterSpacing: 3, color: '#fff' }}>
+          SP<span style={{ color: S.gold }}>.</span>BARBER
+        </div>
+        <div style={{ fontSize: 10, color: S.sidebarText, letterSpacing: 1.5, textTransform: 'uppercase', marginTop: 2 }}>Administration</div>
+      </div>
+
+      {/* Nav */}
+      <div style={{ flex: 1, overflowY: 'auto', padding: '12px 0' }}>
+        {sections.map((sec) => (
+          <div key={sec.label} style={{ marginBottom: 8 }}>
+            <div style={{ fontSize: 10, color: 'rgba(255,255,255,.3)', letterSpacing: 2, textTransform: 'uppercase', padding: '8px 20px 4px', fontWeight: 600 }}>{sec.label}</div>
+            {sec.items.map((item) => (
+              <button
+                key={item.id}
+                onClick={() => setActive(item.id)}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 10, width: '100%',
+                  padding: '9px 20px', background: active === item.id ? S.sidebarActiveBg : 'transparent',
+                  border: 'none', cursor: 'pointer', textAlign: 'left', borderRadius: 0,
+                  color: active === item.id ? S.sidebarActive : S.sidebarText,
+                  fontSize: 14, fontWeight: active === item.id ? 600 : 400,
+                  borderLeft: active === item.id ? `2px solid ${S.gold}` : '2px solid transparent',
+                }}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+        ))}
+      </div>
+
+      {/* Footer */}
+      <div style={{ borderTop: `1px solid ${S.sidebarBorder}`, padding: '8px 0' }}>
+        <a href="/" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 20px', color: S.sidebarText, fontSize: 14, textDecoration: 'none' }}>
+          ← Voir le site
+        </a>
+        <button onClick={logout} style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '9px 20px', background: 'none', border: 'none', cursor: 'pointer', color: S.sidebarText, fontSize: 14, textAlign: 'left' }}>
+          Déconnexion
+        </button>
+      </div>
+    </div>
+  )
+}
+
+// ─── Produit: image placeholder ─────────────────────────────────
+function ProductThumb({ category }: { category: string }) {
+  const icons: Record<string, string> = { coiffant: '◈', soin: '◉', barbe: '◆', accessoire: '◇' }
+  return (
+    <div style={{ width: 44, height: 44, borderRadius: 6, background: '#f4f4f5', border: '1px solid #e4e4e7', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, color: CAT_COLORS[category] ?? '#71717a', flexShrink: 0 }}>
+      {icons[category] ?? '◈'}
+    </div>
+  )
+}
+
+// ─── Tab Produits ──────────────────────────────────────────────
 function TabProduits() {
   const [overrides, setOverrides] = useState<Record<string, Record<string, unknown>>>({})
   const [editing, setEditing] = useState<string | null>(null)
   const [form, setForm] = useState<Record<string, string>>({})
   const [saving, setSaving] = useState(false)
-  const [msg, setMsg] = useState('')
+  const [saved, setSaved] = useState(false)
 
   useEffect(() => {
-    fetch('/api/admin/products')
-      .then((r) => r.json())
-      .then((rows: Array<Record<string, unknown>>) => {
-        const map: Record<string, Record<string, unknown>> = {}
-        if (Array.isArray(rows)) rows.forEach((r) => { map[r.id as string] = r })
-        setOverrides(map)
-      })
-      .catch(() => {})
+    fetch('/api/admin/products').then(r => r.json()).then((rows: Array<Record<string, unknown>>) => {
+      if (!Array.isArray(rows)) return
+      const map: Record<string, Record<string, unknown>> = {}
+      rows.forEach(r => { map[r.id as string] = r })
+      setOverrides(map)
+    }).catch(() => {})
   }, [])
 
   function startEdit(id: string) {
-    const base = PRODUCTS.find((p) => p.id === id)!
+    const base = PRODUCTS.find(p => p.id === id)!
     const ov = overrides[id] ?? {}
     setForm({
       name: String(ov.name ?? base.name),
-      price: String(ov.price !== undefined && ov.price !== null ? ov.price : base.price),
+      price: String(ov.price != null ? ov.price : base.price),
       description: String(ov.description ?? base.description),
-      stock: String(ov.stock !== undefined && ov.stock !== null ? ov.stock : base.stock),
+      stock: String(ov.stock != null ? ov.stock : base.stock),
       benefit: String(ov.benefit ?? base.benefit ?? ''),
     })
     setEditing(id)
+    setSaved(false)
   }
 
   async function save() {
     if (!editing) return
     setSaving(true)
-    const res = await fetch('/api/admin/products', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: editing, ...form }),
-    })
+    const res = await fetch('/api/admin/products', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: editing, ...form }) })
     setSaving(false)
     if (res.ok) {
-      setMsg('Sauvegardé ✓')
-      setEditing(null)
-      const rows: Array<Record<string, unknown>> = await fetch('/api/admin/products').then((r) => r.json())
+      setSaved(true)
+      const rows: Array<Record<string, unknown>> = await fetch('/api/admin/products').then(r => r.json())
       const map: Record<string, Record<string, unknown>> = {}
-      if (Array.isArray(rows)) rows.forEach((r) => { map[r.id as string] = r })
+      if (Array.isArray(rows)) rows.forEach(r => { map[r.id as string] = r })
       setOverrides(map)
-      setTimeout(() => setMsg(''), 2000)
     }
   }
 
-  return (
-    <div>
-      {msg && <div style={{ background: '#16a34a', color: '#fff', padding: '10px 16px', marginBottom: 16, fontSize: 13 }}>{msg}</div>}
-      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-        <thead>
-          <tr style={{ background: 'rgba(255,255,255,.04)', borderBottom: '1px solid rgba(255,255,255,.08)' }}>
-            {['ID', 'Nom', 'Prix', 'Stock', 'Actions'].map((h) => (
-              <th key={h} style={{ padding: '10px 14px', textAlign: 'left', color: 'rgba(248,246,243,.5)', fontWeight: 600, letterSpacing: 1, fontSize: 10, textTransform: 'uppercase' }}>{h}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {PRODUCTS.map((p) => {
-            const ov = overrides[p.id]
-            const name = ov?.name ? String(ov.name) : p.name
-            const price = ov?.price !== undefined && ov?.price !== null ? Number(ov.price) : p.price
-            const stock = ov?.stock !== undefined && ov?.stock !== null ? Number(ov.stock) : p.stock
-            return (
-              <tr key={p.id} style={{ borderBottom: '1px solid rgba(255,255,255,.05)' }}>
-                <td style={{ padding: '10px 14px', color: '#b8903a', fontWeight: 700 }}>{p.id}</td>
-                <td style={{ padding: '10px 14px', color: '#f8f6f3' }}>
-                  {name}
-                  {ov && <span style={{ color: '#b8903a', fontSize: 10, marginLeft: 6 }}>modifié</span>}
-                </td>
-                <td style={{ padding: '10px 14px', color: '#f8f6f3' }}>{formatEur(price)}</td>
-                <td style={{ padding: '10px 14px', color: stock <= 5 ? '#dc2626' : '#f8f6f3' }}>{stock}</td>
-                <td style={{ padding: '10px 14px' }}>
-                  <button
-                    onClick={() => startEdit(p.id)}
-                    style={{ background: 'rgba(184,144,58,.15)', color: '#b8903a', border: '1px solid rgba(184,144,58,.3)', padding: '5px 14px', fontSize: 11, cursor: 'pointer', letterSpacing: 1 }}
-                  >
-                    Modifier
-                  </button>
-                </td>
-              </tr>
-            )
-          })}
-        </tbody>
-      </table>
+  const selectedProduct = editing ? PRODUCTS.find(p => p.id === editing) : null
+  const ov = editing ? overrides[editing] : null
 
-      {editing && (
-        <div
-          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.7)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-          onClick={() => setEditing(null)}
-        >
-          <div
-            style={{ background: '#1c1816', border: '1px solid rgba(255,255,255,.1)', padding: 32, width: 460, maxWidth: '90vw' }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div style={{ fontFamily: 'var(--fd)', fontSize: 18, letterSpacing: 3, color: '#f8f6f3', marginBottom: 22 }}>
-              MODIFIER LE PRODUIT #{editing}
+  return (
+    <div style={{ display: 'flex', gap: 0, height: '100%' }}>
+      {/* Liste */}
+      <div style={{ flex: 1, overflowY: 'auto' }}>
+        {/* Header */}
+        <div style={{ padding: '20px 24px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <h1 style={{ fontSize: 20, fontWeight: 600, color: S.text, margin: 0 }}>Produits</h1>
+            <p style={{ fontSize: 13, color: S.muted, margin: '2px 0 0' }}>{PRODUCTS.length} produits</p>
+          </div>
+        </div>
+
+        {/* Table */}
+        <div style={{ padding: '0 24px 24px' }}>
+          <div style={{ ...S.card_, overflow: 'hidden' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
+              <thead>
+                <tr style={{ borderBottom: `1px solid ${S.border}` }}>
+                  <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: 12, fontWeight: 600, color: S.muted, width: 60 }}></th>
+                  <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: 12, fontWeight: 600, color: S.muted }}>Produit</th>
+                  <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: 12, fontWeight: 600, color: S.muted }}>Catégorie</th>
+                  <th style={{ padding: '12px 16px', textAlign: 'right', fontSize: 12, fontWeight: 600, color: S.muted }}>Prix</th>
+                  <th style={{ padding: '12px 16px', textAlign: 'right', fontSize: 12, fontWeight: 600, color: S.muted }}>Stock</th>
+                  <th style={{ padding: '12px 16px', textAlign: 'center', fontSize: 12, fontWeight: 600, color: S.muted }}>Statut</th>
+                </tr>
+              </thead>
+              <tbody>
+                {PRODUCTS.map(p => {
+                  const o = overrides[p.id]
+                  const price = o?.price != null ? Number(o.price) : p.price
+                  const stock = o?.stock != null ? Number(o.stock) : p.stock
+                  const name = o?.name ? String(o.name) : p.name
+                  const isActive = editing === p.id
+                  return (
+                    <tr
+                      key={p.id}
+                      onClick={() => startEdit(p.id)}
+                      style={{ borderBottom: `1px solid ${S.border}`, cursor: 'pointer', background: isActive ? '#fdf8f0' : 'transparent', transition: 'background .15s' }}
+                      onMouseEnter={e => { if (!isActive) (e.currentTarget as HTMLElement).style.background = S.bg }}
+                      onMouseLeave={e => { if (!isActive) (e.currentTarget as HTMLElement).style.background = 'transparent' }}
+                    >
+                      <td style={{ padding: '14px 8px 14px 16px' }}>
+                        <ProductThumb category={p.category} />
+                      </td>
+                      <td style={{ padding: '14px 16px' }}>
+                        <div style={{ fontWeight: 500, color: S.text }}>{name}</div>
+                        <div style={{ fontSize: 12, color: S.muted, marginTop: 2 }}>ID #{p.id}{o && <span style={{ color: S.gold, marginLeft: 6 }}>• modifié</span>}</div>
+                      </td>
+                      <td style={{ padding: '14px 16px' }}>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, padding: '3px 10px', background: `${CAT_COLORS[p.category] ?? '#71717a'}18`, color: CAT_COLORS[p.category] ?? '#71717a', borderRadius: 20, fontWeight: 500 }}>
+                          {CAT_LABELS[p.category] ?? p.category}
+                        </span>
+                      </td>
+                      <td style={{ padding: '14px 16px', textAlign: 'right', fontWeight: 600, color: S.text }}>{eur(price)}</td>
+                      <td style={{ padding: '14px 16px', textAlign: 'right', color: stock <= 10 ? '#b91c1c' : S.text, fontWeight: stock <= 10 ? 600 : 400 }}>{stock}</td>
+                      <td style={{ padding: '14px 16px', textAlign: 'center' }}>
+                        <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 20, background: p.is_dropshipping ? '#eff6ff' : '#f0fdf4', color: p.is_dropshipping ? '#1d4ed8' : '#15803d' }}>
+                          {p.is_dropshipping ? 'Dropshipping' : 'En stock'}
+                        </span>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      {/* Panel d'édition */}
+      {editing && selectedProduct && (
+        <div style={{ width: 400, background: S.card, borderLeft: `1px solid ${S.border}`, display: 'flex', flexDirection: 'column', height: '100%', overflowY: 'auto', flexShrink: 0 }}>
+          {/* Panel header */}
+          <div style={{ padding: '16px 20px', borderBottom: `1px solid ${S.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
+            <div>
+              <div style={{ fontSize: 15, fontWeight: 600, color: S.text }}>{selectedProduct.name}</div>
+              <div style={{ fontSize: 12, color: S.muted }}>Produit #{editing}</div>
             </div>
-            {[
-              { k: 'name', label: 'Nom', type: 'text' },
-              { k: 'price', label: 'Prix (centimes, ex: 2990)', type: 'number' },
-              { k: 'stock', label: 'Stock', type: 'number' },
-              { k: 'benefit', label: 'Bénéfice (accroche)', type: 'text' },
-            ].map(({ k, label, type }) => (
-              <div key={k} style={{ marginBottom: 14 }}>
-                <label style={{ display: 'block', fontSize: 10, color: 'rgba(248,246,243,.4)', letterSpacing: 2, textTransform: 'uppercase', marginBottom: 5 }}>{label}</label>
-                <input
-                  type={type}
-                  value={form[k] ?? ''}
-                  onChange={(e) => setForm((f) => ({ ...f, [k]: e.target.value }))}
-                  style={{ width: '100%', padding: '10px 13px', background: 'rgba(255,255,255,.05)', border: '1px solid rgba(255,255,255,.1)', color: '#f8f6f3', fontSize: 13, outline: 'none' }}
-                />
-              </div>
-            ))}
+            <button onClick={() => setEditing(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, color: S.muted, padding: 4, lineHeight: 1 }}>×</button>
+          </div>
+
+          <div style={{ padding: 20, flex: 1, overflowY: 'auto' }}>
+            {saved && <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 6, padding: '10px 14px', marginBottom: 16, fontSize: 13, color: '#15803d', fontWeight: 500 }}>Modifications sauvegardées</div>}
+            {ov && !saved && <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 6, padding: '10px 14px', marginBottom: 16, fontSize: 12, color: '#92400e' }}>Ce produit a des modifications actives dans Supabase.</div>}
+
+            {/* Photo */}
             <div style={{ marginBottom: 20 }}>
-              <label style={{ display: 'block', fontSize: 10, color: 'rgba(248,246,243,.4)', letterSpacing: 2, textTransform: 'uppercase', marginBottom: 5 }}>Description</label>
-              <textarea
-                rows={3}
-                value={form.description ?? ''}
-                onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-                style={{ width: '100%', padding: '10px 13px', background: 'rgba(255,255,255,.05)', border: '1px solid rgba(255,255,255,.1)', color: '#f8f6f3', fontSize: 13, outline: 'none', resize: 'vertical' }}
-              />
+              <div style={{ fontSize: 13, fontWeight: 600, color: S.text, marginBottom: 8 }}>Photo produit</div>
+              <div style={{ border: '2px dashed #e1e3e5', borderRadius: 6, padding: '24px 16px', textAlign: 'center', background: S.bg }}>
+                <ProductThumb category={selectedProduct.category} />
+                <div style={{ fontSize: 12, color: S.muted, marginTop: 8 }}>Upload via Supabase Storage (à configurer)</div>
+              </div>
             </div>
-            <div style={{ display: 'flex', gap: 10 }}>
-              <button
-                onClick={save}
-                disabled={saving}
-                style={{ flex: 1, padding: '12px', background: '#b8903a', color: '#fff', border: 'none', fontSize: 11, letterSpacing: 2, fontWeight: 700, cursor: 'pointer', textTransform: 'uppercase' }}
-              >
-                {saving ? '...' : 'Sauvegarder'}
-              </button>
-              <button
-                onClick={() => setEditing(null)}
-                style={{ padding: '12px 18px', background: 'transparent', color: 'rgba(248,246,243,.5)', border: '1px solid rgba(255,255,255,.12)', fontSize: 11, cursor: 'pointer' }}
-              >
-                Annuler
-              </button>
+
+            {/* Titre */}
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: S.text, marginBottom: 6 }}>Titre</label>
+              <input value={form.name ?? ''} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} style={S.input} />
             </div>
+
+            {/* Description */}
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: S.text, marginBottom: 6 }}>Description</label>
+              <textarea rows={4} value={form.description ?? ''} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} style={{ ...S.input, resize: 'vertical' }} />
+            </div>
+
+            {/* Bénéfice */}
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: S.text, marginBottom: 4 }}>Accroche bénéfice</label>
+              <div style={{ fontSize: 12, color: S.muted, marginBottom: 6 }}>Affiché sur les cartes produits</div>
+              <input value={form.benefit ?? ''} onChange={e => setForm(f => ({ ...f, benefit: e.target.value }))} style={S.input} />
+            </div>
+
+            {/* Prix & Stock */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 24 }}>
+              <div>
+                <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: S.text, marginBottom: 4 }}>Prix (centimes)</label>
+                <div style={{ fontSize: 11, color: S.muted, marginBottom: 6 }}>2490 = 24,90 €</div>
+                <input type="number" value={form.price ?? ''} onChange={e => setForm(f => ({ ...f, price: e.target.value }))} style={S.input} />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: S.text, marginBottom: 4 }}>Stock</label>
+                <div style={{ fontSize: 11, color: S.muted, marginBottom: 6 }}>&nbsp;</div>
+                <input type="number" value={form.stock ?? ''} onChange={e => setForm(f => ({ ...f, stock: e.target.value }))} style={S.input} />
+              </div>
+            </div>
+
+            {/* Variants */}
+            {selectedProduct.variants && (
+              <div style={{ marginBottom: 24 }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: S.text, marginBottom: 8 }}>Variantes</div>
+                <div style={{ border: `1px solid ${S.border}`, borderRadius: 6, overflow: 'hidden' }}>
+                  {selectedProduct.variants.map((v, i) => (
+                    <div key={v.id} style={{ padding: '10px 14px', borderBottom: i < (selectedProduct.variants?.length ?? 0) - 1 ? `1px solid ${S.border}` : 'none', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 13 }}>
+                      <span style={{ color: S.text }}>{v.name}</span>
+                      <span style={{ fontWeight: 600, color: S.muted }}>{eur(v.price)}</span>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ fontSize: 11, color: S.muted, marginTop: 6 }}>Les variantes sont gérées dans le code (lib/products.ts)</div>
+              </div>
+            )}
+          </div>
+
+          {/* Actions */}
+          <div style={{ padding: '16px 20px', borderTop: `1px solid ${S.border}`, display: 'flex', gap: 8, flexShrink: 0 }}>
+            <button onClick={save} disabled={saving} style={{ ...S.btnPrimary, flex: 1 }}>
+              {saving ? 'Sauvegarde…' : 'Sauvegarder'}
+            </button>
+            <button onClick={() => setEditing(null)} style={S.btnSecondary}>Annuler</button>
           </div>
         </div>
       )}
@@ -240,11 +356,12 @@ function TabProduits() {
   )
 }
 
-// ─── Tab Commandes ───
+// ─── Tab Commandes ─────────────────────────────────────────────
 function TabCommandes() {
   const [orders, setOrders] = useState<Array<Record<string, unknown>>>([])
   const [loading, setLoading] = useState(true)
   const [updating, setUpdating] = useState<string | null>(null)
+  const [selected, setSelected] = useState<Record<string, unknown> | null>(null)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -252,159 +369,172 @@ function TabCommandes() {
     if (res.ok) setOrders(await res.json())
     setLoading(false)
   }, [])
-
   useEffect(() => { load() }, [load])
 
   async function updateStatus(id: string, status: string) {
     setUpdating(id)
-    await fetch('/api/admin/orders', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id, status }),
-    })
+    await fetch('/api/admin/orders', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, status }) })
     await load()
     setUpdating(null)
+    if (selected && String(selected.id) === id) setSelected(s => s ? { ...s, status } : s)
   }
 
-  if (loading) return <div style={{ color: 'rgba(248,246,243,.4)', padding: 24 }}>Chargement…</div>
-  if (!orders.length) return <div style={{ color: 'rgba(248,246,243,.4)', padding: 24 }}>Aucune commande.</div>
-
   return (
-    <div style={{ overflowX: 'auto' }}>
-      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
-        <thead>
-          <tr style={{ background: 'rgba(255,255,255,.04)', borderBottom: '1px solid rgba(255,255,255,.08)' }}>
-            {['Date', 'E-mail', 'Total', 'Statut', 'Modifier statut'].map((h) => (
-              <th key={h} style={{ padding: '10px 14px', textAlign: 'left', color: 'rgba(248,246,243,.5)', fontWeight: 600, letterSpacing: 1, fontSize: 10, textTransform: 'uppercase' }}>{h}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {orders.map((o) => (
-            <tr key={String(o.id)} style={{ borderBottom: '1px solid rgba(255,255,255,.05)' }}>
-              <td style={{ padding: '10px 14px', color: 'rgba(248,246,243,.55)' }}>
-                {o.created_at ? new Date(String(o.created_at)).toLocaleDateString('fr-FR') : '—'}
-              </td>
-              <td style={{ padding: '10px 14px', color: '#f8f6f3' }}>{String(o.email ?? '—')}</td>
-              <td style={{ padding: '10px 14px', color: '#b8903a', fontWeight: 700 }}>{o.total ? formatEur(Number(o.total)) : '—'}</td>
-              <td style={{ padding: '10px 14px' }}>
-                <span style={{ color: statusColor(String(o.status ?? '')), fontWeight: 600, fontSize: 11, textTransform: 'uppercase', letterSpacing: 1 }}>
-                  {statusLabel(String(o.status ?? ''))}
-                </span>
-              </td>
-              <td style={{ padding: '10px 14px' }}>
-                <select
-                  value={String(o.status ?? 'pending')}
-                  disabled={updating === String(o.id)}
-                  onChange={(e) => updateStatus(String(o.id), e.target.value)}
-                  style={{ background: '#1c1816', color: '#f8f6f3', border: '1px solid rgba(255,255,255,.12)', padding: '5px 10px', fontSize: 12, cursor: 'pointer', outline: 'none' }}
-                >
-                  {ORDER_STATUSES.map((s) => (
-                    <option key={s} value={s}>{statusLabel(s)}</option>
-                  ))}
-                </select>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div style={{ display: 'flex', gap: 0, height: '100%' }}>
+      <div style={{ flex: 1, overflowY: 'auto' }}>
+        <div style={{ padding: '20px 24px 16px' }}>
+          <h1 style={{ fontSize: 20, fontWeight: 600, color: S.text, margin: 0 }}>Commandes</h1>
+          <p style={{ fontSize: 13, color: S.muted, margin: '2px 0 0' }}>{orders.length} commande{orders.length !== 1 ? 's' : ''}</p>
+        </div>
+
+        {loading ? (
+          <div style={{ padding: '40px 24px', textAlign: 'center', color: S.muted, fontSize: 14 }}>Chargement…</div>
+        ) : !orders.length ? (
+          <div style={{ padding: '40px 24px', textAlign: 'center' }}>
+            <div style={{ fontSize: 32, marginBottom: 12, color: '#d1d5db' }}>■</div>
+            <div style={{ fontSize: 14, color: S.muted }}>Aucune commande pour le moment.</div>
+          </div>
+        ) : (
+          <div style={{ padding: '0 24px 24px' }}>
+            <div style={{ ...S.card_, overflow: 'hidden' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
+                <thead>
+                  <tr style={{ borderBottom: `1px solid ${S.border}` }}>
+                    {['Commande', 'Date', 'Client', 'Total', 'Statut'].map(h => (
+                      <th key={h} style={{ padding: '12px 16px', textAlign: 'left', fontSize: 12, fontWeight: 600, color: S.muted }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {orders.map(o => {
+                    const badge = statusBadge(String(o.status ?? ''))
+                    const isActive = selected && String(selected.id) === String(o.id)
+                    return (
+                      <tr key={String(o.id)} onClick={() => setSelected(o)} style={{ borderBottom: `1px solid ${S.border}`, cursor: 'pointer', background: isActive ? '#fdf8f0' : 'transparent' }}
+                        onMouseEnter={e => { if (!isActive) (e.currentTarget as HTMLElement).style.background = S.bg }}
+                        onMouseLeave={e => { if (!isActive) (e.currentTarget as HTMLElement).style.background = 'transparent' }}>
+                        <td style={{ padding: '14px 16px', fontWeight: 500, color: S.text }}>#{String(o.id ?? '').slice(0, 8)}</td>
+                        <td style={{ padding: '14px 16px', color: S.muted, fontSize: 13 }}>{o.created_at ? new Date(String(o.created_at)).toLocaleDateString('fr-FR') : '—'}</td>
+                        <td style={{ padding: '14px 16px', color: S.text }}>{String(o.email ?? '—')}</td>
+                        <td style={{ padding: '14px 16px', fontWeight: 600, color: S.text }}>{o.total ? eur(Number(o.total)) : '—'}</td>
+                        <td style={{ padding: '14px 16px' }}>
+                          <span style={{ fontSize: 12, fontWeight: 600, padding: '3px 10px', borderRadius: 20, background: badge.bg, color: badge.color }}>
+                            {statusLabel(String(o.status ?? ''))}
+                          </span>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Détail commande */}
+      {selected && (
+        <div style={{ width: 360, background: S.card, borderLeft: `1px solid ${S.border}`, display: 'flex', flexDirection: 'column', height: '100%', overflowY: 'auto', flexShrink: 0 }}>
+          <div style={{ padding: '16px 20px', borderBottom: `1px solid ${S.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ fontSize: 15, fontWeight: 600, color: S.text }}>Commande #{String(selected.id ?? '').slice(0, 8)}</div>
+            <button onClick={() => setSelected(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, color: S.muted }}>×</button>
+          </div>
+          <div style={{ padding: 20 }}>
+            <div style={{ fontSize: 12, color: S.muted, marginBottom: 4 }}>Client</div>
+            <div style={{ fontWeight: 500, color: S.text, marginBottom: 16 }}>{String(selected.email ?? '—')}</div>
+
+            <div style={{ fontSize: 12, color: S.muted, marginBottom: 4 }}>Total</div>
+            <div style={{ fontWeight: 700, fontSize: 18, color: S.text, marginBottom: 16 }}>{selected.total ? eur(Number(selected.total)) : '—'}</div>
+
+            <div style={{ fontSize: 12, color: S.muted, marginBottom: 4 }}>Statut actuel</div>
+            <select
+              value={String(selected.status ?? 'pending')}
+              disabled={updating === String(selected.id)}
+              onChange={e => updateStatus(String(selected.id), e.target.value)}
+              style={{ ...S.input, marginBottom: 16 }}
+            >
+              {ORDER_STATUSES.map(s => <option key={s} value={s}>{statusLabel(s)}</option>)}
+            </select>
+
+            {selected.shipping_address && (
+              <>
+                <div style={{ fontSize: 12, color: S.muted, marginBottom: 4 }}>Adresse de livraison</div>
+                <div style={{ fontSize: 13, color: S.text, lineHeight: 1.6, background: S.bg, padding: '10px 14px', borderRadius: 6 }}>
+                  {JSON.stringify(selected.shipping_address, null, 2).replace(/[{}"]/g, '').split('\n').filter(l => l.trim()).map((l, i) => <div key={i}>{l.replace(/,\s*$/, '').replace(/^\s+/, '')}</div>)}
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
 
-// ─── Tab Textes Légaux ───
+// ─── Tab Legal ─────────────────────────────────────────────────
 function TabLegal() {
   const [pages, setPages] = useState<Record<string, { title: string; content: string }>>({})
   const [active, setActive] = useState('cgv')
   const [content, setContent] = useState('')
   const [saving, setSaving] = useState(false)
-  const [msg, setMsg] = useState('')
+  const [saved, setSaved] = useState(false)
 
   useEffect(() => {
-    fetch('/api/admin/legal')
-      .then((r) => r.json())
-      .then((rows: Array<{ slug: string; title: string; content: string }>) => {
-        if (Array.isArray(rows)) {
-          const map: Record<string, { title: string; content: string }> = {}
-          rows.forEach((r) => { map[r.slug] = { title: r.title, content: r.content } })
-          setPages(map)
-        }
-      })
-      .catch(() => {})
+    fetch('/api/admin/legal').then(r => r.json()).then((rows: Array<{ slug: string; title: string; content: string }>) => {
+      if (!Array.isArray(rows)) return
+      const map: Record<string, { title: string; content: string }> = {}
+      rows.forEach(r => { map[r.slug] = { title: r.title, content: r.content } })
+      setPages(map)
+    }).catch(() => {})
   }, [])
 
-  useEffect(() => {
-    setContent(pages[active]?.content ?? '')
-  }, [active, pages])
+  useEffect(() => { setContent(pages[active]?.content ?? ''); setSaved(false) }, [active, pages])
 
   async function save() {
     setSaving(true)
-    const info = LEGAL_SLUGS.find((l) => l.slug === active)!
-    const res = await fetch('/api/admin/legal', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ slug: active, title: info.title, content }),
-    })
+    const info = LEGAL_SLUGS.find(l => l.slug === active)!
+    const res = await fetch('/api/admin/legal', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ slug: active, title: info.title, content }) })
     setSaving(false)
-    if (res.ok) {
-      setPages((p) => ({ ...p, [active]: { title: info.title, content } }))
-      setMsg('Sauvegardé dans Supabase ✓')
-      setTimeout(() => setMsg(''), 2000)
-    }
+    if (res.ok) { setPages(p => ({ ...p, [active]: { title: info.title, content } })); setSaved(true) }
   }
 
   return (
-    <div>
-      <div style={{ display: 'flex', gap: 4, marginBottom: 20, flexWrap: 'wrap' }}>
-        {LEGAL_SLUGS.map((l) => (
-          <button
-            key={l.slug}
-            onClick={() => setActive(l.slug)}
-            style={{
-              padding: '8px 16px', fontSize: 11, letterSpacing: 1, textTransform: 'uppercase',
-              background: active === l.slug ? '#b8903a' : 'transparent',
-              color: active === l.slug ? '#fff' : 'rgba(248,246,243,.5)',
-              border: `1px solid ${active === l.slug ? '#b8903a' : 'rgba(255,255,255,.12)'}`,
-              cursor: 'pointer',
-            }}
-          >
-            {l.slug.replace(/-/g, ' ')}
+    <div style={{ padding: '20px 24px', maxWidth: 860 }}>
+      <h1 style={{ fontSize: 20, fontWeight: 600, color: S.text, margin: '0 0 4px' }}>Textes légaux</h1>
+      <p style={{ fontSize: 13, color: S.muted, margin: '0 0 20px' }}>Gérez le contenu des pages légales. Les modifications sont sauvegardées dans Supabase.</p>
+
+      <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
+        {LEGAL_SLUGS.map(l => (
+          <button key={l.slug} onClick={() => setActive(l.slug)}
+            style={{ padding: '7px 16px', fontSize: 13, fontWeight: active === l.slug ? 600 : 400, borderRadius: 6, cursor: 'pointer', background: active === l.slug ? S.gold : '#fff', color: active === l.slug ? '#fff' : S.text, border: `1px solid ${active === l.slug ? S.gold : S.border}` }}>
+            {l.title}
           </button>
         ))}
       </div>
 
-      <div style={{ fontSize: 11, color: 'rgba(248,246,243,.3)', marginBottom: 12, lineHeight: 1.6 }}>
-        Sauvegarde dans Supabase (référence admin). Les pages légales du site utilisent leur contenu statique intégré au code.
+      {saved && <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 6, padding: '10px 14px', marginBottom: 12, fontSize: 13, color: '#15803d', fontWeight: 500 }}>Sauvegardé dans Supabase</div>}
+
+      <div style={S.card_}>
+        <textarea value={content} onChange={e => { setContent(e.target.value); setSaved(false) }} rows={22} placeholder="Contenu de la page légale…"
+          style={{ ...S.input, border: 'none', resize: 'vertical', borderRadius: 8, padding: '16px', lineHeight: 1.7 }} />
       </div>
-
-      {msg && <div style={{ background: '#16a34a', color: '#fff', padding: '8px 14px', marginBottom: 12, fontSize: 12 }}>{msg}</div>}
-
-      <textarea
-        value={content}
-        onChange={(e) => setContent(e.target.value)}
-        rows={20}
-        placeholder="Contenu de la page légale…"
-        style={{ width: '100%', padding: '14px 16px', background: 'rgba(255,255,255,.03)', border: '1px solid rgba(255,255,255,.1)', color: '#f8f6f3', fontSize: 13, lineHeight: 1.7, outline: 'none', resize: 'vertical' }}
-      />
-      <button
-        onClick={save}
-        disabled={saving}
-        style={{ marginTop: 12, padding: '12px 28px', background: '#b8903a', color: '#fff', border: 'none', fontSize: 11, letterSpacing: 2, fontWeight: 700, cursor: 'pointer', textTransform: 'uppercase' }}
-      >
-        {saving ? '...' : 'Sauvegarder'}
-      </button>
+      <div style={{ marginTop: 12, display: 'flex', gap: 8 }}>
+        <button onClick={save} disabled={saving} style={S.btnPrimary}>
+          {saving ? 'Sauvegarde…' : 'Sauvegarder'}
+        </button>
+      </div>
     </div>
   )
 }
 
-// ─── Tab Avis Clients ───
+// ─── Tab Avis ──────────────────────────────────────────────────
 function TabAvis() {
   const [reviews, setReviews] = useState<Array<Record<string, unknown>>>([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState({ author: '', avatar: '👤', rating: '5', text: '', product_name: '', verified: true, visible: true })
   const [saving, setSaving] = useState(false)
-  const [msg, setMsg] = useState('')
+  const [saved, setSaved] = useState(false)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -412,222 +542,158 @@ function TabAvis() {
     if (res.ok) setReviews(await res.json())
     setLoading(false)
   }, [])
-
   useEffect(() => { load() }, [load])
 
   async function addReview(e: React.FormEvent) {
-    e.preventDefault()
-    setSaving(true)
-    const res = await fetch('/api/admin/reviews', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(form),
-    })
+    e.preventDefault(); setSaving(true)
+    const res = await fetch('/api/admin/reviews', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) })
     setSaving(false)
-    if (res.ok) {
-      setMsg('Avis ajouté ✓')
-      setShowForm(false)
-      setForm({ author: '', avatar: '👤', rating: '5', text: '', product_name: '', verified: true, visible: true })
-      await load()
-      setTimeout(() => setMsg(''), 2000)
-    }
+    if (res.ok) { setSaved(true); setShowForm(false); setForm({ author: '', avatar: '👤', rating: '5', text: '', product_name: '', verified: true, visible: true }); await load() }
   }
 
   async function toggleVisible(r: Record<string, unknown>) {
-    await fetch('/api/admin/reviews', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: r.id, visible: !r.visible }),
-    })
+    await fetch('/api/admin/reviews', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: r.id, visible: !r.visible }) })
     await load()
   }
 
-  async function deleteReview(id: unknown) {
+  async function del(id: unknown) {
     if (!confirm('Supprimer cet avis ?')) return
-    await fetch('/api/admin/reviews', {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id }),
-    })
-    await load()
+    await fetch('/api/admin/reviews', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) })
+    await load(); setSaved(false)
   }
-
-  if (loading) return <div style={{ color: 'rgba(248,246,243,.4)', padding: 24 }}>Chargement…</div>
 
   return (
-    <div>
-      {msg && <div style={{ background: '#16a34a', color: '#fff', padding: '8px 14px', marginBottom: 12, fontSize: 12 }}>{msg}</div>}
-      <button
-        onClick={() => setShowForm(!showForm)}
-        style={{ marginBottom: 20, padding: '10px 20px', background: '#b8903a', color: '#fff', border: 'none', fontSize: 11, letterSpacing: 2, fontWeight: 700, cursor: 'pointer', textTransform: 'uppercase' }}
-      >
-        + Ajouter un avis
-      </button>
+    <div style={{ padding: '20px 24px', maxWidth: 860 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
+        <div>
+          <h1 style={{ fontSize: 20, fontWeight: 600, color: S.text, margin: '0 0 4px' }}>Avis clients</h1>
+          <p style={{ fontSize: 13, color: S.muted, margin: 0 }}>{reviews.length} avis dans Supabase</p>
+        </div>
+        <button onClick={() => setShowForm(!showForm)} style={S.btnPrimary}>+ Ajouter un avis</button>
+      </div>
+
+      {saved && <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 6, padding: '10px 14px', marginBottom: 16, fontSize: 13, color: '#15803d', fontWeight: 500 }}>Avis sauvegardé</div>}
 
       {showForm && (
-        <form onSubmit={addReview} style={{ background: 'rgba(255,255,255,.04)', border: '1px solid rgba(255,255,255,.08)', padding: 24, marginBottom: 24 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
-            {[
-              { k: 'author', label: 'Nom' },
-              { k: 'avatar', label: 'Avatar (emoji)' },
-              { k: 'rating', label: 'Note (1-5)' },
-              { k: 'product_name', label: 'Produit' },
-            ].map(({ k, label }) => (
-              <div key={k}>
-                <label style={{ display: 'block', fontSize: 10, color: 'rgba(248,246,243,.4)', letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 5 }}>{label}</label>
-                <input
-                  value={String(form[k as keyof typeof form])}
-                  onChange={(e) => setForm((f) => ({ ...f, [k]: e.target.value }))}
-                  required={k === 'author' || k === 'rating'}
-                  style={{ width: '100%', padding: '9px 12px', background: 'rgba(255,255,255,.05)', border: '1px solid rgba(255,255,255,.1)', color: '#f8f6f3', fontSize: 13, outline: 'none' }}
-                />
-              </div>
-            ))}
-          </div>
-          <div style={{ marginBottom: 14 }}>
-            <label style={{ display: 'block', fontSize: 10, color: 'rgba(248,246,243,.4)', letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 5 }}>Texte de l&apos;avis</label>
-            <textarea
-              rows={3}
-              value={form.text}
-              onChange={(e) => setForm((f) => ({ ...f, text: e.target.value }))}
-              required
-              style={{ width: '100%', padding: '9px 12px', background: 'rgba(255,255,255,.05)', border: '1px solid rgba(255,255,255,.1)', color: '#f8f6f3', fontSize: 13, outline: 'none', resize: 'vertical' }}
-            />
-          </div>
-          <div style={{ display: 'flex', gap: 16, marginBottom: 16 }}>
-            {[['verified', 'Vérifié'], ['visible', 'Visible']].map(([k, label]) => (
-              <label key={k} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: '#f8f6f3', cursor: 'pointer' }}>
-                <input
-                  type="checkbox"
-                  checked={Boolean(form[k as keyof typeof form])}
-                  onChange={(e) => setForm((f) => ({ ...f, [k]: e.target.checked }))}
-                />
-                {label}
-              </label>
-            ))}
-          </div>
-          <button type="submit" disabled={saving} style={{ padding: '10px 24px', background: '#b8903a', color: '#fff', border: 'none', fontSize: 11, letterSpacing: 2, fontWeight: 700, cursor: 'pointer', textTransform: 'uppercase' }}>
-            {saving ? '...' : 'Ajouter'}
-          </button>
-        </form>
+        <div style={{ ...S.card_, padding: 20, marginBottom: 24 }}>
+          <div style={{ fontSize: 15, fontWeight: 600, color: S.text, marginBottom: 16 }}>Nouvel avis</div>
+          <form onSubmit={addReview}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
+              {[{ k: 'author', label: 'Nom' }, { k: 'avatar', label: 'Avatar (emoji)' }, { k: 'rating', label: 'Note (1-5)' }, { k: 'product_name', label: 'Produit' }].map(({ k, label }) => (
+                <div key={k}>
+                  <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: S.text, marginBottom: 5 }}>{label}</label>
+                  <input value={String(form[k as keyof typeof form])} onChange={e => setForm(f => ({ ...f, [k]: e.target.value }))} required={k === 'author'} style={S.input} />
+                </div>
+              ))}
+            </div>
+            <div style={{ marginBottom: 14 }}>
+              <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: S.text, marginBottom: 5 }}>Texte de l&apos;avis</label>
+              <textarea rows={3} value={form.text} onChange={e => setForm(f => ({ ...f, text: e.target.value }))} required style={{ ...S.input, resize: 'vertical' }} />
+            </div>
+            <div style={{ display: 'flex', gap: 16, marginBottom: 16 }}>
+              {[['verified', 'Achat vérifié'], ['visible', 'Visible sur le site']].map(([k, label]) => (
+                <label key={k} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, color: S.text, cursor: 'pointer' }}>
+                  <input type="checkbox" checked={Boolean(form[k as keyof typeof form])} onChange={e => setForm(f => ({ ...f, [k]: e.target.checked }))} />
+                  {label}
+                </label>
+              ))}
+            </div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button type="submit" disabled={saving} style={S.btnPrimary}>{saving ? 'Ajout…' : 'Ajouter'}</button>
+              <button type="button" onClick={() => setShowForm(false)} style={S.btnSecondary}>Annuler</button>
+            </div>
+          </form>
+        </div>
       )}
 
-      {!reviews.length && <div style={{ color: 'rgba(248,246,243,.4)', padding: 16 }}>Aucun avis dans Supabase.</div>}
-
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-        {reviews.map((r) => (
-          <div key={String(r.id)} style={{ background: 'rgba(255,255,255,.03)', border: '1px solid rgba(255,255,255,.07)', padding: '14px 18px', display: 'flex', gap: 16, alignItems: 'flex-start' }}>
-            <div style={{ fontSize: 28, flexShrink: 0 }}>{String(r.avatar ?? '👤')}</div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
-                <span style={{ color: '#f8f6f3', fontWeight: 600, fontSize: 13 }}>{String(r.author ?? '')}</span>
-                <span style={{ color: '#b8903a', fontSize: 11 }}>{'★'.repeat(Number(r.rating ?? 5))}</span>
-                {!!r.product_name && <span style={{ color: 'rgba(248,246,243,.4)', fontSize: 11 }}>{String(r.product_name)}</span>}
-                {!!r.verified && <span style={{ color: '#16a34a', fontSize: 10, letterSpacing: 1 }}>✓ VÉRIFIÉ</span>}
-              </div>
-              <div style={{ color: 'rgba(248,246,243,.7)', fontSize: 13, lineHeight: 1.5 }}>{String(r.text ?? '')}</div>
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flexShrink: 0 }}>
-              <button
-                onClick={() => toggleVisible(r)}
-                style={{
-                  padding: '5px 12px', fontSize: 10, letterSpacing: 1, cursor: 'pointer', textTransform: 'uppercase',
-                  background: r.visible ? 'rgba(22,163,74,.15)' : 'rgba(220,38,38,.1)',
-                  color: r.visible ? '#16a34a' : '#dc2626',
-                  border: `1px solid ${r.visible ? 'rgba(22,163,74,.3)' : 'rgba(220,38,38,.3)'}`,
-                }}
-              >
-                {r.visible ? 'Visible' : 'Masqué'}
-              </button>
-              <button
-                onClick={() => deleteReview(r.id)}
-                style={{ padding: '5px 12px', fontSize: 10, letterSpacing: 1, cursor: 'pointer', textTransform: 'uppercase', background: 'rgba(220,38,38,.1)', color: '#dc2626', border: '1px solid rgba(220,38,38,.3)' }}
-              >
-                Supprimer
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
+      {loading ? (
+        <div style={{ padding: '40px 0', textAlign: 'center', color: S.muted }}>Chargement…</div>
+      ) : !reviews.length ? (
+        <div style={{ ...S.card_, padding: '40px 24px', textAlign: 'center' }}>
+          <div style={{ fontSize: 13, color: S.muted }}>Aucun avis dans Supabase.</div>
+        </div>
+      ) : (
+        <div style={S.card_}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
+            <thead>
+              <tr style={{ borderBottom: `1px solid ${S.border}` }}>
+                {['Auteur', 'Note', 'Extrait', 'Produit', 'Statut', ''].map(h => (
+                  <th key={h} style={{ padding: '11px 16px', textAlign: 'left', fontSize: 12, fontWeight: 600, color: S.muted }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {reviews.map(r => (
+                <tr key={String(r.id)} style={{ borderBottom: `1px solid ${S.border}` }}>
+                  <td style={{ padding: '12px 16px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ fontSize: 22 }}>{String(r.avatar ?? '👤')}</span>
+                      <div>
+                        <div style={{ fontWeight: 500, color: S.text, fontSize: 13 }}>{String(r.author ?? '')}</div>
+                        {!!r.verified && <div style={{ fontSize: 11, color: '#15803d' }}>Vérifié</div>}
+                      </div>
+                    </div>
+                  </td>
+                  <td style={{ padding: '12px 16px', color: '#b8903a', fontWeight: 700 }}>{'★'.repeat(Number(r.rating ?? 5))}</td>
+                  <td style={{ padding: '12px 16px', color: S.muted, fontSize: 13, maxWidth: 200 }}>
+                    <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{String(r.text ?? '')}</div>
+                  </td>
+                  <td style={{ padding: '12px 16px', fontSize: 13, color: S.muted }}>{String(r.product_name ?? '—')}</td>
+                  <td style={{ padding: '12px 16px' }}>
+                    <span style={{ fontSize: 12, fontWeight: 600, padding: '3px 10px', borderRadius: 20, background: r.visible ? '#f0fdf4' : '#f4f4f5', color: r.visible ? '#15803d' : '#71717a' }}>
+                      {r.visible ? 'Visible' : 'Masqué'}
+                    </span>
+                  </td>
+                  <td style={{ padding: '12px 16px' }}>
+                    <div style={{ display: 'flex', gap: 6 }}>
+                      <button onClick={() => toggleVisible(r)} style={{ ...S.btnSecondary, padding: '5px 10px', fontSize: 12 }}>{r.visible ? 'Masquer' : 'Afficher'}</button>
+                      <button onClick={() => del(r.id)} style={{ ...S.btnSecondary, padding: '5px 10px', fontSize: 12, color: '#b91c1c', borderColor: '#fca5a5' }}>Supprimer</button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   )
 }
 
-// ─── Page principale ───
+// ─── Page principale ───────────────────────────────────────────
 export default function AdminPage() {
   const [auth, setAuth] = useState<boolean | null>(null)
-  const [tab, setTab] = useState<Tab>('produits')
+  const [nav, setNav] = useState<NavSection>('produits')
 
   useEffect(() => {
-    fetch('/api/admin/auth')
-      .then((r) => r.json())
-      .then((d) => setAuth(d.authenticated))
-      .catch(() => setAuth(false))
+    fetch('/api/admin/auth').then(r => r.json()).then(d => setAuth(d.authenticated)).catch(() => setAuth(false))
   }, [])
 
-  async function logout() {
-    await fetch('/api/admin/auth', { method: 'DELETE' })
-    setAuth(false)
-  }
+  async function logout() { await fetch('/api/admin/auth', { method: 'DELETE' }); setAuth(false) }
 
-  if (auth === null) return (
-    <div style={{ minHeight: '100vh', background: '#0c0c0c', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(248,246,243,.4)' }}>
-      Chargement…
-    </div>
-  )
-
+  if (auth === null) return <div style={{ minHeight: '100vh', background: S.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', color: S.muted }}>Chargement…</div>
   if (!auth) return <LoginForm onLogin={() => setAuth(true)} />
 
-  const TABS: { id: Tab; label: string }[] = [
-    { id: 'produits', label: 'Produits' },
-    { id: 'commandes', label: 'Commandes' },
-    { id: 'legal', label: 'Textes Légaux' },
-    { id: 'avis', label: 'Avis Clients' },
-  ]
-
   return (
-    <div style={{ minHeight: '100vh', background: '#0c0c0c', color: '#f8f6f3', fontFamily: 'var(--fb)' }}>
-      {/* Header */}
-      <div style={{ background: '#141210', borderBottom: '1px solid rgba(255,255,255,.08)', padding: '0 24px', display: 'flex', alignItems: 'center', gap: 24, height: 56 }}>
-        <span style={{ fontFamily: 'var(--fd)', fontSize: 20, letterSpacing: 3, color: '#f8f6f3' }}>
-          SP<span style={{ color: '#b8903a' }}>.</span>BARBER
-        </span>
-        <span style={{ fontSize: 10, color: 'rgba(248,246,243,.3)', letterSpacing: 2, textTransform: 'uppercase' }}>Administration</span>
-        <div style={{ flex: 1 }} />
-        <a href="/" style={{ fontSize: 11, color: 'rgba(248,246,243,.4)', letterSpacing: 1, textDecoration: 'none' }}>← Site</a>
-        <button
-          onClick={logout}
-          style={{ fontSize: 11, color: 'rgba(248,246,243,.4)', background: 'none', border: '1px solid rgba(255,255,255,.1)', padding: '5px 14px', cursor: 'pointer', letterSpacing: 1 }}
-        >
-          Déconnexion
-        </button>
-      </div>
+    <div style={{ display: 'flex', minHeight: '100vh', fontFamily: 'system-ui, -apple-system, sans-serif', fontSize: 14, color: S.text }}>
+      <Sidebar active={nav} setActive={setNav} logout={logout} />
 
-      {/* Tabs */}
-      <div style={{ background: '#141210', borderBottom: '1px solid rgba(255,255,255,.06)', padding: '0 24px', display: 'flex', gap: 0, overflowX: 'auto' }}>
-        {TABS.map((t) => (
-          <button
-            key={t.id}
-            onClick={() => setTab(t.id)}
-            style={{
-              padding: '14px 22px', background: 'none', border: 'none',
-              borderBottom: tab === t.id ? '2px solid #b8903a' : '2px solid transparent',
-              color: tab === t.id ? '#f8f6f3' : 'rgba(248,246,243,.4)',
-              fontSize: 11, letterSpacing: 2, textTransform: 'uppercase', cursor: 'pointer',
-              fontWeight: tab === t.id ? 700 : 400, whiteSpace: 'nowrap',
-            }}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
+      {/* Main */}
+      <div style={{ marginLeft: 232, flex: 1, background: S.bg, display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+        {/* Topbar */}
+        <div style={{ height: 52, background: '#fff', borderBottom: `1px solid ${S.border}`, display: 'flex', alignItems: 'center', padding: '0 24px', gap: 12, flexShrink: 0 }}>
+          <span style={{ fontSize: 13, color: S.muted }}>SP Barber</span>
+          <span style={{ color: S.border }}>›</span>
+          <span style={{ fontSize: 13, fontWeight: 500, color: S.text, textTransform: 'capitalize' }}>{nav}</span>
+        </div>
 
-      {/* Content */}
-      <div style={{ padding: '28px 24px', maxWidth: 1100, margin: '0 auto' }}>
-        {tab === 'produits' && <TabProduits />}
-        {tab === 'commandes' && <TabCommandes />}
-        {tab === 'legal' && <TabLegal />}
-        {tab === 'avis' && <TabAvis />}
+        {/* Content */}
+        <div style={{ flex: 1, display: 'flex', overflow: 'hidden', position: 'relative' }}>
+          {nav === 'produits' && <TabProduits />}
+          {nav === 'commandes' && <TabCommandes />}
+          {nav === 'legal' && <TabLegal />}
+          {nav === 'avis' && <TabAvis />}
+        </div>
       </div>
     </div>
   )
