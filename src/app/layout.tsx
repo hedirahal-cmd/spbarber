@@ -1,10 +1,13 @@
 import type { Metadata } from 'next'
 import './globals.css'
+import { Header } from '@/components/layout/Header'
+import { Footer } from '@/components/layout/Footer'
+import { CartDrawer } from '@/components/CartDrawer'
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://spbarber.fr'),
+  metadataBase: new URL('https://spbarber-nine.vercel.app'),
   title: {
-    default: 'SP Barber — Produits Capillaires Premium pour Hommes',
+    default: 'SP Barber — Le Style Commence Ici',
     template: '%s | SP Barber',
   },
   description: 'SP Barber, la référence des produits capillaires premium pour hommes. Cire, shampooing, crème, tondeuse. Livraison rapide en France.',
@@ -12,19 +15,23 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'fr_FR',
-    url: 'https://spbarber.fr',
+    url: 'https://spbarber-nine.vercel.app',
     siteName: 'SP Barber',
-    title: 'SP Barber — Produits Capillaires Premium pour Hommes',
+    title: 'SP Barber — Le Style Commence Ici',
     description: 'La référence des produits capillaires premium pour hommes.',
   },
   robots: { index: true, follow: true },
-  alternates: { canonical: 'https://spbarber.fr' },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="fr">
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body>
+        <Header />
+        <main>{children}</main>
+        <Footer />
+        <CartDrawer />
+      </body>
     </html>
   )
 }

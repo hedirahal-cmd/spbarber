@@ -1,53 +1,242 @@
 import Link from 'next/link'
 import { PRODUCTS } from '@/lib/products'
+import { AddToCartButton } from '@/components/AddToCartButton'
 import { formatPrice } from '@/lib/utils'
 
+const CATEGORY_ICONS: Record<string, string> = {
+  coiffant: '🪮',
+  soin: '🧴',
+  barbe: '🧔',
+  accessoire: '⚡',
+}
+
+const CATEGORY_LABELS: Record<string, string> = {
+  coiffant: 'Coiffant',
+  soin: 'Soin',
+  barbe: 'Barbe',
+  accessoire: 'Accessoire',
+}
+
 export default function HomePage() {
-  const featured = PRODUCTS.slice(0, 3)
+  const featured = PRODUCTS.filter((p) => p.id !== '5').slice(0, 6)
 
   return (
     <>
-      {/* Hero */}
-      <section className="min-h-screen flex items-center justify-center relative overflow-hidden pt-16" style={{ background: 'linear-gradient(135deg, var(--black) 0%, var(--black-soft) 100%)' }}>
-        <div className="absolute inset-0 opacity-5" style={{ backgroundImage: 'repeating-linear-gradient(45deg, var(--gold) 0, var(--gold) 1px, transparent 0, transparent 50%)', backgroundSize: '20px 20px' }} />
-        <div className="text-center px-4 relative z-10">
-          <p className="text-sm tracking-[0.4em] uppercase mb-4" style={{ color: 'var(--gold)', fontFamily: 'Rajdhani, sans-serif' }}>Collection Premium</p>
-          <h1 className="text-6xl md:text-8xl font-light mb-6" style={{ fontFamily: 'Cormorant Garamond, serif', color: 'var(--white)' }}>
-            SP<br /><span style={{ color: 'var(--gold)' }}>Barber</span>
+      {/* ── HERO ── */}
+      <section className="hero">
+        <div className="hero-l">
+          <div className="hero-proof-bar">
+            <span className="hero-proof-item">
+              <span className="hero-proof-star">★★★★★</span> 4,9/5
+            </span>
+            <span className="hero-proof-sep">·</span>
+            <span className="hero-proof-item">+500 avis</span>
+            <span className="hero-proof-sep">·</span>
+            <span className="hero-proof-item">Utilisé par les pros</span>
+          </div>
+
+          <h1 className="h-title">
+            Des produits<em>de salon,<br />chez vous.</em>
           </h1>
-          <p className="text-lg md:text-xl mb-10 max-w-lg mx-auto" style={{ color: 'var(--white-muted)', fontFamily: 'Rajdhani, sans-serif' }}>
-            L&apos;excellence capillaire pour l&apos;homme moderne. Des produits pensés par des professionnels.
+
+          <p className="h-sub">
+            Cires, shampooings, soins barbe et tondeuses — les mêmes formules que votre barbier.
           </p>
-          <Link href="/products" className="inline-block px-10 py-4 text-sm tracking-widest uppercase font-semibold transition-all hover:scale-105" style={{ background: 'var(--gold)', color: 'var(--black)', fontFamily: 'Rajdhani, sans-serif' }}>
-            Découvrir la collection
+
+          <div className="h-ctas">
+            <Link href="/products" className="btn-hero-primary">
+              Voir les produits
+              <span className="btn-hero-arrow">→</span>
+            </Link>
+          </div>
+
+          <div className="hero-inline-trust">
+            <span>Livraison offerte dès 50€</span>
+            <span className="hero-trust-dot">·</span>
+            <span>Retour 30j</span>
+            <span className="hero-trust-dot">·</span>
+            <span>Expédié 48h</span>
+          </div>
+        </div>
+      </section>
+
+      {/* ── REA BAR ── */}
+      <div className="rea-compact">
+        <div className="rea-c-item">🚚 Livraison offerte dès 50€</div>
+        <div className="rea-c-sep">|</div>
+        <div className="rea-c-item">🎁 Cadeau dès 70€</div>
+        <div className="rea-c-sep">|</div>
+        <div className="rea-c-item">↩️ Retour 30j</div>
+        <div className="rea-c-sep">|</div>
+        <div className="rea-c-item">⚡ Expédié 48h</div>
+      </div>
+
+      {/* ── PRODUITS ── */}
+      <section id="produits">
+        <div className="sec-head">
+          <div>
+            <div className="sec-ey">— Nos bestsellers —</div>
+            <h2 className="sec-title">PRODUITS</h2>
+          </div>
+          <Link href="/products" className="see-all">Voir tout →</Link>
+        </div>
+        <div className="prod-grid">
+          {featured.map((product) => (
+            <div key={product.id} className="prod-card">
+              <Link href={`/products/${product.slug}`}>
+                <div className="pc-img">
+                  <div className="pc-ph">
+                    <span className="pc-icon">{CATEGORY_ICONS[product.category] ?? '✨'}</span>
+                  </div>
+                  {product.stock <= 10 && product.stock > 0 && (
+                    <span className="pc-tag">Dernières unités</span>
+                  )}
+                  {product.id === '1' && <span className="pc-tagg">Bestseller</span>}
+                  <div className="pc-overlay">Voir le produit</div>
+                </div>
+              </Link>
+              <div className="pc-info">
+                <div className="pc-cat">{CATEGORY_LABELS[product.category] ?? product.category}</div>
+                <Link href={`/products/${product.slug}`}>
+                  <div className="pc-name">{product.name}</div>
+                </Link>
+                <div className="pc-bottom">
+                  <div className="pc-price">{formatPrice(product.price)}</div>
+                  <AddToCartButton product={product} className="pc-atc" label="Ajouter au panier" />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── PACK BARBE ── */}
+      <section id="barbe">
+        <div className="sec-head">
+          <div>
+            <div className="sec-ey">— L&apos;essentiel réuni —</div>
+            <h2 className="sec-title">PACK BARBE</h2>
+          </div>
+        </div>
+        <div className="kit-wrap">
+          <Link href="/products/pack-barbe-complet" className="kit-banner">
+            <div className="kit-l">
+              <div className="kit-tag">Pack Complet</div>
+              <h2 className="kit-title">
+                SP Barber<em>Pack Barbe</em>
+              </h2>
+              <p className="kit-desc">
+                Huile de barbe, brosse, peigne, cire et baume — tout pour une barbe impeccable dans un seul coffret premium.
+              </p>
+              <span className="kit-price">49,90 €</span>
+              <span className="btn-gold">Voir le Pack →</span>
+            </div>
+            <div className="kit-r">
+              <span className="kit-r-icon">🎁</span>
+              <div className="kit-r-badge">
+                <strong>5</strong>
+                <span>produits inclus</span>
+              </div>
+            </div>
           </Link>
         </div>
       </section>
 
-      {/* Featured products */}
-      <section className="max-w-7xl mx-auto px-4 py-20">
-        <h2 className="text-4xl text-center mb-2" style={{ fontFamily: 'Cormorant Garamond, serif' }}>Produits phares</h2>
-        <p className="text-center text-sm tracking-widest uppercase mb-12" style={{ color: 'var(--gold)' }}>Sélection premium</p>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {featured.map((product) => (
-            <Link key={product.id} href={`/products/${product.slug}`} className="group block rounded-sm overflow-hidden border transition-all hover:border-yellow-500" style={{ background: 'var(--black-card)', borderColor: 'var(--black-border)' }}>
-              <div className="aspect-square flex items-center justify-center" style={{ background: 'var(--black-soft)' }}>
-                <span className="text-6xl opacity-20" style={{ color: 'var(--gold)' }}>SP</span>
-              </div>
-              <div className="p-5">
-                <h3 className="text-lg mb-1" style={{ fontFamily: 'Cormorant Garamond, serif' }}>{product.name}</h3>
-                <p className="text-sm mb-3 line-clamp-2" style={{ color: 'var(--white-muted)' }}>{product.description}</p>
-                <p className="font-semibold" style={{ color: 'var(--gold)' }}>{formatPrice(product.price)}</p>
-              </div>
-            </Link>
-          ))}
+      {/* ── STATS ── */}
+      <div className="stats">
+        <div className="stat">
+          <div className="stat-n">500+</div>
+          <div className="stat-l">Avis vérifiés</div>
         </div>
-        <div className="text-center mt-10">
-          <Link href="/products" className="inline-block px-8 py-3 text-sm tracking-widest uppercase border transition-colors hover:bg-yellow-500 hover:text-black" style={{ borderColor: 'var(--gold)', color: 'var(--gold)', fontFamily: 'Rajdhani, sans-serif' }}>
-            Voir tous les produits
-          </Link>
+        <div className="stat">
+          <div className="stat-n">100%</div>
+          <div className="stat-l">Qualité Pro</div>
+        </div>
+        <div className="stat">
+          <div className="stat-n">48h</div>
+          <div className="stat-l">Livraison</div>
+        </div>
+        <div className="stat">
+          <div className="stat-n">France</div>
+          <div className="stat-l">Livraison</div>
+        </div>
+      </div>
+
+      {/* ── SALON ── */}
+      <section id="salon" className="salon-compact">
+        <div className="salon-compact-inner">
+          <div style={{ flexShrink: 0 }}>
+            <div className="salon-compact-icon">✂️</div>
+          </div>
+          <div>
+            <div className="sec-ey">Salon Physique — Fougères</div>
+            <h2 className="salon-compact-title">SP BARBER SHOP</h2>
+            <p className="salon-compact-addr">
+              48 Boulevard Jean Jaurès · 35300 Fougères<br />
+              Lun–Sam 9h–19h
+            </p>
+            <a href="#" className="salon-compact-link">En savoir plus →</a>
+          </div>
         </div>
       </section>
+
+      {/* ── AVIS ── */}
+      <section className="h-reviews">
+        <div className="sec-head">
+          <div>
+            <div className="sec-ey">— Ils nous font confiance —</div>
+            <h2 className="sec-title">AVIS CLIENTS</h2>
+          </div>
+        </div>
+        <div className="h-rev-grid">
+          <div className="h-rev-card">
+            <div className="h-rev-stars">★★★★★</div>
+            <p className="h-rev-text">
+              &quot;La cire tient toute la journée. Mes potes me demandent tous ce que j&apos;utilise.&quot;
+            </p>
+            <div className="h-rev-auth">
+              <div className="h-rev-av">👨🏾</div>
+              <div>
+                <div className="h-rev-name">Karim B.</div>
+                <div className="h-rev-check">✓ Achat vérifié</div>
+              </div>
+            </div>
+          </div>
+          <div className="h-rev-card">
+            <div className="h-rev-stars">★★★★★</div>
+            <p className="h-rev-text">
+              &quot;Le pack barbe est parfait. Qualité vraiment pro, rien à voir avec la grande surface.&quot;
+            </p>
+            <div className="h-rev-auth">
+              <div className="h-rev-av">👩</div>
+              <div>
+                <div className="h-rev-name">Amélie D.</div>
+                <div className="h-rev-check">✓ Achat vérifié</div>
+              </div>
+            </div>
+          </div>
+          <div className="h-rev-card">
+            <div className="h-rev-stars">★★★★★</div>
+            <p className="h-rev-text">
+              &quot;La crème curl définit mes boucles sans les alourdir. Enfin un vrai produit pour cheveux texturés !&quot;
+            </p>
+            <div className="h-rev-auth">
+              <div className="h-rev-av">👨🏿</div>
+              <div>
+                <div className="h-rev-name">Marcus T.</div>
+                <div className="h-rev-check">✓ Achat vérifié</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── STICKY MOBILE ── */}
+      <div className="sticky-mob">
+        <Link href="/products" className="sticky-mob-btn">
+          Voir tous les produits
+        </Link>
+      </div>
     </>
   )
 }

@@ -4,10 +4,13 @@ import { CartItem, Product, ProductVariant } from '@/types'
 
 interface CartStore {
   items: CartItem[]
+  isOpen: boolean
   addItem: (product: Product, variant?: ProductVariant) => void
   removeItem: (productId: string, variantId?: string) => void
   updateQuantity: (productId: string, quantity: number, variantId?: string) => void
   clearCart: () => void
+  openCart: () => void
+  closeCart: () => void
   total: () => number
   itemCount: () => number
 }
@@ -16,6 +19,10 @@ export const useCart = create<CartStore>()(
   persist(
     (set, get) => ({
       items: [],
+      isOpen: false,
+
+      openCart: () => set({ isOpen: true }),
+      closeCart: () => set({ isOpen: false }),
 
       addItem: (product, variant) => {
         set((state) => {
@@ -67,6 +74,9 @@ export const useCart = create<CartStore>()(
 
       itemCount: () => get().items.reduce((sum, item) => sum + item.quantity, 0),
     }),
-    { name: 'spbarber-cart' }
+    {
+      name: 'spbarber-cart',
+      partialize: (state) => ({ items: state.items }),
+    }
   )
 )
