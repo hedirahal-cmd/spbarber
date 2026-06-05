@@ -522,8 +522,8 @@ function TabAvis() {
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
                 <span style={{ color: '#f8f6f3', fontWeight: 600, fontSize: 13 }}>{String(r.author ?? '')}</span>
                 <span style={{ color: '#b8903a', fontSize: 11 }}>{'★'.repeat(Number(r.rating ?? 5))}</span>
-                {r.product_name && <span style={{ color: 'rgba(248,246,243,.4)', fontSize: 11 }}>{String(r.product_name)}</span>}
-                {r.verified && <span style={{ color: '#16a34a', fontSize: 10, letterSpacing: 1 }}>✓ VÉRIFIÉ</span>}
+                {!!r.product_name && <span style={{ color: 'rgba(248,246,243,.4)', fontSize: 11 }}>{String(r.product_name)}</span>}
+                {!!r.verified && <span style={{ color: '#16a34a', fontSize: 10, letterSpacing: 1 }}>✓ VÉRIFIÉ</span>}
               </div>
               <div style={{ color: 'rgba(248,246,243,.7)', fontSize: 13, lineHeight: 1.5 }}>{String(r.text ?? '')}</div>
             </div>
