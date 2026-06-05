@@ -344,14 +344,14 @@ button { font-family: var(--fb); }
 .pay-logos-express, .pay-logos-cards { display: flex; gap: 6px; margin-bottom: 5px; }
 .pay-btn {
   flex: 1;
-  height: 38px;
+  height: 44px;
   border-radius: 5px;
   border: 1.5px solid var(--gm);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  padding: 5px;
+  padding: 0;
   transition: all 0.2s;
   overflow: hidden;
   background: var(--w);
@@ -359,7 +359,7 @@ button { font-family: var(--fb); }
 .pay-btn:hover { transform: translateY(-1px); box-shadow: 0 2px 8px rgba(0,0,0,.12); }
 .pay-btn-dark { background: #111; border-color: #111; }
 .pay-btn-dark:hover { background: #000; border-color: #000; }
-.pay-btn svg { display: block; max-width: 100%; height: auto; }
+.pay-btn svg { display: block; width: 80%; height: 80%; max-width: none; }
 .pay-logos-sep {
   display: flex;
   align-items: center;
