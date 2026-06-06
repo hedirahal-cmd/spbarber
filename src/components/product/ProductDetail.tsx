@@ -5,6 +5,7 @@ import { useCart } from '@/hooks/useCart'
 import { formatPrice } from '@/lib/utils'
 import { Product, ProductVariant } from '@/types'
 import { PaymentLogos } from '@/components/PaymentLogos'
+import { AddToCartButton } from '@/components/AddToCartButton'
 import { PRODUCTS } from '@/lib/products'
 import { Lock, Truck, RotateCcw, CheckCircle2, AlertTriangle, ShoppingCart, Dumbbell, Sparkles, Leaf, FlaskConical, Scissors, Droplets, User, Zap, Zap as ZapIcon, Clock } from 'lucide-react'
 import { BeforeAfterSlider } from './BeforeAfterSlider'
@@ -124,10 +125,10 @@ export function ProductDetail({ product }: { product: Product }) {
             <span>{product.name}</span>
           </div>
           <div className="fi-cat">{CATEGORY_LABELS[product.category] ?? product.category}</div>
-          <h1 className="fi-title">{product.name}</h1>
           {product.benefit && (
-            <div className="fi-hook">{product.benefit}</div>
+            <div className="fi-hook-hero">{product.benefit}</div>
           )}
+          <h1 className="fi-title-secondary">{product.name}</h1>
 
           <div className="fi-stars-row">
             <span className="fi-stars">★★★★★</span>
@@ -245,22 +246,31 @@ export function ProductDetail({ product }: { product: Product }) {
       {/* ── AVANT / APRÈS — Shampooing Noir uniquement ── */}
       {product.id === '2' && <BeforeAfterSlider />}
 
-      {/* Souvent achetés ensemble */}
+      {/* Complétez votre routine */}
       {relatedProducts.length > 0 && (
         <div className="sac-sec">
-          <div className="sac-ttl">Souvent achetés ensemble</div>
+          <div className="sac-hd">
+            <div className="sac-ttl">COMPLÉTEZ VOTRE ROUTINE</div>
+            <div className="sac-sub">Ces produits sont souvent achetés ensemble</div>
+          </div>
           <div className="sac-grid">
             {relatedProducts.map((rp) => (
-              <Link key={rp.id} href={`/products/${rp.slug}`} className="sac-card">
-                <div className="sac-img">
-                  <CategoryIcon category={rp.category} size={32} />
-                </div>
-                <div className="sac-info">
-                  <div className="sac-cat">{CATEGORY_LABELS[rp.category] ?? rp.category}</div>
-                  <div className="sac-name">{rp.name}</div>
-                  <div className="sac-price">{formatPrice(rp.price)}</div>
-                </div>
-              </Link>
+              <div key={rp.id} className="sac-card">
+                <Link href={`/products/${rp.slug}`} className="sac-card-link">
+                  <div className="sac-img">
+                    <CategoryIcon category={rp.category} size={32} />
+                  </div>
+                  <div className="sac-info">
+                    <div className="sac-cat">{CATEGORY_LABELS[rp.category] ?? rp.category}</div>
+                    {rp.benefit && <div className="sac-benefit">{rp.benefit}</div>}
+                    <div className="sac-name">{rp.name}</div>
+                    <div className="sac-price">{formatPrice(rp.price)}</div>
+                  </div>
+                </Link>
+                {!rp.is_dropshipping && (
+                  <AddToCartButton product={rp} className="sac-atc" label="+ Ajouter au panier" />
+                )}
+              </div>
             ))}
           </div>
         </div>

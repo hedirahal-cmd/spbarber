@@ -32,6 +32,42 @@ const REVIEWS = [
   { text: `"J'utilise l'huile de barbe tous les matins. Ma barbe est beaucoup plus douce et brillante."`, name: 'Youssef A.', initials: 'YA', color: '#3a7a8a', product: 'Huile de Barbe', date: 'Mar 2025' },
 ]
 
+const BARBIERS = [
+  {
+    name: 'Samy P.',
+    initials: 'SP',
+    color: '#1a3a5a',
+    shop: 'Barber Shop Élite',
+    city: 'Fougères',
+    exp: '8 ans',
+    quote: `"La Cire Premium est mon indispensable. Tenue impeccable du matin au soir — je l'utilise sur tous mes clients depuis des années."`,
+    favProduct: 'Cire Cheveux Premium',
+    favSlug: 'cire-cheveux-premium',
+  },
+  {
+    name: 'Karim M.',
+    initials: 'KM',
+    color: '#3a1a5a',
+    shop: 'Barber King',
+    city: 'Rennes',
+    exp: '12 ans',
+    quote: `"Le Pack Barbe, c'est exactement ce que je recommande à mes clients qui veulent entretenir leur barbe à la maison comme en salon."`,
+    favProduct: 'Pack Barbe Complet',
+    favSlug: 'pack-barbe-complet',
+  },
+  {
+    name: 'David L.',
+    initials: 'DL',
+    color: '#1a5a3a',
+    shop: 'Le Gentleman Barber',
+    city: 'Paris',
+    exp: '6 ans',
+    quote: `"Le Shampooing Noir est parfait pour raviver la couleur entre deux coupes. Aucun client ne revient sans vouloir en racheter."`,
+    favProduct: 'Shampooing Noir Colorant',
+    favSlug: 'shampooing-noir-colorant',
+  },
+]
+
 export default function HomePage() {
   const packBarbe = PRODUCTS.find((p) => p.id === '5')!
   const shampNoir = PRODUCTS.find((p) => p.id === '2')!
@@ -76,6 +112,44 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* ── QUIZ — Trouvez votre produit en 30 secondes ── */}
+      <section className="quiz-sec">
+        <div className="quiz-head">
+          <div className="quiz-eyebrow">Trouvez votre produit en 30 secondes</div>
+          <h2 className="quiz-title">Quel est votre objectif ?</h2>
+        </div>
+        <div className="quiz-grid">
+          <Link href="/products/shampooing-noir-colorant" className="quiz-btn">
+            <span className="quiz-btn-icon"><Sparkles size={22} strokeWidth={1.5} /></span>
+            <span className="quiz-btn-txt">
+              J&apos;ai des cheveux blancs
+              <span className="quiz-btn-sub">→ Shampooing colorant</span>
+            </span>
+          </Link>
+          <Link href="/products/cire-cheveux-premium" className="quiz-btn">
+            <span className="quiz-btn-icon"><Scissors size={22} strokeWidth={1.5} /></span>
+            <span className="quiz-btn-txt">
+              J&apos;ai du mal à me coiffer
+              <span className="quiz-btn-sub">→ Cire fixante</span>
+            </span>
+          </Link>
+          <Link href="/products/pack-barbe-complet" className="quiz-btn">
+            <span className="quiz-btn-icon"><User size={22} strokeWidth={1.5} /></span>
+            <span className="quiz-btn-txt">
+              J&apos;ai une barbe sèche
+              <span className="quiz-btn-sub">→ Pack Barbe Complet</span>
+            </span>
+          </Link>
+          <Link href="/products" className="quiz-btn">
+            <span className="quiz-btn-icon"><Zap size={22} strokeWidth={1.5} /></span>
+            <span className="quiz-btn-txt">
+              Je veux une routine complète
+              <span className="quiz-btn-sub">→ Voir tous les produits</span>
+            </span>
+          </Link>
+        </div>
+      </section>
+
       {/* ── NOS 2 BESTSELLERS ── */}
       <section className="best2-sec">
         <div className="best2-head sec-head">
@@ -93,8 +167,8 @@ export default function HomePage() {
             </div>
             <div className="best2-info">
               <div className="best2-cat">Pack complet · Barbe</div>
-              <div className="best2-name">{packBarbe.name}</div>
-              <div className="best2-benef">{packBarbe.benefit}</div>
+              <div className="best2-name">{packBarbe.benefit}</div>
+              <div className="best2-benef">{packBarbe.name}</div>
               <span className="best2-price">{formatPrice(packBarbe.price)}</span>
               <span className="best2-btn">Voir le pack →</span>
             </div>
@@ -108,8 +182,8 @@ export default function HomePage() {
             </div>
             <div className="best2-info">
               <div className="best2-cat">Coiffant · Tenue forte</div>
-              <div className="best2-name">{cireCheveux.name}</div>
-              <div className="best2-benef">{cireCheveux.benefit}</div>
+              <div className="best2-name">{cireCheveux.benefit}</div>
+              <div className="best2-benef">{cireCheveux.name}</div>
               <span className="best2-price">{formatPrice(cireCheveux.price)}</span>
               <span className="best2-btn">Découvrir →</span>
             </div>
@@ -123,8 +197,8 @@ export default function HomePage() {
             </div>
             <div className="best2-info">
               <div className="best2-cat">Soin colorant</div>
-              <div className="best2-name">{shampNoir.name}</div>
-              <div className="best2-benef">{shampNoir.benefit}</div>
+              <div className="best2-name">{shampNoir.benefit}</div>
+              <div className="best2-benef">{shampNoir.name}</div>
               <span className="best2-price">{formatPrice(shampNoir.price)}</span>
               <span className="best2-btn">Découvrir →</span>
             </div>
@@ -143,39 +217,7 @@ export default function HomePage() {
         <div className="rea-c-item"><Zap size={11} strokeWidth={1.8} /> Expédié 48h</div>
       </div>
 
-      {/* ── BESOIN ── */}
-      <section id="besoin">
-        <div className="sec-head">
-          <div>
-            <div className="sec-ey">— Trouvez votre solution —</div>
-            <h2 className="sec-title">QUEL EST VOTRE BESOIN ?</h2>
-          </div>
-        </div>
-        <div className="prob-grid">
-          <Link href="/products/cire-cheveux-premium" className="prob-card">
-            <div className="prob-icon"><Scissors size={28} strokeWidth={1.4} /></div>
-            <div className="prob-title">Cheveux difficiles à coiffer</div>
-            <div className="prob-cta">Je veux mieux coiffer mes cheveux →</div>
-          </Link>
-          <Link href="/products/pack-barbe-complet" className="prob-card">
-            <div className="prob-icon"><User size={28} strokeWidth={1.4} /></div>
-            <div className="prob-title">Barbe sèche ou qui gratte</div>
-            <div className="prob-cta">Je veux adoucir ma barbe →</div>
-          </Link>
-          <Link href="/products/shampooing-noir-colorant" className="prob-card">
-            <div className="prob-icon"><Sparkles size={28} strokeWidth={1.4} /></div>
-            <div className="prob-title">Cheveux blancs à masquer</div>
-            <div className="prob-cta">Je veux masquer mes cheveux blancs →</div>
-          </Link>
-          <Link href="/products" className="prob-card">
-            <div className="prob-icon"><Zap size={28} strokeWidth={1.4} /></div>
-            <div className="prob-title">Routine capillaire complète</div>
-            <div className="prob-cta">Je veux une routine complète →</div>
-          </Link>
-        </div>
-      </section>
-
-      {/* ── PRODUITS ── */}
+      {/* ── PRODUITS — Bénéfice avant nom ── */}
       <section id="produits">
         <div className="sec-head">
           <div>
@@ -207,7 +249,7 @@ export default function HomePage() {
                 </Link>
                 <div className="pc-bottom">
                   <div className="pc-price">{formatPrice(product.price)}</div>
-                  <AddToCartButton product={product} className="pc-atc" label="Ajouter au panier" />
+                  <AddToCartButton product={product} className="pc-atc" label="Ajouter" />
                 </div>
                 {SOCIAL_PROOF[product.id] && (
                   <div className="pc-social">🔥 {SOCIAL_PROOF[product.id]} achetés cette semaine</div>
@@ -217,6 +259,13 @@ export default function HomePage() {
           ))}
         </div>
       </section>
+
+      {/* ── CTA strip ── */}
+      <div className="cta-strip">
+        <Link href="/products" className="cta-strip-btn">
+          Voir toute la gamme →
+        </Link>
+      </div>
 
       {/* ── PACK BARBE ── */}
       <section id="barbe">
@@ -250,61 +299,42 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── BARBIERS ── */}
+      {/* ── BARBIERS LOCAUX — Ce qu'Amazon ne peut pas copier ── */}
       <section className="barbers-sec">
         <div className="sec-head">
           <div>
-            <div className="sec-ey">— Recommandé par les experts —</div>
-            <h2 className="sec-title">CHOIX DES BARBIERS</h2>
+            <div className="sec-ey">— Ce qu&apos;Amazon ne peut pas vous offrir —</div>
+            <h2 className="sec-title">RECOMMANDÉ PAR VOS BARBIERS LOCAUX</h2>
           </div>
         </div>
         <div className="barbers-grid">
-          <div className="barber-card">
-            <div className="barber-hd">
-              <div className="barber-av"><Scissors size={18} strokeWidth={1.8} color="white" /></div>
-              <div>
-                <div className="barber-name-txt">Samy P.</div>
-                <div className="barber-role-txt">Barbier · Fougères · 8 ans</div>
+          {BARBIERS.map((b, i) => (
+            <div key={i} className="barber-card">
+              <div className="barber-hd">
+                <div className="barber-av" style={{ background: b.color }}>{b.initials}</div>
+                <div>
+                  <div className="barber-name-txt">{b.name}</div>
+                  <div className="barber-role-txt">{b.shop} · {b.city}</div>
+                  <div className="barber-exp-badge">{b.exp} d&apos;expérience</div>
+                </div>
               </div>
+              <div className="barber-stars-txt">★★★★★</div>
+              <p className="barber-quote-txt">{b.quote}</p>
+              <Link href={`/products/${b.favSlug}`} className="barber-fav-link">
+                Produit favori : <strong>{b.favProduct}</strong> →
+              </Link>
             </div>
-            <div className="barber-stars-txt">★★★★★</div>
-            <p className="barber-quote-txt">
-              &ldquo;La Cire Premium est mon indispensable. Tenue impeccable du matin au soir — je l&apos;utilise sur tous mes clients depuis des années.&rdquo;
-            </p>
-            <div className="barber-fav-txt">Produit favori : <strong>Cire Cheveux Premium</strong></div>
-          </div>
-
-          <div className="barber-card">
-            <div className="barber-hd">
-              <div className="barber-av"><Scissors size={18} strokeWidth={1.8} color="white" /></div>
-              <div>
-                <div className="barber-name-txt">Karim M.</div>
-                <div className="barber-role-txt">Barbier · Rennes · 12 ans</div>
-              </div>
-            </div>
-            <div className="barber-stars-txt">★★★★★</div>
-            <p className="barber-quote-txt">
-              &ldquo;Le Pack Barbe, c&apos;est exactement ce que je recommande à mes clients qui veulent entretenir leur barbe à la maison comme en salon.&rdquo;
-            </p>
-            <div className="barber-fav-txt">Produit favori : <strong>Pack Barbe Complet</strong></div>
-          </div>
-
-          <div className="barber-card">
-            <div className="barber-hd">
-              <div className="barber-av"><Scissors size={18} strokeWidth={1.8} color="white" /></div>
-              <div>
-                <div className="barber-name-txt">David L.</div>
-                <div className="barber-role-txt">Barbier · Paris · 6 ans</div>
-              </div>
-            </div>
-            <div className="barber-stars-txt">★★★★★</div>
-            <p className="barber-quote-txt">
-              &ldquo;Le Shampooing Noir est parfait pour raviver la couleur entre deux coupes. Aucun client ne revient sans vouloir en racheter.&rdquo;
-            </p>
-            <div className="barber-fav-txt">Produit favori : <strong>Shampooing Noir Colorant</strong></div>
-          </div>
+          ))}
         </div>
       </section>
+
+      {/* ── CTA strip 2 ── */}
+      <div className="cta-strip cta-strip-dark">
+        <div className="cta-strip-label">Rejoignez 500+ clients satisfaits</div>
+        <Link href="/products" className="cta-strip-btn cta-strip-btn-light">
+          Choisir mon produit →
+        </Link>
+      </div>
 
       {/* ── SALON ── */}
       <section id="salon" className="salon-compact">

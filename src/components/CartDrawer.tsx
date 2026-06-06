@@ -72,6 +72,11 @@ export function CartDrawer() {
     (p) => !p.is_dropshipping && !items.find((i) => i.product.id === p.id)
   ).slice(0, 2)
 
+  // Produit upsell pour débloquer la livraison gratuite
+  const upsellFreeShip = items.length > 0 && cartTotal < FREE_SHIP
+    ? PRODUCTS.find((p) => !p.is_dropshipping && !items.find((i) => i.product.id === p.id))
+    : null
+
   async function handleCheckout() {
     if (items.length === 0) return
     setLoading(true)
@@ -127,6 +132,31 @@ export function CartDrawer() {
         </div>
 
         <ProgressBar total={cartTotal} isEmpty={items.length === 0} />
+
+        {/* Upsell livraison gratuite */}
+        {upsellFreeShip && (
+          <div className="cart-upsell-ship">
+            <div className="cart-upsell-ship-msg">
+              Ajoutez ce produit pour débloquer la livraison offerte
+            </div>
+            <div className="cart-upsell-ship-row">
+              <div className="cart-upsell-ship-ico">
+                <CategoryIcon category={upsellFreeShip.category} size={20} />
+              </div>
+              <div className="cart-upsell-ship-inf">
+                <div className="cart-upsell-ship-nm">{upsellFreeShip.name}</div>
+                <div className="cart-upsell-ship-pr">{formatPrice(upsellFreeShip.price)}</div>
+              </div>
+              <button
+                className="cart-upsell-ship-btn"
+                onClick={() => addItem(upsellFreeShip)}
+                aria-label={`Ajouter ${upsellFreeShip.name}`}
+              >
+                + Ajouter
+              </button>
+            </div>
+          </div>
+        )}
 
         <div className="cart-items">
           {items.length === 0 ? (
