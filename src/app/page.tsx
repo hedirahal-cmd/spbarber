@@ -94,7 +94,7 @@ export default function HomePage() {
           </h1>
 
           <p className="h-sub">
-            Cire, shampooing colorant, soins barbe — les formules utilisées en salon, disponibles en direct. Livraison en 48h.
+            Impeccable chaque matin, sans rendez-vous chez le barbier. Les formules professionnelles des pros, livrées directement chez vous en 48h.
           </p>
 
           <div className="h-ctas">
@@ -191,7 +191,7 @@ export default function HomePage() {
 
           {/* Shampooing Noir — Forte marge */}
           <Link href={`/products/${shampNoir.slug}`} className="best2-card">
-            <span className="best2-badge-fm">Forte marge</span>
+            <span className="best2-badge-mv">Coup de cœur</span>
             <div className="best2-img">
               <span className="best2-icon"><CategoryIcon category={shampNoir.category} size={72} /></span>
             </div>

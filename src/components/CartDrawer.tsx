@@ -61,8 +61,16 @@ export function CartDrawer() {
     p => !p.is_dropshipping && !items.find(i => i.product.id === p.id)
   ).slice(0, 2)
 
+  // Smart upsell: pick cheapest product that covers the free-shipping gap;
+  // fall back to cheapest available if none covers it alone.
+  const shipGap = FREE_SHIP - cartTotal
+  const availableForUpsell = PRODUCTS.filter(
+    p => !p.is_dropshipping && !items.find(i => i.product.id === p.id)
+  )
   const upsell = count > 0 && cartTotal < FREE_SHIP
-    ? PRODUCTS.find(p => !p.is_dropshipping && !items.find(i => i.product.id === p.id))
+    ? (availableForUpsell.filter(p => p.price >= shipGap).sort((a, b) => a.price - b.price)[0]
+       ?? availableForUpsell.sort((a, b) => a.price - b.price)[0]
+       ?? null)
     : null
 
   async function handleCheckout() {
@@ -132,7 +140,7 @@ export function CartDrawer() {
           {/* Upsell livraison */}
           {upsell && (
             <div className="cd-upsell">
-              <p className="cd-upsell-msg">Ajoutez ce produit pour débloquer la livraison offerte</p>
+              <p className="cd-upsell-msg">Plus que <strong>{fmt(shipGap)}</strong> pour la livraison offerte — ajoutez ce produit :</p>
               <div className="cd-upsell-row">
                 <div className="cd-upsell-icon"><CatIcon cat={upsell.category} size={20} /></div>
                 <div className="cd-upsell-info">

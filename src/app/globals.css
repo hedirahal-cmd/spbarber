@@ -1936,9 +1936,9 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
   letter-spacing: 1px;
 }
 .barber-exp-badge { font-size: 9px; letter-spacing: 1px; text-transform: uppercase; color: var(--gold); margin-top: 2px; font-weight: 700; font-family: var(--fb); }
-.barber-fav-link { font-size: 11px; color: var(--b); opacity: 0.6; transition: opacity 0.2s; text-decoration: none; display: block; margin-top: 10px; }
-.barber-fav-link:hover { opacity: 1; color: var(--gold); }
-.barber-fav-link strong { color: var(--b); }
+.barber-fav-link { font-size: 11px; color: var(--gold); font-weight: 700; letter-spacing: 0.5px; opacity: 1; transition: all 0.2s; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; margin-top: 10px; border-bottom: 1px solid rgba(184,144,58,0.35); padding-bottom: 2px; }
+.barber-fav-link:hover { color: var(--b); border-color: var(--b); }
+.barber-fav-link strong { color: inherit; font-weight: 700; }
 
 /* ── CART UPSELL LIVRAISON GRATUITE ── */
 .cart-upsell-ship {
