@@ -206,6 +206,13 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* ── CTA après bestsellers ── */}
+      <div className="cta-strip cta-strip-dark" style={{ padding: '16px 24px' }}>
+        <Link href="/products" className="cta-strip-btn">
+          Voir toute la gamme →
+        </Link>
+      </div>
+
       {/* ── REA BAR ── */}
       <div className="rea-compact">
         <div className="rea-c-item"><Truck size={11} strokeWidth={1.8} /> Livraison offerte dès 49€</div>
@@ -238,6 +245,9 @@ export default function HomePage() {
                     <span className="pc-tag">Dernières unités</span>
                   )}
                   {product.id === '1' && <span className="pc-tagg">Bestseller</span>}
+                  {product.id === '3' && <span className="pc-tagg">Choix des barbiers</span>}
+                  {product.id === '4' && <span className="pc-tag">Pro</span>}
+                  {product.id === '6' && <span className="pc-tag">Résultat salon</span>}
                   <div className="pc-overlay">Voir le produit</div>
                 </div>
               </Link>
@@ -337,19 +347,33 @@ export default function HomePage() {
       </div>
 
       {/* ── SALON ── */}
-      <section id="salon" className="salon-compact">
-        <div className="salon-compact-inner">
-          <div style={{ flexShrink: 0 }}>
-            <div className="salon-compact-icon"><Scissors size={36} strokeWidth={1.2} /></div>
-          </div>
-          <div>
+      <section id="salon" className="salon-pro">
+        <div className="salon-pro-inner">
+          <div className="salon-pro-left">
+            <div className="salon-pro-icon"><Scissors size={32} strokeWidth={1.2} /></div>
             <div className="sec-ey">Salon Physique — Fougères</div>
             <h2 className="salon-compact-title">SP BARBER SHOP</h2>
             <p className="salon-compact-addr">
               48 Boulevard Jean Jaurès · 35300 Fougères<br />
               Lun–Sam 9h–19h
             </p>
-            <Link href="/contact" className="salon-compact-link">En savoir plus →</Link>
+            <Link href="/contact" className="salon-compact-link">Nous trouver →</Link>
+          </div>
+          <div className="salon-pro-right">
+            <div className="salon-pro-label">Produits utilisés chaque jour au salon</div>
+            <div className="salon-pro-products">
+              {[cireCheveux, packBarbe, shampNoir].map((p) => (
+                <Link key={p.id} href={`/products/${p.slug}`} className="salon-pro-prod">
+                  <span className="salon-pro-prod-icon"><CategoryIcon category={p.category} size={22} /></span>
+                  <span className="salon-pro-prod-info">
+                    <span className="salon-pro-prod-benefit">{p.benefit}</span>
+                    <span className="salon-pro-prod-name">{p.name}</span>
+                  </span>
+                  <span className="salon-pro-prod-price">{formatPrice(p.price)}</span>
+                </Link>
+              ))}
+            </div>
+            <Link href="/products" className="salon-pro-cta">Voir tous les produits du salon →</Link>
           </div>
         </div>
       </section>
