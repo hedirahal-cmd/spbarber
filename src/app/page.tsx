@@ -3,6 +3,7 @@ import { PRODUCTS } from '@/lib/products'
 import { AddToCartButton } from '@/components/AddToCartButton'
 import { formatPrice } from '@/lib/utils'
 import { Scissors, Droplets, User, Zap, Sparkles, Truck, Gift, RotateCcw } from 'lucide-react'
+import { schemaOrganizationLocal, schemaBreadcrumb } from '@/lib/schema'
 
 function CategoryIcon({ category, size = 64 }: { category: string; size?: number }) {
   if (category === 'coiffant') return <Scissors size={size} strokeWidth={1.2} />
@@ -74,8 +75,19 @@ export default function HomePage() {
   const cireCheveux = PRODUCTS.find((p) => p.id === '1')!
   const featured = PRODUCTS.filter((p) => p.id !== '5' && p.id !== '2' && p.id !== '1').slice(0, 6)
 
+  const orgSchema        = schemaOrganizationLocal()
+  const breadcrumbSchema = schemaBreadcrumb([{ name: 'Accueil', url: 'https://spbarber.fr' }])
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(orgSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
       {/* ── HERO ── */}
       <section className="hero">
         <div className="hero-l">

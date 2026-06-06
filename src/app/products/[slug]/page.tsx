@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { notFound, redirect } from 'next/navigation'
 import { PRODUCTS } from '@/lib/products'
 import { ProductDetail } from '@/components/product/ProductDetail'
+import { schemaProduct, schemaBreadcrumb } from '@/lib/schema'
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -63,5 +64,24 @@ export default async function ProductPage({ params }: Props) {
     redirect(product.dsers_url)
   }
 
-  return <ProductDetail product={product} />
+  const productSchema   = schemaProduct(product)
+  const breadcrumbSchema = schemaBreadcrumb([
+    { name: 'Accueil', url: 'https://spbarber.fr' },
+    { name: 'Boutique', url: 'https://spbarber.fr/products' },
+    { name: product.name, url: `https://spbarber.fr/products/${product.slug}` },
+  ])
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
+      <ProductDetail product={product} />
+    </>
+  )
 }

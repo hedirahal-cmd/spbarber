@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { schemaFAQ } from '@/lib/schema'
 
 export const metadata: Metadata = {
   title: 'FAQ — Questions Fréquentes SP Barber | Livraison, Retours, Produits',
@@ -89,7 +90,13 @@ const FAQS = [
 ]
 
 export default function FAQPage() {
+  const faqSchema = schemaFAQ(FAQS)
   return (
+    <>
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+    />
     <div className="legal-page">
       <div className="legal-inner">
         <div className="legal-back"><Link href="/">← Retour à l&apos;accueil</Link></div>
@@ -115,5 +122,6 @@ export default function FAQPage() {
         </div>
       </div>
     </div>
+    </>
   )
 }
