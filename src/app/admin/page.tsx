@@ -456,7 +456,7 @@ function TabCommandes() {
               {ORDER_STATUSES.map(s => <option key={s} value={s}>{statusLabel(s)}</option>)}
             </select>
 
-            {selected.shipping_address && (
+            {!!selected.shipping_address && (
               <>
                 <div style={{ fontSize: 12, color: S.muted, marginBottom: 4 }}>Adresse de livraison</div>
                 <div style={{ fontSize: 13, color: S.text, lineHeight: 1.6, background: S.bg, padding: '10px 14px', borderRadius: 6 }}>
