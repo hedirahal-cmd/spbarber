@@ -41,24 +41,24 @@ export default function HomePage() {
           </div>
 
           <h1 className="h-title">
-            Produits professionnels<em>pour cheveux & barbe.</em>
+            La routine de votre barbier,<em>livrée chez vous.</em>
           </h1>
 
           <p className="h-sub">
-            Les soins utilisés par les meilleurs barbiers pour un résultat impeccable à la maison.
+            Cire, shampooing colorant, soins barbe — les formules utilisées en salon, disponibles en direct. Livraison en 48h.
           </p>
 
           <div className="h-ctas">
             <Link href="/products" className="btn-hero-primary">
-              Acheter maintenant
+              Découvrir les produits
               <span className="btn-hero-arrow">→</span>
             </Link>
           </div>
 
           <div className="hero-trust-checks">
-            <span className="hero-check-item"><span className="hero-check-v">✓</span> Livraison rapide</span>
-            <span className="hero-check-item"><span className="hero-check-v">✓</span> Paiement sécurisé</span>
-            <span className="hero-check-item"><span className="hero-check-v">✓</span> Sélectionnés par des pros</span>
+            <span className="hero-check-item"><span className="hero-check-v">✓</span> Formules utilisées par les barbiers pros</span>
+            <span className="hero-check-item"><span className="hero-check-v">✓</span> Livraison offerte dès 49€</span>
+            <span className="hero-check-item"><span className="hero-check-v">✓</span> Retour 30 jours</span>
           </div>
         </div>
       </section>

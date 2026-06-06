@@ -5,7 +5,7 @@ import { useState } from 'react'
 import { useCart } from '@/hooks/useCart'
 
 const NAV_LINKS = [
-  { label: 'Best Sellers', href: '/#produits' },
+  { label: 'Best Sellers', href: '/products' },
   { label: 'Packs', href: '/products/pack-barbe-complet' },
   { label: 'Tous les Produits', href: '/products' },
   { label: 'Notre Salon', href: '/#salon' },

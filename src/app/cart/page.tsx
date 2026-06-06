@@ -85,10 +85,18 @@ export default function CartPage() {
             <span>Sous-total</span>
             <span style={{ color: 'var(--b)' }}>{formatPrice(total())}</span>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 24, fontSize: 13, color: 'var(--gt)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: total() < 4900 ? 8 : 24, fontSize: 13, color: 'var(--gt)' }}>
             <span>Livraison</span>
-            <span style={{ color: 'var(--gold)' }}>Gratuite</span>
+            {total() >= 4900
+              ? <span style={{ color: 'var(--gold)' }}>Gratuite !</span>
+              : <span style={{ color: 'var(--b)' }}>4,90 €</span>
+            }
           </div>
+          {total() < 4900 && (
+            <div style={{ fontSize: 11, color: 'var(--gt)', marginBottom: 24, padding: '8px 10px', background: 'var(--gm)', borderRadius: 2 }}>
+              Plus que <strong style={{ color: 'var(--b)' }}>{formatPrice(4900 - total())}</strong> pour la livraison offerte
+            </div>
+          )}
           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 16, fontWeight: 600, marginBottom: 24, paddingTop: 16, borderTop: '1px solid var(--gm)', color: 'var(--b)' }}>
             <span>Total</span>
             <span style={{ color: 'var(--gold)' }}>{formatPrice(total())}</span>
