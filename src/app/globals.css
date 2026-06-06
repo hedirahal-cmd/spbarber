@@ -755,7 +755,7 @@ button { font-family: var(--fb); }
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  padding: 60px 48px 36px;
+  padding: 44px 48px 30px;
 }
 .sec-ey {
   font-size: 9px;
@@ -790,7 +790,7 @@ button { font-family: var(--fb); }
   grid-template-columns: repeat(3, 1fr);
   gap: 2px;
   background: var(--gm);
-  margin: 0 48px 60px;
+  margin: 0 48px 44px;
 }
 .prod-card {
   background: var(--w);
@@ -875,7 +875,7 @@ button { font-family: var(--fb); }
 .pc-atc:hover { background: var(--goldl); transform: translateY(-1px); }
 
 /* ═══ KIT BANNER ═══ */
-.kit-wrap { margin: 0 48px 60px; }
+.kit-wrap { margin: 0 48px 44px; }
 .kit-banner {
   background: var(--b);
   display: grid;
@@ -1143,22 +1143,29 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
   backdrop-filter: blur(8px);
   border-top: 1px solid rgba(184,144,58,.3);
   padding: 10px 16px;
+  padding-bottom: max(10px, env(safe-area-inset-bottom));
 }
 .sticky-mob-btn {
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 100%;
   background: var(--gold);
   color: var(--w);
   border: none;
-  padding: 13px;
+  min-height: 48px;
+  padding: 14px;
   font-family: var(--fb);
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 3px;
   text-transform: uppercase;
   font-weight: 700;
   cursor: pointer;
   text-align: center;
+  border-radius: 3px;
+  transition: background 0.2s;
 }
+.sticky-mob-btn:hover { background: var(--goldl); }
 
 /* ═══ FICHE PRODUIT ═══ */
 .fi-inner {
@@ -1355,7 +1362,7 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
   .stats { grid-template-columns: 1fr 1fr; }
   .h-reviews { padding: 48px 24px; }
   .h-rev-grid { grid-template-columns: 1fr; }
-  .sec-head { padding: 48px 20px 28px; flex-wrap: wrap; gap: 10px; }
+  .sec-head { padding: 36px 20px 24px; flex-wrap: wrap; gap: 10px; }
   .fi-inner { grid-template-columns: 1fr; gap: 32px; padding: 28px 20px 0; }
   .fi-revs-sec { padding: 48px 20px; }
   .fi-rev-grid { grid-template-columns: 1fr; }
@@ -1394,6 +1401,9 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
 @media (max-width: 480px) {
   .rea-c-sep { display: none; }
   .hero-l { padding: 36px 20px 28px; }
+  .h-sub { max-width: 100%; }
+  .hero-trust-checks { gap: 8px; }
+  .hero-check-item { font-size: 10px; }
 }
 
 /* ═══════════════════════════════════
