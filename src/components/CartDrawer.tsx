@@ -91,12 +91,6 @@ export function CartDrawer() {
 
   return (
     <>
-      {/* Floating cart button */}
-      <button className="float-cart" onClick={openCart} title="Mon panier" aria-label="Ouvrir le panier">
-        <ShoppingBag size={18} color="white" strokeWidth={1.8} />
-        {count > 0 && <span className="float-cart-badge">{count}</span>}
-      </button>
-
       {/* Overlay */}
       <div
         className={`cart-overlay${isOpen ? ' open' : ''}`}
