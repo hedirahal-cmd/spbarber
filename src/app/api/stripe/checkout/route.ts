@@ -21,10 +21,10 @@ export async function POST(req: NextRequest) {
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
       customer_creation: 'if_required',
-      payment_method_types: ['card', 'paypal'],
+      payment_method_types: ['card'],
       line_items,
-      success_url: `${process.env.NEXT_PUBLIC_SITE_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}/cart`,
+      success_url: `${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://spbarber-nine.vercel.app'}/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://spbarber-nine.vercel.app'}/`,
       locale: 'fr',
       shipping_address_collection: { allowed_countries: ['FR', 'BE', 'CH', 'LU'] },
       shipping_options: [

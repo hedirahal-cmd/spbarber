@@ -79,8 +79,12 @@ export function CartDrawer() {
       const data = await res.json()
       if (data.url) {
         window.location.href = data.url
+      } else {
+        alert('Erreur lors du paiement. Veuillez réessayer.')
+        setLoading(false)
       }
     } catch {
+      alert('Erreur de connexion. Veuillez réessayer.')
       setLoading(false)
     }
   }
