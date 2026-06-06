@@ -323,7 +323,7 @@ export default function HomePage() {
               48 Boulevard Jean Jaurès · 35300 Fougères<br />
               Lun–Sam 9h–19h
             </p>
-            <a href="#" className="salon-compact-link">En savoir plus →</a>
+            <Link href="/contact" className="salon-compact-link">En savoir plus →</Link>
           </div>
         </div>
       </section>

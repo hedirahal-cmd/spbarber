@@ -21,15 +21,26 @@ export function Header() {
 
       <nav className="site-nav">
         <div className="site-nav-inner">
-          <div className="site-nav-links-desktop" style={{ display: 'flex', gap: 40, alignItems: 'center' }}>
-            {NAV_LINKS.map(({ label, href }) => (
+          <div className="site-nav-links-desktop" style={{ display: 'flex', gap: 40, alignItems: 'center', flex: 1 }}>
+            {NAV_LINKS.slice(0, 2).map(({ label, href }) => (
               <Link key={label} href={href}>
                 {label}
               </Link>
             ))}
           </div>
 
-          <div className="site-nav-right">
+          <Link href="/" className="site-nav-logo">
+            SP<span style={{ color: 'var(--gold)' }}>.</span>BARBER
+          </Link>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 40, flex: 1, justifyContent: 'flex-end' }}>
+            <div className="site-nav-links-desktop" style={{ display: 'flex', gap: 40, alignItems: 'center' }}>
+              {NAV_LINKS.slice(2).map(({ label, href }) => (
+                <Link key={label} href={href}>
+                  {label}
+                </Link>
+              ))}
+            </div>
             <button
               className="hamburger"
               onClick={() => setMenuOpen(!menuOpen)}
@@ -42,6 +53,9 @@ export function Header() {
 
         {menuOpen && (
           <div className="mobile-menu">
+            <Link href="/" className="mobile-menu-logo" onClick={() => setMenuOpen(false)}>
+              SP<span style={{ color: 'var(--gold)' }}>.</span>BARBER
+            </Link>
             {NAV_LINKS.map(({ label, href }) => (
               <Link key={label} href={href} onClick={() => setMenuOpen(false)}>
                 {label}

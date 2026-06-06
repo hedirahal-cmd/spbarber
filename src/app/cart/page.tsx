@@ -1,18 +1,42 @@
 'use client'
+import { useState } from 'react'
 import Link from 'next/link'
 import { useCart } from '@/hooks/useCart'
 import { formatPrice } from '@/lib/utils'
-import { Trash2, Plus, Minus } from 'lucide-react'
+import { Trash2, Plus, Minus, Lock } from 'lucide-react'
 
 export default function CartPage() {
   const { items, removeItem, updateQuantity, total } = useCart()
+  const [loading, setLoading] = useState(false)
+
+  async function handleCheckout() {
+    if (items.length === 0) return
+    setLoading(true)
+    try {
+      const res = await fetch('/api/stripe/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items }),
+      })
+      const data = await res.json()
+      if (data.url) {
+        window.location.href = data.url
+      } else {
+        alert('Erreur lors du paiement. Veuillez réessayer.')
+        setLoading(false)
+      }
+    } catch {
+      alert('Erreur de connexion. Veuillez réessayer.')
+      setLoading(false)
+    }
+  }
 
   if (items.length === 0) {
     return (
-      <div className="max-w-2xl mx-auto px-4 pt-32 pb-20 text-center">
-        <h1 className="text-4xl mb-4" style={{ fontFamily: 'Cormorant Garamond, serif' }}>Votre panier</h1>
-        <p className="mb-8" style={{ color: 'var(--white-muted)' }}>Votre panier est vide.</p>
-        <Link href="/products" className="inline-block px-8 py-3 text-sm tracking-widest uppercase border" style={{ borderColor: 'var(--gold)', color: 'var(--gold)' }}>
+      <div style={{ minHeight: '60vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 24px', textAlign: 'center' }}>
+        <h1 style={{ fontFamily: 'var(--fs)', fontSize: 'clamp(28px,5vw,40px)', color: 'var(--b)', marginBottom: 12 }}>Votre panier</h1>
+        <p style={{ color: 'var(--gt)', marginBottom: 32 }}>Votre panier est vide.</p>
+        <Link href="/products" style={{ display: 'inline-block', padding: '12px 32px', fontSize: 11, letterSpacing: 3, textTransform: 'uppercase', border: '1px solid var(--gold)', color: 'var(--gold)', textDecoration: 'none', fontFamily: 'var(--fb)' }}>
           Continuer les achats
         </Link>
       </div>
@@ -20,31 +44,33 @@ export default function CartPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 pt-24 pb-20">
-      <h1 className="text-4xl mb-10" style={{ fontFamily: 'Cormorant Garamond, serif' }}>Votre panier</h1>
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 flex flex-col gap-4">
+    <div style={{ maxWidth: 900, margin: '0 auto', padding: '80px 24px 60px' }}>
+      <h1 style={{ fontFamily: 'var(--fs)', fontSize: 'clamp(28px,5vw,40px)', color: 'var(--b)', marginBottom: 40 }}>Votre panier</h1>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 32, alignItems: 'start' }}>
+        {/* Items */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           {items.map((item) => (
-            <div key={`${item.product.id}-${item.variant?.id}`} className="flex gap-4 p-4 border" style={{ background: 'var(--black-card)', borderColor: 'var(--black-border)' }}>
-              <div className="w-20 h-20 flex items-center justify-center flex-shrink-0" style={{ background: 'var(--black-soft)' }}>
-                <span style={{ color: 'var(--gold)', opacity: 0.3 }}>SP</span>
+            <div key={`${item.product.id}-${item.variant?.id}`} style={{ display: 'flex', gap: 16, padding: 16, background: 'var(--g)', border: '1px solid var(--gm)' }}>
+              <div style={{ width: 72, height: 72, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--gm)', flexShrink: 0 }}>
+                <span style={{ color: 'var(--gold)', opacity: 0.5, fontFamily: 'var(--fd)', fontSize: 14 }}>SP</span>
               </div>
-              <div className="flex-1">
-                <p className="font-medium" style={{ fontFamily: 'Cormorant Garamond, serif' }}>{item.product.name}</p>
-                {item.variant && <p className="text-xs mb-2" style={{ color: 'var(--white-muted)' }}>{item.variant.name}</p>}
-                <p style={{ color: 'var(--gold)' }}>{formatPrice(item.variant?.price ?? item.product.price)}</p>
+              <div style={{ flex: 1 }}>
+                <p style={{ fontFamily: 'var(--fs)', fontSize: 16, color: 'var(--b)', marginBottom: 2 }}>{item.product.name}</p>
+                {item.variant && <p style={{ fontSize: 12, color: 'var(--gt)', marginBottom: 4 }}>{item.variant.name}</p>}
+                <p style={{ color: 'var(--gold)', fontWeight: 600, fontSize: 14 }}>{formatPrice((item.variant?.price ?? item.product.price) * item.quantity)}</p>
               </div>
-              <div className="flex flex-col items-end justify-between">
-                <button onClick={() => removeItem(item.product.id, item.variant?.id)}>
-                  <Trash2 size={16} style={{ color: 'var(--white-muted)' }} />
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', justifyContent: 'space-between' }}>
+                <button onClick={() => removeItem(item.product.id, item.variant?.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--gt)', padding: 4 }}>
+                  <Trash2 size={15} />
                 </button>
-                <div className="flex items-center gap-2">
-                  <button onClick={() => updateQuantity(item.product.id, item.quantity - 1, item.variant?.id)} className="w-7 h-7 flex items-center justify-center border" style={{ borderColor: 'var(--black-border)' }}>
-                    <Minus size={12} />
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <button onClick={() => updateQuantity(item.product.id, item.quantity - 1, item.variant?.id)} style={{ width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--gm)', background: 'none', cursor: 'pointer', color: 'var(--b)' }}>
+                    <Minus size={11} />
                   </button>
-                  <span className="w-6 text-center text-sm">{item.quantity}</span>
-                  <button onClick={() => updateQuantity(item.product.id, item.quantity + 1, item.variant?.id)} className="w-7 h-7 flex items-center justify-center border" style={{ borderColor: 'var(--black-border)' }}>
-                    <Plus size={12} />
+                  <span style={{ minWidth: 20, textAlign: 'center', fontSize: 13, color: 'var(--b)' }}>{item.quantity}</span>
+                  <button onClick={() => updateQuantity(item.product.id, item.quantity + 1, item.variant?.id)} style={{ width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--gm)', background: 'none', cursor: 'pointer', color: 'var(--b)' }}>
+                    <Plus size={11} />
                   </button>
                 </div>
               </div>
@@ -52,23 +78,29 @@ export default function CartPage() {
           ))}
         </div>
 
-        <div className="p-6 border self-start" style={{ background: 'var(--black-card)', borderColor: 'var(--black-border)' }}>
-          <h2 className="text-xl mb-6" style={{ fontFamily: 'Cormorant Garamond, serif' }}>Récapitulatif</h2>
-          <div className="flex justify-between mb-2">
-            <span style={{ color: 'var(--white-muted)' }}>Sous-total</span>
-            <span>{formatPrice(total())}</span>
+        {/* Récapitulatif */}
+        <div style={{ width: 280, padding: 24, background: 'var(--g)', border: '1px solid var(--gm)', position: 'sticky', top: 100 }}>
+          <h2 style={{ fontFamily: 'var(--fs)', fontSize: 20, color: 'var(--b)', marginBottom: 24 }}>Récapitulatif</h2>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontSize: 13, color: 'var(--gt)' }}>
+            <span>Sous-total</span>
+            <span style={{ color: 'var(--b)' }}>{formatPrice(total())}</span>
           </div>
-          <div className="flex justify-between mb-6">
-            <span style={{ color: 'var(--white-muted)' }}>Livraison</span>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 24, fontSize: 13, color: 'var(--gt)' }}>
+            <span>Livraison</span>
             <span style={{ color: 'var(--gold)' }}>Gratuite</span>
           </div>
-          <div className="flex justify-between text-lg font-semibold mb-8 pt-4 border-t" style={{ borderColor: 'var(--black-border)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 16, fontWeight: 600, marginBottom: 24, paddingTop: 16, borderTop: '1px solid var(--gm)', color: 'var(--b)' }}>
             <span>Total</span>
             <span style={{ color: 'var(--gold)' }}>{formatPrice(total())}</span>
           </div>
-          <Link href="/checkout" className="block text-center py-4 text-sm tracking-widest uppercase font-semibold" style={{ background: 'var(--gold)', color: 'var(--black)' }}>
-            Passer commande
-          </Link>
+          <button
+            onClick={handleCheckout}
+            disabled={loading}
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%', padding: '14px 0', background: loading ? 'var(--gm)' : 'var(--b)', color: 'var(--w)', fontSize: 11, letterSpacing: 3, textTransform: 'uppercase', fontFamily: 'var(--fb)', fontWeight: 700, border: 'none', cursor: loading ? 'wait' : 'pointer' }}
+          >
+            <Lock size={12} strokeWidth={2} />
+            {loading ? 'Chargement...' : 'Passer commande'}
+          </button>
         </div>
       </div>
     </div>

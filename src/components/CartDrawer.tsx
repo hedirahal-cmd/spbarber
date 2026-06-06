@@ -1,6 +1,6 @@
 'use client'
 import { useCart } from '@/hooks/useCart'
-import { X, ShoppingBag, Truck, Gift, RotateCcw, Lock, ShoppingCart, Scissors, Droplets, User, Zap, Sparkles } from 'lucide-react'
+import { X, ShoppingBag, Truck, Gift, RotateCcw, Lock, ShoppingCart, Scissors, Droplets, User, Zap, Sparkles, Plus, Minus } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { PaymentLogos } from './PaymentLogos'
 import { formatPrice } from '@/lib/utils'
@@ -50,7 +50,7 @@ function ProgressBar({ total, isEmpty }: { total: number; isEmpty: boolean }) {
 }
 
 export function CartDrawer() {
-  const { items, isOpen, openCart, closeCart, removeItem, addItem, total, itemCount } = useCart()
+  const { items, isOpen, openCart, closeCart, removeItem, updateQuantity, addItem, total, itemCount } = useCart()
   const [loading, setLoading] = useState(false)
 
   const cartTotal = total()
@@ -131,13 +131,27 @@ export function CartDrawer() {
                       <CategoryIcon category={item.product.category} size={22} />
                     </span>
                   </div>
-                  <div>
+                  <div style={{ flex: 1 }}>
                     <div className="cart-row-name">{item.product.name}</div>
                     {item.variant && <div className="cart-row-variant">{item.variant.name}</div>}
-                    {item.quantity > 1 && (
-                      <div style={{ fontSize: 11, color: 'var(--gt)' }}>Qté : {item.quantity}</div>
-                    )}
                     <div className="cart-row-price">{formatEur(price * item.quantity)}</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6 }}>
+                      <button
+                        onClick={() => updateQuantity(item.product.id, item.quantity - 1, item.variant?.id)}
+                        style={{ width: 22, height: 22, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--gm)', background: 'none', cursor: 'pointer', color: 'var(--w)' }}
+                        aria-label="Diminuer"
+                      >
+                        <Minus size={10} />
+                      </button>
+                      <span style={{ fontSize: 12, color: 'var(--w)', minWidth: 16, textAlign: 'center' }}>{item.quantity}</span>
+                      <button
+                        onClick={() => updateQuantity(item.product.id, item.quantity + 1, item.variant?.id)}
+                        style={{ width: 22, height: 22, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--gm)', background: 'none', cursor: 'pointer', color: 'var(--w)' }}
+                        aria-label="Augmenter"
+                      >
+                        <Plus size={10} />
+                      </button>
+                    </div>
                   </div>
                   <button
                     className="cart-row-rm"
