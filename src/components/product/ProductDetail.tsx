@@ -215,36 +215,37 @@ export function ProductDetail({ product }: { product: Product }) {
           {/* Logos paiement */}
           <PaymentLogos />
 
-          {/* Bénéfices */}
-          <div className="fi-bens">
-            <div className="fi-ben">
-              <span><Dumbbell size={18} strokeWidth={1.6} /></span>
-              <div><b>Qualité professionnelle</b><p>Les mêmes produits qu&apos;en salon.</p></div>
-            </div>
-            <div className="fi-ben">
-              <span><Sparkles size={18} strokeWidth={1.6} /></span>
-              <div><b>Résultats visibles</b><p>Efficacité prouvée dès la première utilisation.</p></div>
-            </div>
-            <div className="fi-ben">
-              <span><Leaf size={18} strokeWidth={1.6} /></span>
-              <div><b>Formule soignée</b><p>Ingrédients sélectionnés, sans compromis.</p></div>
-            </div>
-            <div className="fi-ben">
-              <span><FlaskConical size={18} strokeWidth={1.6} /></span>
-              <div><b>Testé par des barbiers</b><p>Formulé et validé par des professionnels.</p></div>
-            </div>
-          </div>
-
-          {/* Description */}
-          <div className="fi-desc-block">
-            <div className="fi-desc-ttl">Description</div>
-            <p>{product.description}</p>
-          </div>
         </div>
       </div>
 
-      {/* ── AVANT / APRÈS — Shampooing Noir uniquement ── */}
+      {/* ── AVANT / APRÈS — Shampooing Noir uniquement ── juste après le CTA ── */}
       {product.id === '2' && <BeforeAfterSlider />}
+
+      {/* ── Bénéfices + Description — pour tous les produits, après le slider ── */}
+      <div className="fi-post">
+        <div className="fi-bens">
+          <div className="fi-ben">
+            <span><Dumbbell size={18} strokeWidth={1.6} /></span>
+            <div><b>Qualité professionnelle</b><p>Les mêmes produits qu&apos;en salon.</p></div>
+          </div>
+          <div className="fi-ben">
+            <span><Sparkles size={18} strokeWidth={1.6} /></span>
+            <div><b>Résultats visibles</b><p>Efficacité prouvée dès la première utilisation.</p></div>
+          </div>
+          <div className="fi-ben">
+            <span><Leaf size={18} strokeWidth={1.6} /></span>
+            <div><b>Formule soignée</b><p>Ingrédients sélectionnés, sans compromis.</p></div>
+          </div>
+          <div className="fi-ben">
+            <span><FlaskConical size={18} strokeWidth={1.6} /></span>
+            <div><b>Testé par des barbiers</b><p>Formulé et validé par des professionnels.</p></div>
+          </div>
+        </div>
+        <div className="fi-desc-block">
+          <div className="fi-desc-ttl">Description</div>
+          <p>{product.description}</p>
+        </div>
+      </div>
 
       {/* Complétez votre routine */}
       {relatedProducts.length > 0 && (

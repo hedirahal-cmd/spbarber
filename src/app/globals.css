@@ -1174,6 +1174,14 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
 .mini-prog-msg strong { color: var(--gold); font-weight: 600; }
 .mini-prog-track { background: var(--gm); height: 3px; border-radius: 2px; overflow: hidden; }
 .mini-prog-fill { background: var(--gold); height: 100%; border-radius: 2px; transition: width 0.4s; }
+/* Section bénéfices + description — après slider, hors de la grille fi-inner */
+.fi-post {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 32px 48px 0;
+}
+@media (max-width: 900px) { .fi-post { padding: 24px 20px 0; } }
+@media (max-width: 640px) { .fi-post { padding: 20px 16px 0; } }
 .fi-bens { padding: 20px 0; border-top: 1px solid var(--gm); border-bottom: 1px solid var(--gm); display: flex; flex-direction: column; gap: 14px; margin-top: 6px; }
 .fi-ben { display: flex; gap: 14px; align-items: flex-start; }
 .fi-ben > span { display: flex; align-items: center; justify-content: center; flex-shrink: 0; width: 28px; margin-top: 1px; }
