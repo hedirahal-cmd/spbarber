@@ -1,6 +1,6 @@
 'use client'
 import { useCart } from '@/hooks/useCart'
-import { X, ShoppingBag, Truck, Gift, RotateCcw, Lock, ShoppingCart, Scissors, Droplets, User, Zap, Sparkles, Plus, Minus } from 'lucide-react'
+import { X, Truck, RotateCcw, Lock, ShoppingCart, Scissors, Droplets, User, Zap, Sparkles, Plus, Minus, ChevronDown } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { PaymentLogos } from './PaymentLogos'
 import { formatPrice } from '@/lib/utils'
@@ -56,6 +56,7 @@ export function CartDrawer() {
   const [couponOpen, setCouponOpen] = useState(false)
   const [couponApplied, setCouponApplied] = useState(false)
   const [couponError, setCouponError] = useState('')
+  const [suggestionsOpen, setSuggestionsOpen] = useState(true)
 
   const cartTotal = total()
   const count = itemCount()
@@ -139,65 +140,82 @@ export function CartDrawer() {
               return (
                 <div key={`${item.product.id}-${item.variant?.id ?? ''}`} className="cart-row">
                   <div className="cart-row-ph">
-                    <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 28, height: 28, opacity: 0.5 }}>
-                      <CategoryIcon category={item.product.category} size={22} />
-                    </span>
+                    <CategoryIcon category={item.product.category} size={26} />
                   </div>
-                  <div style={{ flex: 1 }}>
+                  <div className="cart-row-body">
                     <div className="cart-row-name">{item.product.name}</div>
                     {item.variant && <div className="cart-row-variant">{item.variant.name}</div>}
-                    <div className="cart-row-price">{formatEur(price * item.quantity)}</div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6 }}>
+                    <div className="cart-qty-row">
                       <button
+                        className="cart-qty-btn"
                         onClick={() => updateQuantity(item.product.id, item.quantity - 1, item.variant?.id)}
-                        style={{ width: 22, height: 22, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--gm)', background: 'none', cursor: 'pointer', color: 'var(--w)' }}
                         aria-label="Diminuer"
                       >
-                        <Minus size={10} />
+                        <Minus size={11} />
                       </button>
-                      <span style={{ fontSize: 12, color: 'var(--w)', minWidth: 16, textAlign: 'center' }}>{item.quantity}</span>
+                      <span className="cart-qty-val">{item.quantity}</span>
                       <button
+                        className="cart-qty-btn"
                         onClick={() => updateQuantity(item.product.id, item.quantity + 1, item.variant?.id)}
-                        style={{ width: 22, height: 22, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--gm)', background: 'none', cursor: 'pointer', color: 'var(--w)' }}
                         aria-label="Augmenter"
                       >
-                        <Plus size={10} />
+                        <Plus size={11} />
                       </button>
                     </div>
                   </div>
-                  <button
-                    className="cart-row-rm"
-                    onClick={() => removeItem(item.product.id, item.variant?.id)}
-                    aria-label="Supprimer"
-                  >
-                    ✕
-                  </button>
+                  <div className="cart-row-right">
+                    <div className="cart-row-price">{formatEur(price * item.quantity)}</div>
+                    <button
+                      className="cart-row-rm"
+                      onClick={() => removeItem(item.product.id, item.variant?.id)}
+                      aria-label="Supprimer"
+                    >
+                      ✕
+                    </button>
+                  </div>
                 </div>
               )
             })
           )}
         </div>
 
-        {/* Upsell strip */}
+        {/* Suggestions — clairement séparées du panier */}
         {items.length > 0 && suggestions.length > 0 && (
-          <div className="cart-upsell">
-            <div className="cart-upsell-ttl">Compléter votre routine</div>
-            {suggestions.map((p) => (
-              <div key={p.id} className="cart-upsell-row">
-                <div className="cart-upsell-ico"><CategoryIcon category={p.category} size={18} /></div>
-                <div className="cart-upsell-inf">
-                  <div className="cart-upsell-nm">{p.name}</div>
-                  <div className="cart-upsell-pr">{formatPrice(p.price)}</div>
-                </div>
-                <button
-                  className="cart-upsell-btn"
-                  onClick={() => addItem(p)}
-                  aria-label={`Ajouter ${p.name}`}
-                >
-                  + Ajouter
-                </button>
+          <div className="cart-sugg">
+            <button
+              className="cart-sugg-hd"
+              onClick={() => setSuggestionsOpen(!suggestionsOpen)}
+              aria-expanded={suggestionsOpen}
+            >
+              <span className="cart-sugg-line" />
+              <span className="cart-sugg-title">VOUS AIMEREZ AUSSI</span>
+              <span className="cart-sugg-line" />
+              <ChevronDown size={14} className={`cart-sugg-chevron${suggestionsOpen ? ' open' : ''}`} />
+            </button>
+            {suggestionsOpen && (
+              <div className="cart-sugg-body">
+                <p className="cart-sugg-note">Ces produits ne sont pas encore dans votre panier</p>
+                {suggestions.map((p) => (
+                  <div key={p.id} className="cart-sugg-row">
+                    <div className="cart-sugg-ico">
+                      <CategoryIcon category={p.category} size={20} />
+                    </div>
+                    <div className="cart-sugg-inf">
+                      <span className="cart-sugg-badge">Suggestion</span>
+                      <div className="cart-sugg-nm">{p.name}</div>
+                      <div className="cart-sugg-pr">{formatPrice(p.price)}</div>
+                    </div>
+                    <button
+                      className="cart-sugg-btn"
+                      onClick={() => { addItem(p); setSuggestionsOpen(false) }}
+                      aria-label={`Ajouter ${p.name}`}
+                    >
+                      + Ajouter
+                    </button>
+                  </div>
+                ))}
               </div>
-            ))}
+            )}
           </div>
         )}
 
