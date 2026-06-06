@@ -63,10 +63,22 @@ export function ProductDetail({ product }: { product: Product }) {
             {product.stock <= 10 && product.stock > 0 && <span className="fi-tag">Dernières unités</span>}
           </div>
           <div className="trust-row">
-            <div className="trust-i"><Lock size={10} strokeWidth={2} style={{ marginRight: 3, verticalAlign: 'middle' }} />Sécurisé</div>
-            <div className="trust-i"><Truck size={10} strokeWidth={2} style={{ marginRight: 3, verticalAlign: 'middle' }} />48h</div>
-            <div className="trust-i"><RotateCcw size={10} strokeWidth={2} style={{ marginRight: 3, verticalAlign: 'middle' }} />30 jours</div>
-            <div className="trust-i">🇫🇷 France</div>
+            <div className="trust-i">
+              <Lock size={20} strokeWidth={1.5} />
+              <span>Sécurisé</span>
+            </div>
+            <div className="trust-i">
+              <Truck size={20} strokeWidth={1.5} />
+              <span>Livraison 48h</span>
+            </div>
+            <div className="trust-i">
+              <RotateCcw size={20} strokeWidth={1.5} />
+              <span>Retour 30j</span>
+            </div>
+            <div className="trust-i">
+              <span style={{ fontSize: 20, lineHeight: 1 }}>🇫🇷</span>
+              <span>France</span>
+            </div>
           </div>
         </div>
 
