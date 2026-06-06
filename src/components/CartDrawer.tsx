@@ -1,6 +1,6 @@
 'use client'
 import { useCart } from '@/hooks/useCart'
-import { X, Truck, RotateCcw, Lock, ShoppingCart, Scissors, Droplets, User, Zap, Sparkles, Plus, Minus, ChevronDown } from 'lucide-react'
+import { X, Lock, Truck, RotateCcw, ShoppingCart, Scissors, Droplets, User, Zap, Sparkles, Plus, Minus, ChevronDown, ChevronUp } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { PaymentLogos } from './PaymentLogos'
 import { formatPrice } from '@/lib/utils'
@@ -9,79 +9,67 @@ import { PRODUCTS } from '@/lib/products'
 const FREE_SHIP = 4900
 const FREE_GIFT = 7000
 
-function CategoryIcon({ category, size = 20 }: { category: string; size?: number }) {
-  if (category === 'coiffant') return <Scissors size={size} strokeWidth={1.4} />
-  if (category === 'soin') return <Droplets size={size} strokeWidth={1.4} />
-  if (category === 'barbe') return <User size={size} strokeWidth={1.4} />
-  if (category === 'accessoire') return <Zap size={size} strokeWidth={1.4} />
-  return <Sparkles size={size} strokeWidth={1.4} />
+function fmt(cents: number) {
+  return (cents / 100).toFixed(2).replace('.', ',') + ' €'
 }
 
-function formatEur(cents: number) {
-  return (cents / 100).toFixed(2).replace('.', ',') + ' €'
-}
-
-function ProgressBar({ total, isEmpty }: { total: number; isEmpty: boolean }) {
-  let msg: React.ReactNode
-  let pct: number
-
-  if (isEmpty) {
-    msg = <>Ajoutez un produit pour débloquer la <strong>livraison offerte dès 49 €</strong></>
-    pct = 0
-  } else if (total >= FREE_GIFT) {
-    msg = <><strong>Cadeau offert !</strong> + Livraison offerte</>
-    pct = 100
-  } else if (total >= FREE_SHIP) {
-    msg = <>Livraison offerte ! Plus que <strong>{formatEur(FREE_GIFT - total)}</strong> pour un cadeau</>
-    pct = ((total - FREE_SHIP) / (FREE_GIFT - FREE_SHIP)) * 100
-  } else {
-    msg = <>Plus que <strong>{formatEur(FREE_SHIP - total)}</strong> pour la livraison offerte</>
-    pct = (total / FREE_SHIP) * 100
-  }
-
-  return (
-    <div className="cart-prog">
-      <div className="cart-prog-msg">{msg}</div>
-      <div className="cart-prog-track">
-        <div className="cart-prog-fill" style={{ width: `${Math.min(100, pct)}%` }} />
-      </div>
-    </div>
-  )
+function CatIcon({ cat, size = 22 }: { cat: string; size?: number }) {
+  const sw = 1.4
+  if (cat === 'coiffant') return <Scissors size={size} strokeWidth={sw} />
+  if (cat === 'soin')     return <Droplets size={size} strokeWidth={sw} />
+  if (cat === 'barbe')    return <User size={size} strokeWidth={sw} />
+  if (cat === 'accessoire') return <Zap size={size} strokeWidth={sw} />
+  return <Sparkles size={size} strokeWidth={sw} />
 }
 
 export function CartDrawer() {
-  const { items, isOpen, openCart, closeCart, removeItem, updateQuantity, addItem, total, itemCount } = useCart()
-  const [loading, setLoading] = useState(false)
-  const [couponCode, setCouponCode] = useState('')
-  const [couponOpen, setCouponOpen] = useState(false)
+  const { items, isOpen, closeCart, removeItem, updateQuantity, addItem, total, itemCount } = useCart()
+  const [loading, setLoading]           = useState(false)
+  const [couponOpen, setCouponOpen]     = useState(false)
+  const [couponCode, setCouponCode]     = useState('')
   const [couponApplied, setCouponApplied] = useState(false)
-  const [couponError, setCouponError] = useState('')
-  const [suggestionsOpen, setSuggestionsOpen] = useState(true)
+  const [couponError, setCouponError]   = useState('')
+  const [suggOpen, setSuggOpen]         = useState(true)
 
   const cartTotal = total()
-  const count = itemCount()
+  const count     = itemCount()
 
-  // Fermeture via touche Échap
   useEffect(() => {
-    function onKey(e: KeyboardEvent) { if (e.key === 'Escape') closeCart() }
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') closeCart() }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [closeCart])
 
+  // Barre de progression
+  let progMsg: React.ReactNode
+  let progPct: number
+  if (count === 0) {
+    progMsg = <>Ajoutez un produit pour la <strong>livraison offerte dès 49&nbsp;€</strong></>
+    progPct = 0
+  } else if (cartTotal >= FREE_GIFT) {
+    progMsg = <><strong>Cadeau offert&nbsp;!</strong> Livraison offerte incluse</>
+    progPct = 100
+  } else if (cartTotal >= FREE_SHIP) {
+    progMsg = <>Livraison offerte&nbsp;! Plus que <strong>{fmt(FREE_GIFT - cartTotal)}</strong> pour un cadeau</>
+    progPct = ((cartTotal - FREE_SHIP) / (FREE_GIFT - FREE_SHIP)) * 100
+  } else {
+    progMsg = <>Plus que <strong>{fmt(FREE_SHIP - cartTotal)}</strong> pour la livraison offerte</>
+    progPct = (cartTotal / FREE_SHIP) * 100
+  }
+
   const suggestions = PRODUCTS.filter(
-    (p) => !p.is_dropshipping && !items.find((i) => i.product.id === p.id)
+    p => !p.is_dropshipping && !items.find(i => i.product.id === p.id)
   ).slice(0, 2)
 
-  // Produit upsell pour débloquer la livraison gratuite
-  const upsellFreeShip = items.length > 0 && cartTotal < FREE_SHIP
-    ? PRODUCTS.find((p) => !p.is_dropshipping && !items.find((i) => i.product.id === p.id))
+  const upsell = count > 0 && cartTotal < FREE_SHIP
+    ? PRODUCTS.find(p => !p.is_dropshipping && !items.find(i => i.product.id === p.id))
     : null
 
   async function handleCheckout() {
-    if (items.length === 0) return
+    if (!items.length) return
     setLoading(true)
     try {
-      const res = await fetch('/api/stripe/checkout', {
+      const res  = await fetch('/api/stripe/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -93,21 +81,17 @@ export function CartDrawer() {
       if (data.url) {
         window.location.href = data.url
       } else {
-        if (data.couponError) {
-          setCouponError(data.couponError)
-          setCouponApplied(false)
-        } else {
-          alert(data.error || 'Erreur lors du paiement. Veuillez réessayer.')
-        }
+        if (data.couponError) { setCouponError(data.couponError); setCouponApplied(false) }
+        else alert(data.error || 'Erreur paiement. Réessayez.')
         setLoading(false)
       }
     } catch {
-      alert('Erreur de connexion. Veuillez réessayer.')
+      alert('Erreur de connexion. Réessayez.')
       setLoading(false)
     }
   }
 
-  function handleApplyCoupon() {
+  function applyCoupon() {
     if (!couponCode.trim()) return
     setCouponApplied(true)
     setCouponError('')
@@ -115,203 +99,221 @@ export function CartDrawer() {
 
   return (
     <>
-      {/* Overlay */}
+      {/* ── Overlay ── */}
       <div
-        className={`cart-overlay${isOpen ? ' open' : ''}`}
+        className={`cd-overlay${isOpen ? ' is-open' : ''}`}
         onClick={closeCart}
         aria-hidden="true"
       />
 
-      {/* Drawer */}
-      <div className={`cart-drawer${isOpen ? ' open' : ''}`} role="dialog" aria-label="Panier">
-        <div className="cart-head">
-          <span className="cart-head-title">MON PANIER</span>
-          <button className="cart-head-close" onClick={closeCart} aria-label="Fermer">
-            <X size={20} />
+      {/* ── Drawer ── */}
+      <aside className={`cd-drawer${isOpen ? ' is-open' : ''}`} role="dialog" aria-modal="true" aria-label="Panier">
+
+        {/* ── En-tête ── */}
+        <div className="cd-head">
+          <span className="cd-head-title">MON PANIER</span>
+          {count > 0 && <span className="cd-head-count">{count}</span>}
+          <button className="cd-head-close" onClick={closeCart} aria-label="Fermer le panier">
+            <X size={18} strokeWidth={2} />
           </button>
         </div>
 
-        <ProgressBar total={cartTotal} isEmpty={items.length === 0} />
-
-        {/* Upsell livraison gratuite */}
-        {upsellFreeShip && (
-          <div className="cart-upsell-ship">
-            <div className="cart-upsell-ship-msg">
-              Ajoutez ce produit pour débloquer la livraison offerte
-            </div>
-            <div className="cart-upsell-ship-row">
-              <div className="cart-upsell-ship-ico">
-                <CategoryIcon category={upsellFreeShip.category} size={20} />
-              </div>
-              <div className="cart-upsell-ship-inf">
-                <div className="cart-upsell-ship-nm">{upsellFreeShip.name}</div>
-                <div className="cart-upsell-ship-pr">{formatPrice(upsellFreeShip.price)}</div>
-              </div>
-              <button
-                className="cart-upsell-ship-btn"
-                onClick={() => addItem(upsellFreeShip)}
-                aria-label={`Ajouter ${upsellFreeShip.name}`}
-              >
-                + Ajouter
-              </button>
-            </div>
+        {/* ── Barre de progression ── */}
+        <div className="cd-prog">
+          <p className="cd-prog-msg">{progMsg}</p>
+          <div className="cd-prog-track">
+            <div className="cd-prog-fill" style={{ width: `${Math.min(100, progPct)}%` }} />
           </div>
-        )}
+        </div>
 
-        <div className="cart-items">
-          {items.length === 0 ? (
-            <div className="cart-empty-state">
-              <span className="cart-empty-icon"><ShoppingCart size={36} strokeWidth={1.2} /></span>
+        {/* ── Zone scrollable (upsell + items + suggestions) ── */}
+        <div className="cd-body">
+
+          {/* Upsell livraison */}
+          {upsell && (
+            <div className="cd-upsell">
+              <p className="cd-upsell-msg">Ajoutez ce produit pour débloquer la livraison offerte</p>
+              <div className="cd-upsell-row">
+                <div className="cd-upsell-icon"><CatIcon cat={upsell.category} size={20} /></div>
+                <div className="cd-upsell-info">
+                  <div className="cd-upsell-name">{upsell.name}</div>
+                  <div className="cd-upsell-price">{formatPrice(upsell.price)}</div>
+                </div>
+                <button className="cd-upsell-btn" onClick={() => addItem(upsell)}>+ Ajouter</button>
+              </div>
+            </div>
+          )}
+
+          {/* Liste produits */}
+          {count === 0 ? (
+            <div className="cd-empty">
+              <ShoppingCart size={40} strokeWidth={1.1} className="cd-empty-icon" />
               <p>Votre panier est vide</p>
+              <button className="cd-empty-cta" onClick={closeCart}>Voir nos produits →</button>
             </div>
           ) : (
-            items.map((item) => {
-              const price = item.variant?.price ?? item.product.price
-              return (
-                <div key={`${item.product.id}-${item.variant?.id ?? ''}`} className="cart-row">
-                  <div className="cart-row-ph">
-                    <CategoryIcon category={item.product.category} size={26} />
-                  </div>
-                  <div className="cart-row-body">
-                    <div className="cart-row-name">{item.product.name}</div>
-                    {item.variant && <div className="cart-row-variant">{item.variant.name}</div>}
-                    <div className="cart-qty-row">
+            <ul className="cd-list">
+              {items.map(item => {
+                const price = item.variant?.price ?? item.product.price
+                const key   = `${item.product.id}-${item.variant?.id ?? ''}`
+                return (
+                  <li key={key} className="cd-item">
+                    {/* Photo placeholder */}
+                    <div className="cd-item-thumb">
+                      <CatIcon cat={item.product.category} size={24} />
+                    </div>
+                    {/* Infos */}
+                    <div className="cd-item-info">
+                      <div className="cd-item-name">{item.product.name}</div>
+                      {item.variant && <div className="cd-item-variant">{item.variant.name}</div>}
+                      {/* Quantité */}
+                      <div className="cd-item-qty">
+                        <button
+                          className="cd-qty-btn"
+                          onClick={() => updateQuantity(item.product.id, item.quantity - 1, item.variant?.id)}
+                          aria-label="Diminuer la quantité"
+                        >
+                          <Minus size={10} strokeWidth={2.5} />
+                        </button>
+                        <span className="cd-qty-val">{item.quantity}</span>
+                        <button
+                          className="cd-qty-btn"
+                          onClick={() => updateQuantity(item.product.id, item.quantity + 1, item.variant?.id)}
+                          aria-label="Augmenter la quantité"
+                        >
+                          <Plus size={10} strokeWidth={2.5} />
+                        </button>
+                      </div>
+                    </div>
+                    {/* Prix + supprimer */}
+                    <div className="cd-item-right">
+                      <span className="cd-item-price">{fmt(price * item.quantity)}</span>
                       <button
-                        className="cart-qty-btn"
-                        onClick={() => updateQuantity(item.product.id, item.quantity - 1, item.variant?.id)}
-                        aria-label="Diminuer"
+                        className="cd-item-rm"
+                        onClick={() => removeItem(item.product.id, item.variant?.id)}
+                        aria-label={`Supprimer ${item.product.name}`}
                       >
-                        <Minus size={11} />
-                      </button>
-                      <span className="cart-qty-val">{item.quantity}</span>
-                      <button
-                        className="cart-qty-btn"
-                        onClick={() => updateQuantity(item.product.id, item.quantity + 1, item.variant?.id)}
-                        aria-label="Augmenter"
-                      >
-                        <Plus size={11} />
+                        <X size={12} strokeWidth={2.5} />
                       </button>
                     </div>
-                  </div>
-                  <div className="cart-row-right">
-                    <div className="cart-row-price">{formatEur(price * item.quantity)}</div>
-                    <button
-                      className="cart-row-rm"
-                      onClick={() => removeItem(item.product.id, item.variant?.id)}
-                      aria-label="Supprimer"
-                    >
-                      ✕
-                    </button>
-                  </div>
-                </div>
-              )
-            })
+                  </li>
+                )
+              })}
+            </ul>
+          )}
+
+          {/* Suggestions */}
+          {count > 0 && suggestions.length > 0 && (
+            <div className="cd-sugg">
+              {/* Séparateur visuel */}
+              <button
+                className="cd-sugg-toggle"
+                onClick={() => setSuggOpen(v => !v)}
+                aria-expanded={suggOpen}
+              >
+                <span className="cd-sugg-line" />
+                <span className="cd-sugg-label">VOUS AIMEREZ AUSSI</span>
+                <span className="cd-sugg-line" />
+                {suggOpen ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
+              </button>
+
+              {suggOpen && (
+                <ul className="cd-sugg-list">
+                  {suggestions.map(p => (
+                    <li key={p.id} className="cd-sugg-item">
+                      <div className="cd-sugg-icon"><CatIcon cat={p.category} size={18} /></div>
+                      <div className="cd-sugg-info">
+                        <span className="cd-sugg-badge">Suggestion</span>
+                        <div className="cd-sugg-name">{p.name}</div>
+                        <div className="cd-sugg-price">{formatPrice(p.price)}</div>
+                      </div>
+                      <button
+                        className="cd-sugg-btn"
+                        onClick={() => { addItem(p); setSuggOpen(false) }}
+                        aria-label={`Ajouter ${p.name} au panier`}
+                      >
+                        + Ajouter
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
           )}
         </div>
 
-        {/* Suggestions — clairement séparées du panier */}
-        {items.length > 0 && suggestions.length > 0 && (
-          <div className="cart-sugg">
-            <button
-              className="cart-sugg-hd"
-              onClick={() => setSuggestionsOpen(!suggestionsOpen)}
-              aria-expanded={suggestionsOpen}
-            >
-              <span className="cart-sugg-line" />
-              <span className="cart-sugg-title">VOUS AIMEREZ AUSSI</span>
-              <span className="cart-sugg-line" />
-              <ChevronDown size={14} className={`cart-sugg-chevron${suggestionsOpen ? ' open' : ''}`} />
-            </button>
-            {suggestionsOpen && (
-              <div className="cart-sugg-body">
-                <p className="cart-sugg-note">Ces produits ne sont pas encore dans votre panier</p>
-                {suggestions.map((p) => (
-                  <div key={p.id} className="cart-sugg-row">
-                    <div className="cart-sugg-ico">
-                      <CategoryIcon category={p.category} size={20} />
-                    </div>
-                    <div className="cart-sugg-inf">
-                      <span className="cart-sugg-badge">Suggestion</span>
-                      <div className="cart-sugg-nm">{p.name}</div>
-                      <div className="cart-sugg-pr">{formatPrice(p.price)}</div>
-                    </div>
-                    <button
-                      className="cart-sugg-btn"
-                      onClick={() => { addItem(p); setSuggestionsOpen(false) }}
-                      aria-label={`Ajouter ${p.name}`}
-                    >
-                      + Ajouter
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
-        {items.length > 0 && (
-          <div className="cart-foot">
-            <div className="cart-total-row">
-              <span className="cart-total-lbl">Total</span>
-              <span className="cart-total-price">{formatEur(cartTotal)}</span>
+        {/* ── Pied fixe ── */}
+        {count > 0 && (
+          <footer className="cd-foot">
+            {/* Total */}
+            <div className="cd-total">
+              <span className="cd-total-lbl">Total</span>
+              <span className="cd-total-val">{fmt(cartTotal)}</span>
             </div>
-            <div className="coupon-wrap">
+
+            {/* Code promo */}
+            <div className="cd-coupon">
               {!couponOpen ? (
-                <button className="coupon-toggle" onClick={() => setCouponOpen(true)}>
+                <button className="cd-coupon-toggle" onClick={() => setCouponOpen(true)}>
                   J&apos;ai un code promo
                 </button>
               ) : (
-                <div className="coupon-row">
+                <div className="cd-coupon-row">
                   <input
                     type="text"
-                    className="coupon-input"
+                    className="cd-coupon-input"
                     placeholder="Code promo"
                     value={couponCode}
-                    onChange={(e) => { setCouponCode(e.target.value); setCouponError(''); setCouponApplied(false) }}
-                    onKeyDown={(e) => { if (e.key === 'Enter') handleApplyCoupon() }}
+                    onChange={e => { setCouponCode(e.target.value); setCouponError(''); setCouponApplied(false) }}
+                    onKeyDown={e => { if (e.key === 'Enter') applyCoupon() }}
                     autoFocus
                   />
                   <button
-                    className={`coupon-btn${couponApplied ? ' applied' : ''}`}
-                    onClick={handleApplyCoupon}
+                    className={`cd-coupon-btn${couponApplied ? ' ok' : ''}`}
+                    onClick={applyCoupon}
                     disabled={!couponCode.trim()}
                   >
                     {couponApplied ? '✓' : 'OK'}
                   </button>
                 </div>
               )}
-              {couponApplied && !couponError && (
-                <div className="coupon-ok">Code appliqué ✓</div>
-              )}
-              {couponError && (
-                <div className="coupon-err">{couponError}</div>
-              )}
+              {couponApplied && !couponError && <p className="cd-coupon-ok">Code appliqué ✓</p>}
+              {couponError && <p className="cd-coupon-err">{couponError}</p>}
             </div>
+
+            {/* CTA paiement */}
             <button
-              className="cart-checkout"
+              className="cd-checkout"
               onClick={handleCheckout}
               disabled={loading}
             >
-              {loading ? 'Chargement...' : <><Lock size={13} strokeWidth={2} style={{ marginRight: 6, verticalAlign: 'middle' }} />Valider ma commande →</>}
+              {loading
+                ? 'Chargement…'
+                : <><Lock size={12} strokeWidth={2.5} />Valider ma commande →</>
+              }
             </button>
+
+            {/* Logos paiement */}
             <PaymentLogos />
-            <div className="cart-trust-foot">
-              <div className="cart-trust-item">
-                <span className="cart-trust-icon"><Lock size={12} strokeWidth={2} /></span>
-                Paiement sécurisé
+
+            {/* Trust icons */}
+            <div className="cd-trust">
+              <div className="cd-trust-item">
+                <Lock size={11} strokeWidth={2} />
+                Sécurisé
               </div>
-              <div className="cart-trust-item">
-                <span className="cart-trust-icon"><Truck size={12} strokeWidth={2} /></span>
-                Expédition 24–48h
+              <div className="cd-trust-item">
+                <Truck size={11} strokeWidth={2} />
+                Expédition 48h
               </div>
-              <div className="cart-trust-item">
-                <span className="cart-trust-icon"><RotateCcw size={12} strokeWidth={2} /></span>
-                Retour facile 30j
+              <div className="cd-trust-item">
+                <RotateCcw size={11} strokeWidth={2} />
+                Retour 30j
               </div>
             </div>
-          </div>
+          </footer>
         )}
-      </div>
+      </aside>
     </>
   )
 }
