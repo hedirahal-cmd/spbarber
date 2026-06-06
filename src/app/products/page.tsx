@@ -6,8 +6,16 @@ import { AddToCartButton } from '@/components/AddToCartButton'
 import { Scissors, Droplets, User, Zap, Sparkles } from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: 'Boutique — Produits Capillaires Premium',
-  description: 'Découvrez toute la gamme SP Barber : cire, shampooing, crème, accessoires et tondeuse professionnelle.',
+  title: 'Boutique Produits Capillaires Homme — Cire, Shampooing, Kit Barbe',
+  description:
+    'Découvrez la gamme complète SP Barber : cire cheveux fixation forte, shampooing colorant noir, crème curl, kit barbe et tondeuse dégradé. Livraison offerte dès 49€.',
+  alternates: { canonical: 'https://spbarber.fr/products' },
+  openGraph: {
+    title: 'Boutique SP Barber — Produits Capillaires Homme Premium',
+    description: 'Cire cheveux, shampooing colorant, kit barbe complet. Formules pro livrées en 48h.',
+    url: 'https://spbarber.fr/products',
+    type: 'website',
+  },
 }
 
 function CategoryIcon({ category, size = 50 }: { category: string; size?: number }) {

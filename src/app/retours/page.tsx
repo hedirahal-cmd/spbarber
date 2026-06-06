@@ -2,8 +2,10 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 
 export const metadata: Metadata = {
-  title: 'Retours & Remboursements — SP Barber',
-  description: 'Politique de retour SP Barber : 30 jours satisfait ou remboursé.',
+  title: 'Retours & Remboursements — SP Barber | 30 Jours Satisfait ou Remboursé',
+  description:
+    'Politique de retour SP Barber : 30 jours pour retourner vos produits, même ouverts, et être remboursé intégralement. Sans questions.',
+  alternates: { canonical: 'https://spbarber.fr/retours' },
 }
 
 export default function RetoursPage() {

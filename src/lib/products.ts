@@ -5,7 +5,8 @@ export const PRODUCTS: Product[] = [
     id: '1',
     name: 'Cire Cheveux Premium',
     slug: 'cire-cheveux-premium',
-    description: 'Tenue forte, brillance naturelle. Formule premium pour un style impeccable toute la journée.',
+    description:
+      'La Cire Cheveux Premium SP Barber est formulée par des barbiers professionnels pour offrir une fixation forte et une brillance naturelle toute la journée. Sa texture légère se répartit uniformément sur les cheveux courts à mi-longs, sans laisser de résidus ni alourdir. Idéale pour un coiffage naturel façon salon, elle tient jusqu\'à 24h et se rince facilement au shampooing. Que vous souhaitiez un effet mat ou légèrement brillant, cette cire cheveux homme s\'adapte à tous les styles. Un incontournable de la routine capillaire masculine pour un résultat pro à la maison.',
     price: 2490,
     images: ['/images/products/cire-cheveux.jpg'],
     category: 'coiffant',
@@ -14,15 +15,17 @@ export const PRODUCTS: Product[] = [
     benefit: 'Fixation forte toute la journée',
     trust: ['Fixation forte 24h', 'Effet naturel & brillance mat', 'Livraison sous 48h', 'Satisfait ou remboursé'],
     related: ['3', '4'],
-    seo_title: 'Cire Cheveux Premium SP Barber — Tenue Forte & Brillance',
-    seo_description: 'Cire cheveux premium pour homme. Tenue forte, brillance naturelle. Livraison rapide en France.',
+    seo_title: 'Cire Cheveux Homme Fixation Forte — SP Barber | Résultat Pro à la Maison',
+    seo_description:
+      'Cire cheveux homme fixation forte et brillance naturelle. Formule professionnelle utilisée en salon. Tenue 24h. Livraison offerte dès 49€. Commander maintenant.',
     created_at: new Date().toISOString(),
   },
   {
     id: '2',
     name: 'Shampooing Noir Colorant',
     slug: 'shampooing-noir-colorant',
-    description: 'Ravive et intensifie la couleur noire naturellement. Sans ammoniaque, sans peroxyde.',
+    description:
+      'Le Shampooing Colorant Noir SP Barber est la solution naturelle pour masquer les cheveux blancs et raviver l\'intensité de votre couleur noire. Sans ammoniaque, sans peroxyde, sa formule douce respecte le cuir chevelu tout en déposant des pigments naturels à chaque lavage. Résultat visible dès la première utilisation, la couleur s\'intensifie progressivement pour un rendu naturel et homogène. Idéal pour les hommes qui souhaitent atténuer les reflets gris ou blancs sans passer par une coloration agressive. Compatible avec tous les types de cheveux noirs ou foncés.',
     price: 2890,
     images: ['/images/products/shampooing-noir.jpg'],
     category: 'soin',
@@ -31,15 +34,17 @@ export const PRODUCTS: Product[] = [
     benefit: 'Cheveux noirs intenses dès 1 lavage',
     trust: ['Couleur ravivée en 1 lavage', 'Sans ammoniaque ni peroxyde', 'Livraison sous 48h', 'Satisfait ou remboursé'],
     related: ['1', '4'],
-    seo_title: 'Shampooing Noir Colorant SP Barber — Cheveux Noirs Intenses',
-    seo_description: 'Shampooing colorant noir pour homme. Ravive naturellement la couleur. Sans ammoniaque.',
+    seo_title: 'Shampooing Colorant Noir Homme — SP Barber | Masque les Cheveux Blancs',
+    seo_description:
+      'Masquez vos cheveux blancs en quelques lavages. Shampooing colorant noir naturel pour homme. Résultat visible dès la 1ère utilisation. Sans ammoniaque. Livraison 48h.',
     created_at: new Date().toISOString(),
   },
   {
     id: '3',
     name: 'Crème Curl Control',
     slug: 'creme-curl-control',
-    description: 'Définit et discipline les boucles avec légèreté. Hydratation longue durée.',
+    description:
+      'La Crème Curl Control SP Barber est spécialement formulée pour les hommes aux cheveux bouclés, frisés ou ondulés. Elle définit et discipline les boucles avec légèreté, sans l\'effet cartonné des gels classiques. Sa formule hydratante maintient l\'élasticité des boucles toute la journée tout en nourrissant les cheveux en profondeur. Sans résidu, sans alourdissement, elle offre un coiffage naturel et soigné façon salon. Adaptée à tous les types de boucles, de légèrement ondulées aux frisures serrées, c\'est l\'alliée indispensable de la routine capillaire bouclée masculine.',
     price: 2690,
     images: ['/images/products/creme-curl.jpg'],
     category: 'coiffant',
@@ -48,15 +53,17 @@ export const PRODUCTS: Product[] = [
     benefit: 'Boucles définies sans effet lourd',
     trust: ['Boucles définies & hydratées', 'Sans résidu, sans alourdissement', 'Livraison sous 48h', 'Satisfait ou remboursé'],
     related: ['2', '4'],
-    seo_title: 'Crème Curl Control SP Barber — Boucles Définies',
-    seo_description: 'Crème curl control pour cheveux bouclés. Définition et hydratation longue durée.',
+    seo_title: 'Crème Curl Cheveux Bouclés Homme — SP Barber | Boucles Définies Sans Résidu',
+    seo_description:
+      'Crème coiffante curl pour cheveux bouclés et frisés homme. Boucles définies, hydratation longue durée, sans résidu ni alourdissement. Livraison offerte dès 49€.',
     created_at: new Date().toISOString(),
   },
   {
     id: '4',
     name: 'Peigne Texture Expert',
     slug: 'peigne-texture-expert',
-    description: 'Peigne professionnel pour sculpter et texturer. Dents larges anti-casse.',
+    description:
+      'Le Peigne Texture Expert SP Barber est l\'outil professionnel incontournable pour sculpter, texturer et coiffer avec précision. Ses dents larges anti-casse sont conçues pour cheveux épais, texturés et bouclés : elles démêlent sans arracher et définissent le style avec précision. Utilisé par les barbiers professionnels, ce peigne homme offre une prise en main ergonomique et une durabilité supérieure aux accessoires classiques. Compatible avec tous types de coiffures masculines, il complète parfaitement votre routine avec la cire cheveux ou la crème curl pour un résultat pro à la maison.',
     price: 1490,
     images: ['/images/products/peigne-texture.jpg'],
     category: 'accessoire',
@@ -65,15 +72,17 @@ export const PRODUCTS: Product[] = [
     benefit: 'Précision pro — dents anti-casse',
     trust: ['Dents renforcées anti-casse', 'Idéal cheveux épais & texturés', 'Livraison sous 48h', 'Satisfait ou remboursé'],
     related: ['1', '3'],
-    seo_title: 'Peigne Texture Expert SP Barber — Professionnel',
-    seo_description: 'Peigne texture expert pour homme. Dents larges anti-casse. Idéal pour cheveux épais.',
+    seo_title: 'Peigne Homme Professionnel SP Barber | Texture Expert Dents Anti-Casse',
+    seo_description:
+      'Peigne texture expert professionnel pour homme. Dents larges anti-casse, idéal cheveux épais et texturés. Précision salon à la maison. Livraison offerte dès 49€.',
     created_at: new Date().toISOString(),
   },
   {
     id: '5',
     name: 'Pack Barbe Complet',
     slug: 'pack-barbe-complet',
-    description: 'Tout ce qu\'il faut pour une barbe parfaite : huile, baume, peigne et ciseaux.',
+    description:
+      'Le Pack Barbe Complet SP Barber réunit tout ce qu\'il faut pour entretenir et sublimer sa barbe au quotidien. Ce kit barbe homme de 5 essentiels inclut huile de barbe nourrissante, baume de barbe coiffant, peigne barbe, ciseaux de précision et shampooing barbe. Formulés par des barbiers professionnels de Fougères, ces produits soin barbe homme offrent un résultat visible dès la première utilisation : barbe douce, hydratée, bien coiffée et parfaitement entretenue. Un cadeau idéal pour homme ou une mise à niveau complète de votre routine barbe. Valeur totale 85€, économisez 35€ avec ce pack exclusif.',
     price: 4990,
     images: ['/images/products/pack-barbe.jpg'],
     category: 'barbe',
@@ -82,15 +91,17 @@ export const PRODUCTS: Product[] = [
     benefit: '5 essentiels barbe — économisez 35€',
     trust: ['5 produits complémentaires inclus', 'Valeur 85€ — vous économisez 35€', 'Livraison sous 48h', 'Satisfait ou remboursé'],
     related: ['1', '4'],
-    seo_title: 'Pack Barbe Complet SP Barber — Kit Barbe Premium',
-    seo_description: 'Pack barbe complet pour homme. Huile, baume, peigne et ciseaux. Kit barbe premium.',
+    seo_title: 'Pack Barbe Complet Homme — SP Barber | Kit 5 Produits Soin Barbe',
+    seo_description:
+      'Kit barbe complet pour homme : 5 essentiels inclus. Valeur 85€, économisez 35€. Huile, baume, peigne, ciseaux, shampooing barbe. Livraison offerte. Idéal cadeau.',
     created_at: new Date().toISOString(),
   },
   {
     id: '6',
     name: 'Tondeuse Fade Pro',
     slug: 'tondeuse-fade-pro',
-    description: 'Tondeuse professionnelle pour des dégradés parfaits. Lames acier japonais.',
+    description:
+      'La Tondeuse Fade Pro SP Barber est l\'outil professionnel pour réaliser des dégradés fade parfaits à la maison. Ses lames en acier japonais inoxydable garantissent une coupe précise, nette et durable. Idéale pour les hommes qui souhaitent maîtriser la coupe dégradé, le skin fade ou le buzz cut sans passer par le salon de coiffure. Silencieuse, légère et rechargeable, elle convient à tous types de cheveux — droits, ondulés ou texturés. Le choix des barbiers professionnels pour un résultat fade haircut impeccable à la maison.',
     price: 7990,
     images: ['/images/products/tondeuse-fade.jpg'],
     category: 'accessoire',
@@ -105,8 +116,9 @@ export const PRODUCTS: Product[] = [
       { id: '6b', name: 'Pro — 89,90€', price: 8990, stock: 999 },
       { id: '6c', name: 'Elite — 99,90€', price: 9990, stock: 999 },
     ],
-    seo_title: 'Tondeuse Fade Pro SP Barber — Dégradé Parfait',
-    seo_description: 'Tondeuse professionnelle pour dégradé fade. Lames acier japonais. Livraison via DSers.',
+    seo_title: 'Tondeuse Dégradé Professionnel Homme — SP Barber | Fade Pro Lames Japonaises',
+    seo_description:
+      'Tondeuse professionnelle dégradé fade pour homme. Lames acier japonais pour un skin fade précis. Résultat salon chez vous. Plusieurs modèles disponibles.',
     created_at: new Date().toISOString(),
   },
 ]

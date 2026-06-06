@@ -2,8 +2,15 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 
 export const metadata: Metadata = {
-  title: 'FAQ — SP Barber',
-  description: 'Questions fréquentes sur les produits, la livraison et les commandes SP Barber.',
+  title: 'FAQ — Questions Fréquentes SP Barber | Livraison, Retours, Produits',
+  description:
+    'Toutes les réponses à vos questions : commande, paiement, livraison Colissimo en 48h, retours 30 jours et informations produits SP Barber.',
+  alternates: { canonical: 'https://spbarber.fr/faq' },
+  openGraph: {
+    title: 'FAQ SP Barber — Questions Fréquentes',
+    description: 'Livraison, retours, produits, commandes : toutes vos questions répondues.',
+    url: 'https://spbarber.fr/faq',
+  },
 }
 
 const FAQS = [
