@@ -1183,3 +1183,138 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
   .best2-price { font-size: 30px; }
   .best2-info { padding: 18px 20px 26px; }
 }
+
+/* ═══ AVANT / APRÈS — Shampooing Noir ═══ */
+.aa-sec {
+  background: #0c0c0c;
+  padding: 72px 24px 80px;
+  margin-top: 0;
+}
+.aa-inner {
+  max-width: 860px;
+  margin: 0 auto;
+}
+.aa-head {
+  text-align: center;
+  margin-bottom: 52px;
+}
+.aa-eyebrow {
+  font-size: 10px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--gold);
+  font-family: var(--fd);
+  margin-bottom: 14px;
+}
+.aa-title {
+  font-family: var(--fd);
+  font-size: clamp(28px, 5vw, 44px);
+  letter-spacing: 3px;
+  color: var(--w);
+  margin-bottom: 10px;
+  line-height: 1.1;
+}
+.aa-title sup {
+  font-size: 0.55em;
+  vertical-align: super;
+}
+.aa-sub {
+  font-size: 12px;
+  color: rgba(248,246,243,.45);
+  letter-spacing: 1px;
+}
+.aa-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 40px;
+}
+.aa-card {
+  border: 1px solid rgba(255,255,255,.08);
+  overflow: hidden;
+  border-radius: 2px;
+}
+.aa-card-before { background: #1a1818; }
+.aa-card-after  { background: #141212; border-color: rgba(184,144,58,.25); }
+.aa-label {
+  font-family: var(--fd);
+  font-size: 11px;
+  letter-spacing: 4px;
+  color: rgba(248,246,243,.35);
+  padding: 14px 20px 10px;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+}
+.aa-label-after {
+  color: var(--gold);
+  border-bottom-color: rgba(184,144,58,.2);
+}
+.aa-visual {
+  height: 180px;
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+  padding: 20px 20px 0;
+}
+.aa-visual-before { background: linear-gradient(180deg, #2a2828 0%, #1e1c1c 100%); }
+.aa-visual-after  { background: linear-gradient(180deg, #1a1818 0%, #0c0a0a 100%); }
+.aa-visual-lines {
+  display: flex;
+  gap: 6px;
+  align-items: flex-end;
+  width: 100%;
+  height: 140px;
+}
+.aa-line {
+  flex: 1;
+  border-radius: 3px 3px 0 0;
+  min-height: 60px;
+}
+.aa-line-light  { background: rgba(220,215,205,.55); height: 85%; }
+.aa-line-dark   { background: rgba(30,28,28,.9); height: 100%; border: 1px solid rgba(100,90,80,.3); }
+.aa-line-mixed  { background: linear-gradient(180deg, rgba(200,195,185,.5) 30%, rgba(40,36,34,.8) 100%); height: 92%; }
+.aa-glow {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 60px;
+  height: 60px;
+  background: radial-gradient(circle, rgba(184,144,58,.15) 0%, transparent 70%);
+  border-radius: 50%;
+}
+.aa-desc {
+  padding: 16px 20px 20px;
+  border-top: 1px solid rgba(255,255,255,.06);
+}
+.aa-desc-title {
+  font-family: var(--fd);
+  font-size: 13px;
+  letter-spacing: 2px;
+  color: var(--w);
+  margin-bottom: 5px;
+}
+.aa-desc-text {
+  font-size: 11px;
+  color: rgba(248,246,243,.4);
+  line-height: 1.6;
+}
+.aa-checks {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.aa-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: rgba(248,246,243,.55);
+  letter-spacing: 0.3px;
+}
+.aa-check svg { color: var(--gold); flex-shrink: 0; }
+@media (max-width: 640px) {
+  .aa-grid { grid-template-columns: 1fr; }
+  .aa-checks { grid-template-columns: 1fr; gap: 8px; }
+  .aa-sec { padding: 48px 20px 56px; }
+  .aa-visual { height: 140px; }
+}

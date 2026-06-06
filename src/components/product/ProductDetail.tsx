@@ -185,6 +185,66 @@ export function ProductDetail({ product }: { product: Product }) {
         </div>
       </div>
 
+      {/* ── AVANT / APRÈS — Shampooing Noir uniquement ── */}
+      {product.id === '2' && (
+        <div className="aa-sec">
+          <div className="aa-inner">
+            <div className="aa-head">
+              <div className="aa-eyebrow">Résultat constaté</div>
+              <h2 className="aa-title">RÉSULTAT VISIBLE DÈS LE 1<sup>ER</sup> LAVAGE</h2>
+              <p className="aa-sub">Sans ammoniaque · Formule douce · Tient jusqu&apos;à 4 semaines</p>
+            </div>
+            <div className="aa-grid">
+              {/* Avant */}
+              <div className="aa-card aa-card-before">
+                <div className="aa-label">AVANT</div>
+                <div className="aa-visual aa-visual-before">
+                  <div className="aa-visual-lines">
+                    <div className="aa-line aa-line-light" />
+                    <div className="aa-line aa-line-light" />
+                    <div className="aa-line aa-line-light" />
+                    <div className="aa-line aa-line-mixed" />
+                    <div className="aa-line aa-line-dark" />
+                    <div className="aa-line aa-line-light" />
+                    <div className="aa-line aa-line-mixed" />
+                  </div>
+                </div>
+                <div className="aa-desc">
+                  <div className="aa-desc-title">Cheveux grisonnants</div>
+                  <div className="aa-desc-text">Racines blanches visibles, manque d&apos;uniformité et de profondeur</div>
+                </div>
+              </div>
+              {/* Après */}
+              <div className="aa-card aa-card-after">
+                <div className="aa-label aa-label-after">APRÈS</div>
+                <div className="aa-visual aa-visual-after">
+                  <div className="aa-visual-lines">
+                    <div className="aa-line aa-line-dark" />
+                    <div className="aa-line aa-line-dark" />
+                    <div className="aa-line aa-line-dark" />
+                    <div className="aa-line aa-line-dark" />
+                    <div className="aa-line aa-line-dark" />
+                    <div className="aa-line aa-line-dark" />
+                    <div className="aa-line aa-line-dark" />
+                  </div>
+                  <div className="aa-glow" />
+                </div>
+                <div className="aa-desc">
+                  <div className="aa-desc-title">Couleur restaurée</div>
+                  <div className="aa-desc-text">Cheveux uniformément assombris, brillants et revitalisés</div>
+                </div>
+              </div>
+            </div>
+            <div className="aa-checks">
+              <div className="aa-check"><CheckCircle2 size={14} strokeWidth={2} />Colorant naturel à la kératine</div>
+              <div className="aa-check"><CheckCircle2 size={14} strokeWidth={2} />Résultat durable 3–4 semaines</div>
+              <div className="aa-check"><CheckCircle2 size={14} strokeWidth={2} />Sans ammoniaque ni oxydant</div>
+              <div className="aa-check"><CheckCircle2 size={14} strokeWidth={2} />Utilisable seul, sans préparation</div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Souvent achetés ensemble */}
       {relatedProducts.length > 0 && (
         <div className="sac-sec">
