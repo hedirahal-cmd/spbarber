@@ -419,25 +419,24 @@ button { font-family: var(--fb); }
 
 /* ═══ LOGOS PAIEMENT ═══ */
 .pay-logos-block { margin-top: 10px; }
+.pay-logos-label { font-size: 10px; color: var(--gt); text-align: center; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px; }
 .pay-logos-express, .pay-logos-cards { display: flex; gap: 6px; margin-bottom: 5px; }
-.pay-btn {
+.pay-badge {
   flex: 1;
-  height: 44px;
+  height: 36px;
   border-radius: 5px;
   border: 1.5px solid var(--gm);
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
   padding: 0;
-  transition: all 0.2s;
   overflow: hidden;
   background: var(--w);
+  cursor: default;
+  pointer-events: none;
 }
-.pay-btn:hover { transform: translateY(-1px); box-shadow: 0 2px 8px rgba(0,0,0,.12); }
-.pay-btn-dark { background: #111; border-color: #111; }
-.pay-btn-dark:hover { background: #000; border-color: #000; }
-.pay-btn svg { display: block; width: 80%; height: 80%; max-width: none; }
+.pay-badge-dark { background: #111; border-color: #111; }
+.pay-badge svg { display: block; width: 80%; height: 80%; max-width: none; }
 .pay-logos-sep {
   display: flex;
   align-items: center;
