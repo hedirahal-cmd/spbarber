@@ -1,5 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&display=swap');
 @import "tailwindcss";
+/* Fonts chargées via next/font/google dans layout.tsx — pas de requete externe */
 
 /* ═══ RESET & VARS ═══ */
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
@@ -13,9 +13,9 @@ html { scroll-behavior: smooth; }
   --gold: #b8903a;
   --goldl: #d4ac5e;
   --green: #27ae60;
-  --fd: 'Bebas Neue', sans-serif;
-  --fb: 'DM Sans', sans-serif;
-  --fs: 'Cormorant Garamond', serif;
+  --fd: var(--font-fd, 'Bebas Neue'), sans-serif;
+  --fb: var(--font-fb, 'DM Sans'), sans-serif;
+  --fs: var(--font-fs, 'Cormorant Garamond'), serif;
 }
 body { background: var(--w); color: var(--b); font-family: var(--fb); overflow-x: hidden; -webkit-font-smoothing: antialiased; }
 img { max-width: 100%; display: block; }
