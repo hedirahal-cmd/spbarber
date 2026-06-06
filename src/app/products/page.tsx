@@ -3,17 +3,19 @@ import Link from 'next/link'
 import { PRODUCTS } from '@/lib/products'
 import { formatPrice } from '@/lib/utils'
 import { AddToCartButton } from '@/components/AddToCartButton'
+import { Scissors, Droplets, User, Zap, Sparkles } from 'lucide-react'
 
 export const metadata: Metadata = {
   title: 'Boutique — Produits Capillaires Premium',
   description: 'Découvrez toute la gamme SP Barber : cire, shampooing, crème, accessoires et tondeuse professionnelle.',
 }
 
-const CATEGORY_ICONS: Record<string, string> = {
-  coiffant: '🪮',
-  soin: '🧴',
-  barbe: '🧔',
-  accessoire: '⚡',
+function CategoryIcon({ category, size = 50 }: { category: string; size?: number }) {
+  if (category === 'coiffant') return <Scissors size={size} strokeWidth={1.2} />
+  if (category === 'soin') return <Droplets size={size} strokeWidth={1.2} />
+  if (category === 'barbe') return <User size={size} strokeWidth={1.2} />
+  if (category === 'accessoire') return <Zap size={size} strokeWidth={1.2} />
+  return <Sparkles size={size} strokeWidth={1.2} />
 }
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -52,7 +54,7 @@ export default function ProductsPage() {
               <Link href={`/products/${product.slug}`}>
                 <div className="pc-img">
                   <div className="pc-ph">
-                    <span className="pc-icon">{CATEGORY_ICONS[product.category] ?? '✨'}</span>
+                    <span className="pc-icon"><CategoryIcon category={product.category} size={50} /></span>
                   </div>
                   {getBadge(product.id)}
                   {product.stock <= 10 && product.stock > 0 && (

@@ -1,6 +1,6 @@
 'use client'
 import { useCart } from '@/hooks/useCart'
-import { X, ShoppingBag } from 'lucide-react'
+import { X, ShoppingBag, Truck, Gift, RotateCcw, Lock, ShoppingCart, Scissors, Droplets, User, Zap, Sparkles } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { PaymentLogos } from './PaymentLogos'
 import { formatPrice } from '@/lib/utils'
@@ -9,8 +9,12 @@ import { PRODUCTS } from '@/lib/products'
 const FREE_SHIP = 4900
 const FREE_GIFT = 7000
 
-const ICONS: Record<string, string> = {
-  coiffant: '🪮', soin: '🧴', barbe: '🧔', accessoire: '⚡',
+function CategoryIcon({ category, size = 20 }: { category: string; size?: number }) {
+  if (category === 'coiffant') return <Scissors size={size} strokeWidth={1.4} />
+  if (category === 'soin') return <Droplets size={size} strokeWidth={1.4} />
+  if (category === 'barbe') return <User size={size} strokeWidth={1.4} />
+  if (category === 'accessoire') return <Zap size={size} strokeWidth={1.4} />
+  return <Sparkles size={size} strokeWidth={1.4} />
 }
 
 function formatEur(cents: number) {
@@ -22,16 +26,16 @@ function ProgressBar({ total, isEmpty }: { total: number; isEmpty: boolean }) {
   let pct: number
 
   if (isEmpty) {
-    msg = <>Ajoutez un produit pour débloquer la <strong>livraison offerte dès 49 €</strong> 🚚</>
+    msg = <>Ajoutez un produit pour débloquer la <strong>livraison offerte dès 49 €</strong></>
     pct = 0
   } else if (total >= FREE_GIFT) {
-    msg = <><strong>Cadeau offert !</strong> + Livraison offerte 🎁</>
+    msg = <><strong>Cadeau offert !</strong> + Livraison offerte</>
     pct = 100
   } else if (total >= FREE_SHIP) {
-    msg = <>Livraison offerte ! Plus que <strong>{formatEur(FREE_GIFT - total)}</strong> pour un cadeau 🎁</>
+    msg = <>Livraison offerte ! Plus que <strong>{formatEur(FREE_GIFT - total)}</strong> pour un cadeau</>
     pct = ((total - FREE_SHIP) / (FREE_GIFT - FREE_SHIP)) * 100
   } else {
-    msg = <>Plus que <strong>{formatEur(FREE_SHIP - total)}</strong> pour la livraison offerte 🚚</>
+    msg = <>Plus que <strong>{formatEur(FREE_SHIP - total)}</strong> pour la livraison offerte</>
     pct = (total / FREE_SHIP) * 100
   }
 
@@ -110,7 +114,7 @@ export function CartDrawer() {
         <div className="cart-items">
           {items.length === 0 ? (
             <div className="cart-empty-state">
-              <span className="cart-empty-icon">🛒</span>
+              <span className="cart-empty-icon"><ShoppingCart size={36} strokeWidth={1.2} /></span>
               <p>Votre panier est vide</p>
             </div>
           ) : (
@@ -119,8 +123,8 @@ export function CartDrawer() {
               return (
                 <div key={`${item.product.id}-${item.variant?.id ?? ''}`} className="cart-row">
                   <div className="cart-row-ph">
-                    <span style={{ fontSize: 28 }}>
-                      {ICONS[item.product.category] ?? '✨'}
+                    <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 28, height: 28, opacity: 0.5 }}>
+                      <CategoryIcon category={item.product.category} size={22} />
                     </span>
                   </div>
                   <div>
@@ -150,7 +154,7 @@ export function CartDrawer() {
             <div className="cart-upsell-ttl">Compléter votre routine</div>
             {suggestions.map((p) => (
               <div key={p.id} className="cart-upsell-row">
-                <div className="cart-upsell-ico">{ICONS[p.category] ?? '✨'}</div>
+                <div className="cart-upsell-ico"><CategoryIcon category={p.category} size={18} /></div>
                 <div className="cart-upsell-inf">
                   <div className="cart-upsell-nm">{p.name}</div>
                   <div className="cart-upsell-pr">{formatPrice(p.price)}</div>
@@ -178,20 +182,20 @@ export function CartDrawer() {
               onClick={handleCheckout}
               disabled={loading}
             >
-              {loading ? 'Chargement...' : '🔒 Valider ma commande →'}
+              {loading ? 'Chargement...' : <><Lock size={13} strokeWidth={2} style={{ marginRight: 6, verticalAlign: 'middle' }} />Valider ma commande →</>}
             </button>
             <PaymentLogos />
             <div className="cart-trust-foot">
               <div className="cart-trust-item">
-                <span className="cart-trust-icon">🔒</span>
+                <span className="cart-trust-icon"><Lock size={12} strokeWidth={2} /></span>
                 Paiement sécurisé
               </div>
               <div className="cart-trust-item">
-                <span className="cart-trust-icon">🚚</span>
+                <span className="cart-trust-icon"><Truck size={12} strokeWidth={2} /></span>
                 Expédition 24–48h
               </div>
               <div className="cart-trust-item">
-                <span className="cart-trust-icon">↩️</span>
+                <span className="cart-trust-icon"><RotateCcw size={12} strokeWidth={2} /></span>
                 Retour facile 30j
               </div>
             </div>

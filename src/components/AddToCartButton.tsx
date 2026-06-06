@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import { useCart } from '@/hooks/useCart'
 import { Product, ProductVariant } from '@/types'
+import { ShoppingCart } from 'lucide-react'
 
 interface Props {
   product: Product
@@ -28,7 +29,7 @@ export function AddToCartButton({ product, variant, className = 'fi-atc-btn', la
       onClick={handleClick}
       style={added ? { background: 'var(--green)' } : undefined}
     >
-      {added ? '✓ Ajouté !' : `🛒 ${label}`}
+      {added ? '✓ Ajouté !' : <><ShoppingCart size={13} strokeWidth={2} style={{ marginRight: 5, verticalAlign: 'middle' }} />{label}</>}
     </button>
   )
 }

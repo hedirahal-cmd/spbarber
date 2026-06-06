@@ -2,12 +2,14 @@ import Link from 'next/link'
 import { PRODUCTS } from '@/lib/products'
 import { AddToCartButton } from '@/components/AddToCartButton'
 import { formatPrice } from '@/lib/utils'
+import { Scissors, Droplets, User, Zap, Sparkles, Truck, Gift, RotateCcw } from 'lucide-react'
 
-const CATEGORY_ICONS: Record<string, string> = {
-  coiffant: '🪮',
-  soin: '🧴',
-  barbe: '🧔',
-  accessoire: '⚡',
+function CategoryIcon({ category, size = 64 }: { category: string; size?: number }) {
+  if (category === 'coiffant') return <Scissors size={size} strokeWidth={1.2} />
+  if (category === 'soin') return <Droplets size={size} strokeWidth={1.2} />
+  if (category === 'barbe') return <User size={size} strokeWidth={1.2} />
+  if (category === 'accessoire') return <Zap size={size} strokeWidth={1.2} />
+  return <Sparkles size={size} strokeWidth={1.2} />
 }
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -74,7 +76,7 @@ export default function HomePage() {
           <Link href={`/products/${packBarbe.slug}`} className="best2-card">
             <span className="best2-badge-mv">Meilleure vente</span>
             <div className="best2-img">
-              <span className="best2-icon">{CATEGORY_ICONS[packBarbe.category] ?? '🎁'}</span>
+              <span className="best2-icon"><CategoryIcon category={packBarbe.category} size={72} /></span>
             </div>
             <div className="best2-info">
               <div className="best2-cat">Pack complet · Barbe</div>
@@ -89,7 +91,7 @@ export default function HomePage() {
           <Link href={`/products/${cireCheveux.slug}`} className="best2-card">
             <span className="best2-badge-bs">Bestseller</span>
             <div className="best2-img">
-              <span className="best2-icon">{CATEGORY_ICONS[cireCheveux.category] ?? '🪮'}</span>
+              <span className="best2-icon"><CategoryIcon category={cireCheveux.category} size={72} /></span>
             </div>
             <div className="best2-info">
               <div className="best2-cat">Coiffant · Tenue forte</div>
@@ -104,7 +106,7 @@ export default function HomePage() {
           <Link href={`/products/${shampNoir.slug}`} className="best2-card">
             <span className="best2-badge-fm">Forte marge</span>
             <div className="best2-img">
-              <span className="best2-icon">{CATEGORY_ICONS[shampNoir.category] ?? '🧴'}</span>
+              <span className="best2-icon"><CategoryIcon category={shampNoir.category} size={72} /></span>
             </div>
             <div className="best2-info">
               <div className="best2-cat">Soin colorant</div>
@@ -119,13 +121,13 @@ export default function HomePage() {
 
       {/* ── REA BAR ── */}
       <div className="rea-compact">
-        <div className="rea-c-item">🚚 Livraison offerte dès 49€</div>
+        <div className="rea-c-item"><Truck size={11} strokeWidth={1.8} /> Livraison offerte dès 49€</div>
         <div className="rea-c-sep">|</div>
-        <div className="rea-c-item">🎁 Cadeau dès 70€</div>
+        <div className="rea-c-item"><Gift size={11} strokeWidth={1.8} /> Cadeau dès 70€</div>
         <div className="rea-c-sep">|</div>
-        <div className="rea-c-item">↩️ Retour 30j</div>
+        <div className="rea-c-item"><RotateCcw size={11} strokeWidth={1.8} /> Retour 30j</div>
         <div className="rea-c-sep">|</div>
-        <div className="rea-c-item">⚡ Expédié 48h</div>
+        <div className="rea-c-item"><Zap size={11} strokeWidth={1.8} /> Expédié 48h</div>
       </div>
 
       {/* ── BESOIN ── */}
@@ -138,22 +140,22 @@ export default function HomePage() {
         </div>
         <div className="prob-grid">
           <Link href="/products/cire-cheveux-premium" className="prob-card">
-            <div className="prob-icon">💆‍♂️</div>
+            <div className="prob-icon"><Scissors size={28} strokeWidth={1.4} /></div>
             <div className="prob-title">Cheveux difficiles à coiffer</div>
             <div className="prob-cta">Je veux mieux coiffer mes cheveux →</div>
           </Link>
           <Link href="/products/pack-barbe-complet" className="prob-card">
-            <div className="prob-icon">🧔</div>
+            <div className="prob-icon"><User size={28} strokeWidth={1.4} /></div>
             <div className="prob-title">Barbe sèche ou qui gratte</div>
             <div className="prob-cta">Je veux adoucir ma barbe →</div>
           </Link>
           <Link href="/products/shampooing-noir-colorant" className="prob-card">
-            <div className="prob-icon">✨</div>
+            <div className="prob-icon"><Sparkles size={28} strokeWidth={1.4} /></div>
             <div className="prob-title">Cheveux blancs à masquer</div>
             <div className="prob-cta">Je veux masquer mes cheveux blancs →</div>
           </Link>
           <Link href="/products" className="prob-card">
-            <div className="prob-icon">⚡</div>
+            <div className="prob-icon"><Zap size={28} strokeWidth={1.4} /></div>
             <div className="prob-title">Routine capillaire complète</div>
             <div className="prob-cta">Je veux une routine complète →</div>
           </Link>
@@ -175,7 +177,7 @@ export default function HomePage() {
               <Link href={`/products/${product.slug}`}>
                 <div className="pc-img">
                   <div className="pc-ph">
-                    <span className="pc-icon">{CATEGORY_ICONS[product.category] ?? '✨'}</span>
+                    <span className="pc-icon"><CategoryIcon category={product.category} size={50} /></span>
                   </div>
                   {product.stock <= 10 && product.stock > 0 && (
                     <span className="pc-tag">Dernières unités</span>
@@ -222,7 +224,7 @@ export default function HomePage() {
               <span className="btn-gold">Voir le Pack →</span>
             </div>
             <div className="kit-r">
-              <span className="kit-r-icon">🎁</span>
+              <span className="kit-r-icon"><Gift size={80} strokeWidth={1} /></span>
               <div className="kit-r-badge">
                 <strong>5</strong>
                 <span>produits inclus</span>
@@ -263,7 +265,7 @@ export default function HomePage() {
         <div className="barbers-grid">
           <div className="barber-card">
             <div className="barber-hd">
-              <div className="barber-av">✂️</div>
+              <div className="barber-av"><Scissors size={18} strokeWidth={1.8} color="white" /></div>
               <div>
                 <div className="barber-name-txt">Samy P.</div>
                 <div className="barber-role-txt">Barbier · Fougères · 8 ans</div>
@@ -278,7 +280,7 @@ export default function HomePage() {
 
           <div className="barber-card">
             <div className="barber-hd">
-              <div className="barber-av">🪒</div>
+              <div className="barber-av"><Scissors size={18} strokeWidth={1.8} color="white" /></div>
               <div>
                 <div className="barber-name-txt">Karim M.</div>
                 <div className="barber-role-txt">Barbier · Rennes · 12 ans</div>
@@ -293,7 +295,7 @@ export default function HomePage() {
 
           <div className="barber-card">
             <div className="barber-hd">
-              <div className="barber-av">💈</div>
+              <div className="barber-av"><Scissors size={18} strokeWidth={1.8} color="white" /></div>
               <div>
                 <div className="barber-name-txt">David L.</div>
                 <div className="barber-role-txt">Barbier · Paris · 6 ans</div>
@@ -312,7 +314,7 @@ export default function HomePage() {
       <section id="salon" className="salon-compact">
         <div className="salon-compact-inner">
           <div style={{ flexShrink: 0 }}>
-            <div className="salon-compact-icon">✂️</div>
+            <div className="salon-compact-icon"><Scissors size={36} strokeWidth={1.2} /></div>
           </div>
           <div>
             <div className="sec-ey">Salon Physique — Fougères</div>
