@@ -1615,3 +1615,29 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
   .aas-wrap { height: 240px; }
   .aas-label-before, .aas-label-after { font-size: 9px; }
 }
+
+/* ── COUPON CODE ── */
+.coupon-wrap { margin-bottom: 12px; }
+.coupon-toggle { background: none; border: none; color: rgba(255,255,255,0.4); font-size: 11px; letter-spacing: 0.5px; cursor: pointer; padding: 0; text-decoration: underline; font-family: var(--fb); }
+.coupon-toggle:hover { color: rgba(255,255,255,0.7); }
+.coupon-row { display: flex; gap: 6px; }
+.coupon-input { flex: 1; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); color: var(--w); font-size: 12px; padding: 8px 10px; font-family: var(--fb); outline: none; text-transform: uppercase; letter-spacing: 1px; }
+.coupon-input::placeholder { text-transform: none; letter-spacing: 0; color: rgba(255,255,255,0.3); }
+.coupon-input:focus { border-color: var(--gold); }
+.coupon-btn { background: var(--w); border: 1px solid var(--w); color: var(--b); font-size: 11px; font-weight: 700; letter-spacing: 1px; padding: 0 14px; cursor: pointer; font-family: var(--fb); min-width: 44px; }
+.coupon-btn.applied { background: var(--green); border-color: var(--green); color: white; }
+.coupon-btn:disabled { opacity: 0.35; cursor: default; }
+.coupon-ok { font-size: 11px; color: var(--green); margin-top: 5px; }
+.coupon-err { font-size: 11px; color: #e74c3c; margin-top: 5px; }
+
+/* ── SOCIAL PROOF BADGE ── */
+.pc-social { font-size: 10px; font-weight: 700; color: var(--gold); background: rgba(184,144,58,0.08); padding: 4px 8px; margin-top: 6px; letter-spacing: 0.3px; border-left: 2px solid var(--gold); }
+.fi-social { display: inline-block; font-size: 11px; font-weight: 600; color: var(--gold); background: rgba(184,144,58,0.07); padding: 5px 10px; border-left: 2px solid var(--gold); margin-bottom: 10px; letter-spacing: 0.2px; }
+
+/* ── REVIEWS ENHANCED ── */
+.h-rev-summary { display: flex; align-items: center; gap: 20px; justify-content: center; margin-bottom: 36px; }
+.h-rev-avg { font-family: var(--fd); font-size: 64px; color: var(--w); line-height: 1; letter-spacing: -1px; }
+.h-rev-stars-big { color: var(--gold); font-size: 22px; letter-spacing: 2px; margin-bottom: 4px; }
+.h-rev-total { color: rgba(255,255,255,0.45); font-size: 12px; font-family: var(--fb); }
+.h-rev-av { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: white; flex-shrink: 0; font-family: var(--fb); }
+.h-rev-meta { font-size: 10px; color: rgba(255,255,255,0.35); margin-top: 2px; font-family: var(--fb); }

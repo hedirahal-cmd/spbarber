@@ -4,7 +4,7 @@ import { CartItem } from '@/types'
 
 export async function POST(req: NextRequest) {
   try {
-    const { items }: { items: CartItem[] } = await req.json()
+    const { items, coupon }: { items: CartItem[]; coupon?: string } = await req.json()
 
     const line_items = items.map((item) => ({
       price_data: {
@@ -23,6 +23,7 @@ export async function POST(req: NextRequest) {
       customer_creation: 'if_required',
       payment_method_types: ['card'],
       line_items,
+      ...(coupon ? { discounts: [{ coupon }] } : {}),
       success_url: `${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://spbarber-nine.vercel.app'}/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://spbarber-nine.vercel.app'}/`,
       locale: 'fr',
@@ -42,6 +43,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ url: session.url })
   } catch (error) {
     console.error('Stripe checkout error:', error)
+    const se = error as { code?: string }
+    if (se.code === 'resource_missing') {
+      return NextResponse.json({ couponError: 'Code promo invalide ou expiré.' }, { status: 400 })
+    }
     return NextResponse.json({ error: 'Erreur lors de la création du paiement' }, { status: 500 })
   }
 }

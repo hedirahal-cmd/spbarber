@@ -19,6 +19,19 @@ const CATEGORY_LABELS: Record<string, string> = {
   accessoire: 'Accessoire',
 }
 
+const SOCIAL_PROOF: Record<string, number> = {
+  '1': 34, '2': 51, '3': 12, '4': 18, '5': 89, '6': 7,
+}
+
+const REVIEWS = [
+  { text: `"La cire tient toute la journée. Mes potes me demandent tous ce que j'utilise."`, name: 'Karim B.', initials: 'KB', color: '#3a5a8a', product: 'Cire Cheveux Premium', date: 'Mai 2025' },
+  { text: `"Le pack barbe est parfait. Qualité vraiment pro, rien à voir avec la grande surface."`, name: 'Amélie D.', initials: 'AD', color: '#8a3a5a', product: 'Pack Barbe Complet', date: 'Avr 2025' },
+  { text: `"La crème curl définit mes boucles sans les alourdir. Enfin un vrai produit pour cheveux texturés !"`, name: 'Marcus T.', initials: 'MT', color: '#3a8a5a', product: 'Crème Curl', date: 'Mar 2025' },
+  { text: `"Le shampooing noir a vraiment ravivé ma couleur. Résultat bluffant dès la première utilisation."`, name: 'Thierry M.', initials: 'TM', color: '#5a3a8a', product: 'Shampooing Noir', date: 'Mai 2025' },
+  { text: `"Cadeau parfait pour mon frère. La présentation est soignée et les produits sont top qualité."`, name: 'Sarah L.', initials: 'SL', color: '#8a6a3a', product: 'Pack Barbe Complet', date: 'Avr 2025' },
+  { text: `"J'utilise l'huile de barbe tous les matins. Ma barbe est beaucoup plus douce et brillante."`, name: 'Youssef A.', initials: 'YA', color: '#3a7a8a', product: 'Huile de Barbe', date: 'Mar 2025' },
+]
+
 export default function HomePage() {
   const packBarbe = PRODUCTS.find((p) => p.id === '5')!
   const shampNoir = PRODUCTS.find((p) => p.id === '2')!
@@ -196,6 +209,9 @@ export default function HomePage() {
                   <div className="pc-price">{formatPrice(product.price)}</div>
                   <AddToCartButton product={product} className="pc-atc" label="Ajouter au panier" />
                 </div>
+                {SOCIAL_PROOF[product.id] && (
+                  <div className="pc-social">🔥 {SOCIAL_PROOF[product.id]} achetés cette semaine</div>
+                )}
               </div>
             </div>
           ))}
@@ -233,26 +249,6 @@ export default function HomePage() {
           </Link>
         </div>
       </section>
-
-      {/* ── STATS ── */}
-      <div className="stats">
-        <div className="stat">
-          <div className="stat-n">500+</div>
-          <div className="stat-l">Avis vérifiés</div>
-        </div>
-        <div className="stat">
-          <div className="stat-n">100%</div>
-          <div className="stat-l">Qualité Pro</div>
-        </div>
-        <div className="stat">
-          <div className="stat-n">48h</div>
-          <div className="stat-l">Livraison</div>
-        </div>
-        <div className="stat">
-          <div className="stat-n">France</div>
-          <div className="stat-l">Livraison</div>
-        </div>
-      </div>
 
       {/* ── BARBIERS ── */}
       <section className="barbers-sec">
@@ -336,46 +332,28 @@ export default function HomePage() {
             <h2 className="sec-title">AVIS CLIENTS</h2>
           </div>
         </div>
+        <div className="h-rev-summary">
+          <div className="h-rev-avg">4,9</div>
+          <div>
+            <div className="h-rev-stars-big">★★★★★</div>
+            <div className="h-rev-total">Basé sur 500+ avis vérifiés</div>
+          </div>
+        </div>
         <div className="h-rev-grid">
-          <div className="h-rev-card">
-            <div className="h-rev-stars">★★★★★</div>
-            <p className="h-rev-text">
-              &quot;La cire tient toute la journée. Mes potes me demandent tous ce que j&apos;utilise.&quot;
-            </p>
-            <div className="h-rev-auth">
-              <div className="h-rev-av">👨🏾</div>
-              <div>
-                <div className="h-rev-name">Karim B.</div>
-                <div className="h-rev-check">✓ Achat vérifié</div>
+          {REVIEWS.map((r, i) => (
+            <div key={i} className="h-rev-card">
+              <div className="h-rev-stars">★★★★★</div>
+              <p className="h-rev-text">{r.text}</p>
+              <div className="h-rev-auth">
+                <div className="h-rev-av" style={{ background: r.color }}>{r.initials}</div>
+                <div>
+                  <div className="h-rev-name">{r.name}</div>
+                  <div className="h-rev-meta">{r.product} · {r.date}</div>
+                  <div className="h-rev-check">✓ Achat vérifié</div>
+                </div>
               </div>
             </div>
-          </div>
-          <div className="h-rev-card">
-            <div className="h-rev-stars">★★★★★</div>
-            <p className="h-rev-text">
-              &quot;Le pack barbe est parfait. Qualité vraiment pro, rien à voir avec la grande surface.&quot;
-            </p>
-            <div className="h-rev-auth">
-              <div className="h-rev-av">👩</div>
-              <div>
-                <div className="h-rev-name">Amélie D.</div>
-                <div className="h-rev-check">✓ Achat vérifié</div>
-              </div>
-            </div>
-          </div>
-          <div className="h-rev-card">
-            <div className="h-rev-stars">★★★★★</div>
-            <p className="h-rev-text">
-              &quot;La crème curl définit mes boucles sans les alourdir. Enfin un vrai produit pour cheveux texturés !&quot;
-            </p>
-            <div className="h-rev-auth">
-              <div className="h-rev-av">👨🏿</div>
-              <div>
-                <div className="h-rev-name">Marcus T.</div>
-                <div className="h-rev-check">✓ Achat vérifié</div>
-              </div>
-            </div>
-          </div>
+          ))}
         </div>
       </section>
 

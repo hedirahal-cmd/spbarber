@@ -9,6 +9,10 @@ import { PRODUCTS } from '@/lib/products'
 import { Lock, Truck, RotateCcw, CheckCircle2, AlertTriangle, ShoppingCart, Dumbbell, Sparkles, Leaf, FlaskConical, Scissors, Droplets, User, Zap, Zap as ZapIcon, Clock } from 'lucide-react'
 import { BeforeAfterSlider } from './BeforeAfterSlider'
 
+const SOCIAL_PROOF: Record<string, number> = {
+  '1': 34, '2': 51, '3': 12, '4': 18, '5': 89, '6': 7,
+}
+
 const PRODUCT_REVIEWS: Record<string, { count: number; rating: string }> = {
   '1': { count: 214, rating: '4,9' },
   '2': { count: 87,  rating: '4,8' },
@@ -130,6 +134,9 @@ export function ProductDetail({ product }: { product: Product }) {
             <span className="fi-stars-lbl">{reviews.rating}/5 · {reviews.count} avis vérifiés</span>
             <a href="#avis" className="fi-stars-link">Voir les avis →</a>
           </div>
+          {SOCIAL_PROOF[product.id] && (
+            <div className="fi-social">🔥 {SOCIAL_PROOF[product.id]} personnes ont acheté ce produit cette semaine</div>
+          )}
 
           <div className="fi-price-block">
             <div className="fi-price">{formatPrice(price)}</div>

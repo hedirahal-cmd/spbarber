@@ -52,6 +52,10 @@ function ProgressBar({ total, isEmpty }: { total: number; isEmpty: boolean }) {
 export function CartDrawer() {
   const { items, isOpen, openCart, closeCart, removeItem, updateQuantity, addItem, total, itemCount } = useCart()
   const [loading, setLoading] = useState(false)
+  const [couponCode, setCouponCode] = useState('')
+  const [couponOpen, setCouponOpen] = useState(false)
+  const [couponApplied, setCouponApplied] = useState(false)
+  const [couponError, setCouponError] = useState('')
 
   const cartTotal = total()
   const count = itemCount()
@@ -74,19 +78,33 @@ export function CartDrawer() {
       const res = await fetch('/api/stripe/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ items }),
+        body: JSON.stringify({
+          items,
+          ...(couponApplied && couponCode.trim() ? { coupon: couponCode.trim().toUpperCase() } : {}),
+        }),
       })
       const data = await res.json()
       if (data.url) {
         window.location.href = data.url
       } else {
-        alert('Erreur lors du paiement. Veuillez réessayer.')
+        if (data.couponError) {
+          setCouponError(data.couponError)
+          setCouponApplied(false)
+        } else {
+          alert(data.error || 'Erreur lors du paiement. Veuillez réessayer.')
+        }
         setLoading(false)
       }
     } catch {
       alert('Erreur de connexion. Veuillez réessayer.')
       setLoading(false)
     }
+  }
+
+  function handleApplyCoupon() {
+    if (!couponCode.trim()) return
+    setCouponApplied(true)
+    setCouponError('')
   }
 
   return (
@@ -188,6 +206,38 @@ export function CartDrawer() {
             <div className="cart-total-row">
               <span className="cart-total-lbl">Total</span>
               <span className="cart-total-price">{formatEur(cartTotal)}</span>
+            </div>
+            <div className="coupon-wrap">
+              {!couponOpen ? (
+                <button className="coupon-toggle" onClick={() => setCouponOpen(true)}>
+                  J&apos;ai un code promo
+                </button>
+              ) : (
+                <div className="coupon-row">
+                  <input
+                    type="text"
+                    className="coupon-input"
+                    placeholder="Code promo"
+                    value={couponCode}
+                    onChange={(e) => { setCouponCode(e.target.value); setCouponError(''); setCouponApplied(false) }}
+                    onKeyDown={(e) => { if (e.key === 'Enter') handleApplyCoupon() }}
+                    autoFocus
+                  />
+                  <button
+                    className={`coupon-btn${couponApplied ? ' applied' : ''}`}
+                    onClick={handleApplyCoupon}
+                    disabled={!couponCode.trim()}
+                  >
+                    {couponApplied ? '✓' : 'OK'}
+                  </button>
+                </div>
+              )}
+              {couponApplied && !couponError && (
+                <div className="coupon-ok">Code appliqué ✓</div>
+              )}
+              {couponError && (
+                <div className="coupon-err">{couponError}</div>
+              )}
             </div>
             <button
               className="cart-checkout"

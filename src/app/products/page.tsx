@@ -25,6 +25,10 @@ const CATEGORY_LABELS: Record<string, string> = {
   accessoire: 'Accessoire',
 }
 
+const SOCIAL_PROOF: Record<string, number> = {
+  '1': 34, '2': 51, '3': 12, '4': 18, '5': 89, '6': 7,
+}
+
 function getBadge(id: string) {
   if (id === '5') return <span className="pc-tagg">Meilleure vente</span>
   if (id === '2') return <span className="pc-tag-fm">Forte marge</span>
@@ -84,6 +88,9 @@ export default function ProductsPage() {
                     </Link>
                   )}
                 </div>
+                {SOCIAL_PROOF[product.id] && (
+                  <div className="pc-social">🔥 {SOCIAL_PROOF[product.id]} achetés cette semaine</div>
+                )}
               </div>
             </div>
           ))}
