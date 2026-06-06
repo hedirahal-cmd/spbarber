@@ -2,21 +2,21 @@ import { NextRequest, NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
 import { CartItem } from '@/types'
 
-// Sur Vercel, VERCEL_PROJECT_PRODUCTION_URL est auto-injecté (sans https://)
-// Localement, NEXT_PUBLIC_SITE_URL = http://localhost:3000
 function getBaseUrl(): string {
-  if (process.env.VERCEL_PROJECT_PRODUCTION_URL) {
-    return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
-  }
-  if (process.env.VERCEL_URL) {
-    return `https://${process.env.VERCEL_URL}`
-  }
+  if (process.env.VERCEL_PROJECT_PRODUCTION_URL) return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`
   return process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'
 }
 
 export async function POST(req: NextRequest) {
   try {
-    const { items, coupon }: { items: CartItem[]; coupon?: string } = await req.json()
+    const { items, coupon, email }: { items: CartItem[]; coupon?: string; email?: string } = await req.json()
+
+    const subtotal = items.reduce(
+      (sum, item) => sum + (item.variant?.price ?? item.product.price) * item.quantity,
+      0,
+    )
+    const isFreeShip = subtotal >= 4900
 
     const line_items = items.map((item) => ({
       price_data: {
@@ -35,20 +35,40 @@ export async function POST(req: NextRequest) {
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
       customer_creation: 'if_required',
-      payment_method_types: ['card'],
+      // Sans payment_method_types, Stripe affiche automatiquement
+      // Apple Pay, Google Pay et toutes les methodes actives du Dashboard
       line_items,
       ...(coupon ? { discounts: [{ coupon }] } : {}),
+      ...(email ? { customer_email: email } : {}),
       success_url: `${base}/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${base}/`,
+      cancel_url: `${base}/checkout`,
       locale: 'fr',
       shipping_address_collection: { allowed_countries: ['FR', 'BE', 'CH', 'LU'] },
       shipping_options: [
         {
           shipping_rate_data: {
             type: 'fixed_amount',
-            fixed_amount: { amount: 0, currency: 'eur' },
-            display_name: 'Livraison gratuite',
-            delivery_estimate: { minimum: { unit: 'business_day', value: 3 }, maximum: { unit: 'business_day', value: 5 } },
+            fixed_amount: { amount: isFreeShip ? 0 : 690, currency: 'eur' },
+            display_name: isFreeShip
+              ? 'Colissimo Domicile — Offerte !'
+              : 'Colissimo Domicile (2-3 jours ouvres)',
+            delivery_estimate: {
+              minimum: { unit: 'business_day', value: 2 },
+              maximum: { unit: 'business_day', value: 3 },
+            },
+          },
+        },
+        {
+          shipping_rate_data: {
+            type: 'fixed_amount',
+            fixed_amount: { amount: isFreeShip ? 0 : 490, currency: 'eur' },
+            display_name: isFreeShip
+              ? 'Colissimo Point Relais — Offerte !'
+              : 'Colissimo Point Relais (3-5 jours ouvres)',
+            delivery_estimate: {
+              minimum: { unit: 'business_day', value: 3 },
+              maximum: { unit: 'business_day', value: 5 },
+            },
           },
         },
       ],
@@ -57,7 +77,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ url: session.url })
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error)
-    console.error('[Stripe checkout] Erreur:', msg)
+    console.error('[Stripe checkout]', msg)
     const se = error as { code?: string }
     if (se.code === 'resource_missing') {
       return NextResponse.json({ couponError: 'Code promo invalide ou expiré.' }, { status: 400 })
