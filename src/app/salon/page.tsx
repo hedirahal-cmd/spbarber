@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { MapPin, Clock, Phone, Scissors, Star, ArrowRight, Camera } from 'lucide-react'
+import { MapPin, Clock, Phone, Scissors, Star, ArrowRight } from 'lucide-react'
+import { SalonPhotoGrid } from '@/components/salon/SalonPhotoGrid'
 
 export const metadata: Metadata = {
   title: 'Salon Barbier Fougères — SP Barber | 48 Bd Jean Jaurès 35300',
@@ -204,22 +205,7 @@ export default function SalonPage() {
           <div className="salon-photos-inner">
             <div className="salon-sec-ey">— L&apos;ambiance en images —</div>
             <h2 className="salon-sec-title">LE SALON</h2>
-            <div className="salon-photos-grid">
-              {['salon-1.jpg', 'salon-2.jpg', 'salon-3.jpg'].map((file, i) => (
-                <div key={file} className="salon-photo-card">
-                  <img
-                    src={`/images/salon/${file}`}
-                    alt={`SP Barber Fougères — photo ${i + 1}`}
-                    className="salon-photo-img"
-                    onError={(e) => { (e.currentTarget as HTMLImageElement).style.opacity = '0' }}
-                  />
-                  <div className="salon-photo-ph">
-                    <Camera size={24} strokeWidth={1.2} />
-                    <span>Photo {i + 1}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <SalonPhotoGrid />
           </div>
         </section>
 
