@@ -3,6 +3,7 @@ import { PRODUCTS } from '@/lib/products'
 import { AddToCartButton } from '@/components/AddToCartButton'
 import { formatPrice } from '@/lib/utils'
 import { Scissors, Droplets, User, Zap, Sparkles, Truck, Gift, RotateCcw } from 'lucide-react'
+import { HomeSalonSection } from '@/components/home/HomeSalonSection'
 import { schemaOrganizationLocal, schemaBreadcrumb } from '@/lib/schema'
 
 function CategoryIcon({ category, size = 64 }: { category: string; size?: number }) {
@@ -364,36 +365,7 @@ export default function HomePage() {
       </div>
 
       {/* ── SALON ── */}
-      <section id="salon" className="salon-pro">
-        <div className="salon-pro-inner">
-          <div className="salon-pro-left">
-            <div className="salon-pro-icon"><Scissors size={32} strokeWidth={1.2} /></div>
-            <div className="sec-ey">Salon Physique — Fougères</div>
-            <h2 className="salon-compact-title">SP BARBER SHOP</h2>
-            <p className="salon-compact-addr">
-              48 Boulevard Jean Jaurès · 35300 Fougères<br />
-              Lun–Sam 9h–19h
-            </p>
-            <Link href="/contact" className="salon-compact-link">Nous trouver →</Link>
-          </div>
-          <div className="salon-pro-right">
-            <div className="salon-pro-label">Produits utilisés chaque jour au salon</div>
-            <div className="salon-pro-products">
-              {[cireCheveux, packBarbe, shampNoir].map((p) => (
-                <Link key={p.id} href={`/products/${p.slug}`} className="salon-pro-prod">
-                  <span className="salon-pro-prod-icon"><CategoryIcon category={p.category} size={22} /></span>
-                  <span className="salon-pro-prod-info">
-                    <span className="salon-pro-prod-benefit">{p.benefit}</span>
-                    <span className="salon-pro-prod-name">{p.name}</span>
-                  </span>
-                  <span className="salon-pro-prod-price">{formatPrice(p.price)}</span>
-                </Link>
-              ))}
-            </div>
-            <Link href="/products" className="salon-pro-cta">Voir tous les produits du salon →</Link>
-          </div>
-        </div>
-      </section>
+      <HomeSalonSection />
 
       {/* ── AVIS ── */}
       <section className="h-reviews">

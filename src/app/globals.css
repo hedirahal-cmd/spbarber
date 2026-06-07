@@ -3438,3 +3438,276 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
   .sn-how { padding: 48px 20px 56px; }
   .sn-pd-right { padding: 28px 16px; }
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   HOME SALON SECTION — préfixe hs-
+═══════════════════════════════════════════════════════════════ */
+
+.hs-salon {
+  background: var(--w);
+  padding: 72px 48px 0;
+  border-top: 1px solid var(--gm);
+}
+.hs-salon-inner { max-width: 1140px; margin: 0 auto; }
+
+/* ── Ligne du haut — 2 colonnes ── */
+.hs-salon-top {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 56px;
+  align-items: start;
+  margin-bottom: 56px;
+}
+
+.hs-salon-eyebrow {
+  font-family: var(--fb);
+  font-size: 10px;
+  letter-spacing: 3.5px;
+  color: var(--gold);
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+.hs-salon-title {
+  font-family: var(--fd);
+  font-size: clamp(40px, 5vw, 64px);
+  letter-spacing: 3px;
+  color: var(--b);
+  line-height: 1;
+  margin: 0 0 18px;
+}
+.hs-salon-stars {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 22px;
+}
+.hs-salon-stars-icons { color: #f4b400; font-size: 15px; letter-spacing: 2px; }
+.hs-salon-stars-label { font-size: 13px; color: var(--gt); font-family: var(--fb); }
+
+.hs-salon-meta { display: flex; flex-direction: column; gap: 12px; margin-bottom: 30px; }
+.hs-salon-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  color: var(--b);
+  font-family: var(--fb);
+}
+.hs-salon-meta-item svg { color: var(--gold); flex-shrink: 0; }
+
+.hs-salon-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+.hs-salon-btn-reserve {
+  display: inline-flex;
+  align-items: center;
+  background: var(--gold);
+  color: var(--b);
+  font-family: var(--fd);
+  font-size: 13px;
+  letter-spacing: 1.5px;
+  padding: 14px 24px;
+  border-radius: 3px;
+  text-decoration: none;
+  transition: background 0.2s;
+  white-space: nowrap;
+}
+.hs-salon-btn-reserve:hover { background: var(--goldl); }
+.hs-salon-btn-route {
+  display: inline-flex;
+  align-items: center;
+  border: 1.5px solid var(--b);
+  color: var(--b);
+  font-family: var(--fd);
+  font-size: 13px;
+  letter-spacing: 1.5px;
+  padding: 14px 24px;
+  border-radius: 3px;
+  text-decoration: none;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.hs-salon-btn-route:hover { background: var(--b); color: var(--w); }
+
+.hs-salon-right { width: 100%; }
+.hs-salon-map {
+  width: 100%;
+  height: 320px;
+  border: none;
+  border-radius: 8px;
+  display: block;
+  filter: grayscale(15%);
+}
+
+/* ── Photos du salon ── */
+.hs-photos-sec { padding-bottom: 64px; }
+.hs-photos-title {
+  font-family: var(--fd);
+  font-size: 20px;
+  letter-spacing: 3px;
+  color: var(--b);
+  text-align: center;
+  margin-bottom: 20px;
+}
+.hs-photos-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+.hs-photo-card {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #1a1a1a;
+  cursor: pointer;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.hs-photo-card:hover {
+  transform: scale(1.03);
+  box-shadow: 0 14px 36px rgba(0,0,0,0.18);
+}
+.hs-photo-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 1;
+}
+.hs-photo-ph {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: var(--gold);
+  font-size: 10px;
+  font-family: var(--fb);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  z-index: 0;
+}
+
+/* ── Avis Google — fond noir ── */
+.hs-google-reviews {
+  background: var(--b);
+  padding: 72px 48px 80px;
+}
+.hs-gr-inner { max-width: 1140px; margin: 0 auto; }
+.hs-gr-head { text-align: center; margin-bottom: 44px; }
+.hs-gr-eyebrow {
+  font-family: var(--fb);
+  font-size: 10px;
+  letter-spacing: 3px;
+  color: var(--gt);
+  margin-bottom: 12px;
+}
+.hs-gr-title {
+  font-family: var(--fd);
+  font-size: clamp(22px, 3vw, 32px);
+  letter-spacing: 2px;
+  color: var(--w);
+  line-height: 1.1;
+}
+.hs-gr-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 36px;
+}
+.hs-gr-card {
+  background: #111111;
+  border: 1px solid #222222;
+  border-radius: 8px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  transition: border-color 0.2s;
+}
+.hs-gr-card:hover { border-color: #333; }
+.hs-gr-card-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.hs-gr-av {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  flex-shrink: 0;
+}
+.hs-gr-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--w);
+  font-family: var(--fb);
+}
+.hs-gr-stars { color: #f4b400; font-size: 13px; letter-spacing: 1px; margin-top: 2px; }
+.hs-gr-google-logo {
+  margin-left: auto;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #4285F4;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-family: var(--fb);
+}
+.hs-gr-text {
+  font-family: var(--fs);
+  font-size: 15px;
+  font-style: italic;
+  color: rgba(248,246,243,.8);
+  line-height: 1.6;
+  flex: 1;
+  margin: 0;
+}
+.hs-gr-date {
+  font-size: 11px;
+  color: var(--gt);
+  font-family: var(--fb);
+}
+.hs-gr-link {
+  display: block;
+  text-align: center;
+  font-family: var(--fd);
+  font-size: 14px;
+  letter-spacing: 1.5px;
+  color: var(--goldl);
+  text-decoration: none;
+  transition: color 0.2s;
+  padding: 4px 0;
+}
+.hs-gr-link:hover { color: var(--w); }
+
+/* ── Responsive ── */
+@media (max-width: 860px) {
+  .hs-salon { padding: 52px 28px 0; }
+  .hs-salon-top { grid-template-columns: 1fr; gap: 32px; }
+  .hs-salon-map { height: 260px; }
+  .hs-google-reviews { padding: 52px 28px 60px; }
+  .hs-gr-grid { grid-template-columns: 1fr; gap: 12px; }
+}
+@media (max-width: 640px) {
+  .hs-salon { padding: 40px 20px 0; }
+  .hs-salon-title { font-size: 38px; }
+  .hs-salon-actions { flex-direction: column; }
+  .hs-salon-btn-reserve, .hs-salon-btn-route { width: 100%; justify-content: center; }
+  .hs-photos-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .hs-photos-sec { padding-bottom: 44px; }
+  .hs-google-reviews { padding: 40px 20px 52px; }
+  .hs-gr-grid { grid-template-columns: 1fr; }
+}
