@@ -91,7 +91,8 @@ function Sidebar({ active, setActive, logout }: { active: NavSection; setActive:
   const sections = [
     { label: 'CATALOGUE', items: [{ id: 'produits' as NavSection, label: 'Produits' }] },
     { label: 'VENTES', items: [{ id: 'commandes' as NavSection, label: 'Commandes' }] },
-    { label: 'CONTENU', items: [{ id: 'legal' as NavSection, label: 'Textes légaux' }, { id: 'avis' as NavSection, label: 'Avis clients' }, { id: 'salon' as NavSection, label: 'Config avis' }, { id: 'salons' as NavSection, label: 'Salons' }] },
+    { label: 'SALONS', items: [{ id: 'salons' as NavSection, label: 'Salons' }] },
+    { label: 'CONTENU', items: [{ id: 'legal' as NavSection, label: 'Textes légaux' }, { id: 'avis' as NavSection, label: 'Avis clients' }, { id: 'salon' as NavSection, label: 'Avis Google' }] },
   ]
   return (
     <div style={{ width: 232, background: S.sidebar, height: '100vh', position: 'fixed', top: 0, left: 0, display: 'flex', flexDirection: 'column', zIndex: 10 }}>
@@ -363,13 +364,100 @@ type SalonRow = {
   lien_planity: string; lien_google_maps: string; actif: boolean
 }
 
+const SALON_DISPLAY: Record<string, { title: string; btn: string; confirm: string }> = {
+  fougeres: { title: 'SP Barber Shop — Fougères', btn: 'Enregistrer Fougères', confirm: '✓ Salon Fougères mis à jour' },
+  ernee: { title: 'SP Barbershop — Ernée', btn: 'Enregistrer Ernée', confirm: '✓ Salon Ernée mis à jour' },
+}
+
+function SalonFormCard({
+  salon, form, isSaving, isSaved, err,
+  onField, onSave,
+}: {
+  salon: SalonRow; form: SalonRow; isSaving: boolean; isSaved: boolean; err: string
+  onField: (key: keyof SalonRow, val: string | boolean) => void
+  onSave: () => void
+}) {
+  const display = SALON_DISPLAY[salon.slug] ?? { title: form.nom || salon.slug, btn: 'Enregistrer', confirm: '✓ Salon mis à jour' }
+  return (
+    <div style={S.card_}>
+      <div style={{ padding: '16px 20px', borderBottom: `1px solid ${S.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div>
+          <div style={{ fontWeight: 700, fontSize: 16, color: S.text }}>{display.title}</div>
+          <div style={{ fontSize: 12, color: S.muted, marginTop: 2 }}>{form.ville}{form.code_postal ? `, ${form.code_postal}` : ''}</div>
+        </div>
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+          {isSaved && <span style={{ fontSize: 13, color: '#15803d', fontWeight: 500 }}>{display.confirm}</span>}
+          {err && <span style={{ fontSize: 13, color: '#b91c1c' }}>{err}</span>}
+          <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: S.muted, cursor: 'pointer' }}>
+            <input type="checkbox" checked={form.actif} onChange={e => onField('actif', e.target.checked)} />
+            Actif
+          </label>
+          <button onClick={onSave} disabled={isSaving} style={S.btnPrimary}>
+            {isSaving ? 'Sauvegarde…' : display.btn}
+          </button>
+        </div>
+      </div>
+
+      <div style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div>
+          <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: S.text, marginBottom: 5 }}>Nom du salon</label>
+          <input value={form.nom ?? ''} onChange={e => onField('nom', e.target.value)} style={S.input} />
+        </div>
+        <div>
+          <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: S.text, marginBottom: 5 }}>Adresse</label>
+          <input value={form.adresse ?? ''} onChange={e => onField('adresse', e.target.value)} placeholder="48 Boulevard Jean Jaurès" style={S.input} />
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 120px', gap: 12 }}>
+          <div>
+            <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: S.text, marginBottom: 5 }}>Ville</label>
+            <input value={form.ville ?? ''} onChange={e => onField('ville', e.target.value)} style={S.input} />
+          </div>
+          <div>
+            <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: S.text, marginBottom: 5 }}>Code postal</label>
+            <input value={form.code_postal ?? ''} onChange={e => onField('code_postal', e.target.value)} style={S.input} />
+          </div>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          <div>
+            <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: S.text, marginBottom: 5 }}>Téléphone</label>
+            <input value={form.telephone ?? ''} onChange={e => onField('telephone', e.target.value)} placeholder="02 99 00 00 00" style={S.input} />
+          </div>
+          <div>
+            <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: S.text, marginBottom: 5 }}>Horaires</label>
+            <input value={form.horaires ?? ''} onChange={e => onField('horaires', e.target.value)} placeholder="Lun–Sam 9h–19h" style={S.input} />
+          </div>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: 12 }}>
+          <div>
+            <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: S.text, marginBottom: 5 }}>Note Google</label>
+            <input value={form.note_google ?? ''} onChange={e => onField('note_google', e.target.value)} placeholder="4.9" style={S.input} />
+          </div>
+          <div>
+            <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: S.text, marginBottom: 5 }}>Nombre d&apos;avis</label>
+            <input value={form.nombre_avis ?? ''} onChange={e => onField('nombre_avis', e.target.value)} placeholder="47" style={S.input} />
+          </div>
+        </div>
+        <div>
+          <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: S.text, marginBottom: 5 }}>Lien Planity</label>
+          <input value={form.lien_planity ?? ''} onChange={e => onField('lien_planity', e.target.value)} placeholder="https://www.planity.com/…" style={S.input} />
+          <div style={{ fontSize: 11, color: S.muted, marginTop: 4 }}>Si vide → bouton &quot;Réserver en ligne&quot; masqué</div>
+        </div>
+        <div>
+          <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: S.text, marginBottom: 5 }}>Lien Google Maps (itinéraire)</label>
+          <input value={form.lien_google_maps ?? ''} onChange={e => onField('lien_google_maps', e.target.value)} placeholder="https://www.google.com/maps/dir/…" style={S.input} />
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function TabSalons() {
   const [salons, setSalons] = useState<SalonRow[]>([])
   const [forms, setForms] = useState<Record<string, SalonRow>>({})
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState<string | null>(null)
   const [saved, setSaved] = useState<string | null>(null)
-  const [err, setErr] = useState('')
+  const [errs, setErrs] = useState<Record<string, string>>({})
 
   useEffect(() => {
     fetch('/api/admin/salons')
@@ -392,7 +480,8 @@ function TabSalons() {
   }
 
   async function save(slug: string) {
-    setSaving(slug); setErr('')
+    setSaving(slug)
+    setErrs(e => ({ ...e, [slug]: '' }))
     const res = await fetch('/api/admin/salons', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -401,102 +490,63 @@ function TabSalons() {
     setSaving(null)
     if (res.ok) {
       setSaved(slug)
-      setTimeout(() => setSaved(s => s === slug ? null : s), 2000)
+      setTimeout(() => setSaved(s => s === slug ? null : s), 2500)
     } else {
-      setErr('Erreur lors de la sauvegarde')
+      setErrs(e => ({ ...e, [slug]: 'Erreur lors de la sauvegarde' }))
     }
   }
 
   if (loading) return <div style={{ padding: 40, color: S.muted, textAlign: 'center' }}>Chargement…</div>
 
+  const fougeres = salons.find(s => s.slug === 'fougeres')
+  const ernee = salons.find(s => s.slug === 'ernee')
+
   return (
     <div style={{ flex: 1, overflowY: 'auto' }}>
-      <div style={{ padding: '20px 24px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div>
-          <h1 style={{ fontSize: 20, fontWeight: 600, color: S.text, margin: 0 }}>Salons</h1>
-          <p style={{ fontSize: 13, color: S.muted, margin: '2px 0 0' }}>Informations des salons affichées sur le site</p>
-        </div>
-        {err && <span style={{ fontSize: 13, color: '#b91c1c' }}>{err}</span>}
+      <div style={{ padding: '20px 24px 16px' }}>
+        <h1 style={{ fontSize: 20, fontWeight: 600, color: S.text, margin: 0 }}>Salons</h1>
+        <p style={{ fontSize: 13, color: S.muted, margin: '2px 0 0' }}>Informations des salons affichées sur le site</p>
       </div>
 
-      <div style={{ padding: '0 24px 40px', display: 'flex', flexDirection: 'column', gap: 28, maxWidth: 860 }}>
-        {salons.map(salon => {
-          const form = forms[salon.slug] ?? salon
-          const isSaving = saving === salon.slug
-          const isSaved = saved === salon.slug
-          return (
-            <div key={salon.slug} style={S.card_}>
-              {/* Header carte */}
-              <div style={{ padding: '14px 20px', borderBottom: `1px solid ${S.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div>
-                  <div style={{ fontWeight: 600, fontSize: 15, color: S.text }}>{form.nom || salon.slug}</div>
-                  <div style={{ fontSize: 12, color: S.muted, marginTop: 2 }}>{form.ville} {form.code_postal}</div>
-                </div>
-                <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                  {isSaved && <span style={{ fontSize: 13, color: '#15803d', fontWeight: 500 }}>✓ Salon mis à jour</span>}
-                  <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: S.muted, cursor: 'pointer' }}>
-                    <input type="checkbox" checked={form.actif} onChange={e => setField(salon.slug, 'actif', e.target.checked)} />
-                    Actif
-                  </label>
-                  <button onClick={() => save(salon.slug)} disabled={isSaving} style={S.btnPrimary}>
-                    {isSaving ? 'Sauvegarde…' : 'Enregistrer'}
-                  </button>
-                </div>
-              </div>
+      <div style={{ padding: '0 24px 40px', display: 'flex', flexDirection: 'column', gap: 0, maxWidth: 860 }}>
 
-              {/* Formulaire */}
-              <div style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 16 }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: S.text, marginBottom: 5 }}>Nom du salon</label>
-                  <input value={form.nom ?? ''} onChange={e => setField(salon.slug, 'nom', e.target.value)} style={S.input} />
-                </div>
-                <div>
-                  <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: S.text, marginBottom: 5 }}>Adresse</label>
-                  <input value={form.adresse ?? ''} onChange={e => setField(salon.slug, 'adresse', e.target.value)} placeholder="48 Boulevard Jean Jaurès" style={S.input} />
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 120px', gap: 12 }}>
-                  <div>
-                    <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: S.text, marginBottom: 5 }}>Ville</label>
-                    <input value={form.ville ?? ''} onChange={e => setField(salon.slug, 'ville', e.target.value)} style={S.input} />
-                  </div>
-                  <div>
-                    <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: S.text, marginBottom: 5 }}>Code postal</label>
-                    <input value={form.code_postal ?? ''} onChange={e => setField(salon.slug, 'code_postal', e.target.value)} style={S.input} />
-                  </div>
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                  <div>
-                    <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: S.text, marginBottom: 5 }}>Téléphone</label>
-                    <input value={form.telephone ?? ''} onChange={e => setField(salon.slug, 'telephone', e.target.value)} placeholder="02 99 00 00 00" style={S.input} />
-                  </div>
-                  <div>
-                    <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: S.text, marginBottom: 5 }}>Horaires</label>
-                    <input value={form.horaires ?? ''} onChange={e => setField(salon.slug, 'horaires', e.target.value)} placeholder="Lun–Sam 9h–19h" style={S.input} />
-                  </div>
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: 12 }}>
-                  <div>
-                    <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: S.text, marginBottom: 5 }}>Note Google</label>
-                    <input value={form.note_google ?? ''} onChange={e => setField(salon.slug, 'note_google', e.target.value)} placeholder="4.9" style={S.input} />
-                  </div>
-                  <div>
-                    <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: S.text, marginBottom: 5 }}>Nombre d&apos;avis</label>
-                    <input value={form.nombre_avis ?? ''} onChange={e => setField(salon.slug, 'nombre_avis', e.target.value)} placeholder="47" style={S.input} />
-                  </div>
-                </div>
-                <div>
-                  <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: S.text, marginBottom: 5 }}>Lien Planity</label>
-                  <input value={form.lien_planity ?? ''} onChange={e => setField(salon.slug, 'lien_planity', e.target.value)} placeholder="https://www.planity.com/…" style={S.input} />
-                  <div style={{ fontSize: 11, color: S.muted, marginTop: 4 }}>Si vide → bouton &quot;Réserver en ligne&quot; masqué</div>
-                </div>
-                <div>
-                  <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: S.text, marginBottom: 5 }}>Lien Google Maps (itinéraire)</label>
-                  <input value={form.lien_google_maps ?? ''} onChange={e => setField(salon.slug, 'lien_google_maps', e.target.value)} placeholder="https://www.google.com/maps/dir/…" style={S.input} />
-                </div>
-              </div>
-            </div>
-          )
-        })}
+        {fougeres && (
+          <SalonFormCard
+            salon={fougeres}
+            form={forms['fougeres'] ?? fougeres}
+            isSaving={saving === 'fougeres'}
+            isSaved={saved === 'fougeres'}
+            err={errs['fougeres'] ?? ''}
+            onField={(key, val) => setField('fougeres', key, val)}
+            onSave={() => save('fougeres')}
+          />
+        )}
+
+        {fougeres && ernee && (
+          <div style={{ margin: '32px 0', position: 'relative' }}>
+            <div style={{ borderTop: `1px solid ${S.border}` }} />
+            <span style={{
+              position: 'absolute', top: -10, left: '50%', transform: 'translateX(-50%)',
+              background: S.bg, padding: '0 20px', fontSize: 11, color: S.muted,
+              letterSpacing: 2, textTransform: 'uppercase', whiteSpace: 'nowrap',
+            }}>
+              Deuxième salon
+            </span>
+          </div>
+        )}
+
+        {ernee && (
+          <SalonFormCard
+            salon={ernee}
+            form={forms['ernee'] ?? ernee}
+            isSaving={saving === 'ernee'}
+            isSaved={saved === 'ernee'}
+            err={errs['ernee'] ?? ''}
+            onField={(key, val) => setField('ernee', key, val)}
+            onSave={() => save('ernee')}
+          />
+        )}
+
       </div>
     </div>
   )
