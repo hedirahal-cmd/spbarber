@@ -1,4 +1,5 @@
 'use client'
+import { Fragment } from 'react'
 import { MapPin, Clock, Phone } from 'lucide-react'
 import { type Salon, DEFAULT_SALONS } from '@/lib/salons'
 import { SalonCarousel } from '@/components/salon/SalonCarousel'
@@ -28,11 +29,7 @@ export const DEFAULT_SALON_CONFIG: SalonConfig = {
   google_rating: '4,9',
   google_reviews_count: 47,
   google_reviews_url: 'https://www.google.com/maps/search/SP+Barber+Foug%C3%A8res',
-  google_reviews: [
-    { text: "Meilleur barbier de Fougères. Je reviens depuis 3 ans, toujours impeccable. L'équipe est pro et l'ambiance est top.", name: 'Thomas G.', initials: 'TG', color: '#1a3a5a', date: 'Il y a 2 semaines' },
-    { text: "Ambiance au top, équipe vraiment professionnelle. Mon dégradé est parfait à chaque visite. Je recommande à 100%.", name: 'Mohamed A.', initials: 'MA', color: '#3a1a5a', date: 'Il y a 1 mois' },
-    { text: "Réservation facile sur Planity, aucune attente, résultat impeccable. Le meilleur salon de la région.", name: 'Pierre L.', initials: 'PL', color: '#1a5a3a', date: 'Il y a 3 semaines' },
-  ],
+  google_reviews: [],
 }
 
 function buildEmbedUrl(salon: Salon): string {
@@ -122,14 +119,6 @@ function SalonBlock({ salon }: { salon: Salon }) {
         <div className="hs-photos-title">LE SALON EN IMAGES</div>
         <SalonCarousel photos={salon.photos ?? []} label={salon.nom ?? ''} />
       </div>
-
-      {(salon.avis_google ?? []).length > 0 && (
-        <SalonAvisGrid
-          avis={salon.avis_google ?? []}
-          salonNom={salon.nom ?? salon.ville ?? ''}
-          googleMapsUrl={salon.lien_google_maps ?? undefined}
-        />
-      )}
     </div>
   )
 }
@@ -143,27 +132,48 @@ export function HomeSalonSection({
   const activeSalons = salons.filter(s => s.actif)
 
   return (
-    <section id="salons" className="hs-salon">
-      <div className="hs-salon-inner">
-
-        <div className="hs-salons-hd">
-          <div className="hs-salons-eyebrow">2 SALONS EN BRETAGNE &amp; MAYENNE</div>
-          <h2 className="hs-salons-title">NOS SALONS</h2>
-          <p className="hs-salons-sub">Retrouvez-nous à Fougères et Ernée</p>
-        </div>
-
-        {activeSalons.map((salon, i) => (
-          <div key={salon.slug}>
-            {i > 0 && (
-              <div className="hs-divider" aria-hidden="true">
-                <span className="hs-divider-text">NOS SALONS</span>
-              </div>
-            )}
-            <SalonBlock salon={salon} />
+    <>
+      {/* En-tête de section — id="salons" pour le scroll nav */}
+      <section id="salons" className="hs-salon hs-salon-intro">
+        <div className="hs-salon-inner">
+          <div className="hs-salons-hd">
+            <div className="hs-salons-eyebrow">2 SALONS EN BRETAGNE &amp; MAYENNE</div>
+            <h2 className="hs-salons-title">NOS SALONS</h2>
+            <p className="hs-salons-sub">Retrouvez-nous à Fougères et Ernée</p>
           </div>
-        ))}
+        </div>
+      </section>
 
-      </div>
-    </section>
+      {activeSalons.map((salon, i) => (
+        <Fragment key={salon.slug}>
+          {/* Séparateur entre salons */}
+          {i > 0 && (
+            <div className="hs-salon hs-salon-div">
+              <div className="hs-salon-inner">
+                <div className="hs-divider" aria-hidden="true">
+                  <span className="hs-divider-text">NOS SALONS</span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Bloc salon — fond crème, conteneur max-width */}
+          <section className="hs-salon">
+            <div className="hs-salon-inner">
+              <SalonBlock salon={salon} />
+            </div>
+          </section>
+
+          {/* Avis — fond noir, PLEINE LARGEUR (hors conteneur max-width) */}
+          {(salon.avis_google ?? []).length > 0 && (
+            <SalonAvisGrid
+              avis={salon.avis_google ?? []}
+              salonNom={salon.nom ?? salon.ville ?? ''}
+              googleMapsUrl={salon.lien_google_maps ?? undefined}
+            />
+          )}
+        </Fragment>
+      ))}
+    </>
   )
 }
