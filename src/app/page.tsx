@@ -88,70 +88,69 @@ export default function HomePage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
       />
-      {/* ── HERO — 2 colonnes : headline + trust | objectifs ── */}
+      {/* ── HERO — centré vertical ── */}
       <section className="hero">
 
-        {/* Colonne gauche — headline */}
-        <div className="hero-l">
-          <div className="hero-proof-bar">
-            <span className="hero-proof-item">
-              <span className="hero-proof-star">★★★★★</span> 4,9/5
-            </span>
-            <span className="hero-proof-sep">·</span>
-            <span className="hero-proof-item">+500 avis vérifiés</span>
-            <span className="hero-proof-sep">·</span>
-            <span className="hero-proof-item">Utilisé par les pros</span>
-          </div>
-
-          <h1 className="h-title">
-            La routine de votre barbier,<em>livrée chez vous.</em>
-          </h1>
-
-          <p className="h-sub">
-            Impeccable chaque matin, sans rendez-vous chez le barbier. Les formules professionnelles des pros, livrées directement chez vous en 48h.
-          </p>
-
-          <div className="hero-trust-checks">
-            <span className="hero-check-item"><span className="hero-check-v">✓</span> Formules utilisées par les barbiers pros</span>
-            <span className="hero-check-item"><span className="hero-check-v">✓</span> Livraison offerte dès 49€</span>
-            <span className="hero-check-item"><span className="hero-check-v">✓</span> Retour 30 jours</span>
-          </div>
+        {/* Social proof */}
+        <div className="hero-proof-bar">
+          <span className="hero-proof-item">
+            <span className="hero-proof-star">★★★★★</span> 4,9/5
+          </span>
+          <span className="hero-proof-sep">·</span>
+          <span className="hero-proof-item">+500 avis vérifiés</span>
+          <span className="hero-proof-sep">·</span>
+          <span className="hero-proof-item">Utilisé par les pros</span>
         </div>
 
-        {/* Colonne droite — 4 boutons problème/solution */}
-        <div className="hero-r">
-          <div className="hq-label">Trouvez votre produit en 30 secondes</div>
-          <div className="hq-title">Quel est votre objectif&nbsp;?</div>
-          <div className="hq-grid">
-            <Link href="/products/shampooing-noir-colorant" className="hq-btn">
-              <span className="hq-icon"><Sparkles size={18} strokeWidth={1.8} /></span>
-              <span className="hq-txt">
-                <span className="hq-main">J&apos;ai des cheveux blancs</span>
-                <span className="hq-sub">Shampooing colorant</span>
-              </span>
-            </Link>
-            <Link href="/products/cire-cheveux-premium" className="hq-btn">
-              <span className="hq-icon"><Scissors size={18} strokeWidth={1.8} /></span>
-              <span className="hq-txt">
-                <span className="hq-main">J&apos;ai du mal à me coiffer</span>
-                <span className="hq-sub">Cire fixante</span>
-              </span>
-            </Link>
-            <Link href="/products/pack-barbe-complet" className="hq-btn">
-              <span className="hq-icon"><User size={18} strokeWidth={1.8} /></span>
-              <span className="hq-txt">
-                <span className="hq-main">J&apos;ai une barbe sèche</span>
-                <span className="hq-sub">Pack Barbe Complet</span>
-              </span>
-            </Link>
-            <Link href="/products" className="hq-btn">
-              <span className="hq-icon"><Zap size={18} strokeWidth={1.8} /></span>
-              <span className="hq-txt">
-                <span className="hq-main">Je veux une routine complète</span>
-                <span className="hq-sub">Voir tous les produits</span>
-              </span>
-            </Link>
-          </div>
+        {/* H1 */}
+        <h1 className="h-title">
+          La routine de votre barbier,<em>livrée chez vous.</em>
+        </h1>
+
+        {/* Séparateur */}
+        <div className="hq-sep" />
+
+        {/* Label + titre objectifs */}
+        <div className="hq-label">Trouvez votre produit en 30 secondes</div>
+        <div className="hq-title">Quel est votre objectif&nbsp;?</div>
+
+        {/* Grille 2×2 */}
+        <div className="hq-grid">
+          <Link href="/products/shampooing-noir-colorant" className="hq-btn">
+            <span className="hq-icon"><Sparkles size={22} strokeWidth={1.6} /></span>
+            <span className="hq-txt">
+              <span className="hq-main">J&apos;ai des cheveux blancs</span>
+              <span className="hq-sub">Shampooing colorant</span>
+            </span>
+          </Link>
+          <Link href="/products/cire-cheveux-premium" className="hq-btn">
+            <span className="hq-icon"><Scissors size={22} strokeWidth={1.6} /></span>
+            <span className="hq-txt">
+              <span className="hq-main">J&apos;ai du mal à me coiffer</span>
+              <span className="hq-sub">Cire fixante</span>
+            </span>
+          </Link>
+          <Link href="/products/pack-barbe-complet" className="hq-btn">
+            <span className="hq-icon"><User size={22} strokeWidth={1.6} /></span>
+            <span className="hq-txt">
+              <span className="hq-main">J&apos;ai une barbe sèche</span>
+              <span className="hq-sub">Pack Barbe Complet</span>
+            </span>
+          </Link>
+          <Link href="/products" className="hq-btn">
+            <span className="hq-icon"><Zap size={22} strokeWidth={1.6} /></span>
+            <span className="hq-txt">
+              <span className="hq-main">Je veux une routine complete</span>
+              <span className="hq-sub">Voir tous les produits</span>
+            </span>
+          </Link>
+        </div>
+
+        {/* Trust checks */}
+        <div className="hero-trust-checks">
+          <span className="hero-check-item"><span className="hero-check-v">✓</span> Formules utilisées par les barbiers pros</span>
+          <span className="hero-check-item"><span className="hero-check-v">✓</span> Livraison offerte dès 49€</span>
+          <span className="hero-check-item"><span className="hero-check-v">✓</span> Retour 30 jours</span>
         </div>
 
       </section>
