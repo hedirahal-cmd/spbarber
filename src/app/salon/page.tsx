@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { MapPin, Clock, Phone, Scissors, Star, ArrowRight } from 'lucide-react'
+import { MapPin, Clock, Phone, Scissors, Star, ArrowRight, Camera } from 'lucide-react'
 
 export const metadata: Metadata = {
   title: 'Salon Barbier Fougères — SP Barber | 48 Bd Jean Jaurès 35300',
@@ -151,10 +151,15 @@ export default function SalonPage() {
               <div className="salon-info-icon"><Scissors size={24} strokeWidth={1.5} /></div>
               <h2 className="salon-info-ttl">Réservation</h2>
               <p className="salon-info-txt">
-                Venez directement au salon ou contactez-nous par e-mail pour un rendez-vous.
+                Réservez en ligne 24h/24 ou passez directement au salon.
               </p>
-              <a href="mailto:contact@spbarber.fr" className="salon-info-link">
-                contact@spbarber.fr →
+              <a
+                href="https://www.planity.com/sp-barber-shop-35300-fougeres"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="salon-info-link"
+              >
+                Réserver sur Planity →
               </a>
             </div>
 
@@ -165,12 +170,57 @@ export default function SalonPage() {
         <section className="salon-map-sec">
           <iframe
             title="SP Barber — 48 Boulevard Jean Jaurès 35300 Fougères"
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2672.0!2d-1.2038!3d48.3522!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2s48+Bd+Jean+Jaurès%2C+35300+Fougères!5e0!3m2!1sfr!2sfr!4v1"
+            src="https://maps.google.com/maps?q=48+Boulevard+Jean+Jaur%C3%A8s,+35300+Foug%C3%A8res&output=embed&z=16"
             className="salon-map"
             loading="lazy"
+            allowFullScreen
             referrerPolicy="no-referrer-when-downgrade"
             aria-label="Carte Google Maps — SP Barber Fougères"
           />
+        </section>
+
+        {/* ── BOUTONS D'ACTION ── */}
+        <div className="salon-map-actions">
+          <a
+            href="https://www.planity.com/sp-barber-shop-35300-fougeres"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="salon-btn-reserve"
+          >
+            Réserver en ligne →
+          </a>
+          <a
+            href="https://www.google.com/maps/dir/?api=1&destination=48+Boulevard+Jean+Jaur%C3%A8s,+35300+Foug%C3%A8res"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="salon-btn-route"
+          >
+            Itinéraire →
+          </a>
+        </div>
+
+        {/* ── PHOTOS DU SALON ── */}
+        <section className="salon-photos-sec">
+          <div className="salon-photos-inner">
+            <div className="salon-sec-ey">— L&apos;ambiance en images —</div>
+            <h2 className="salon-sec-title">LE SALON</h2>
+            <div className="salon-photos-grid">
+              {['salon-1.jpg', 'salon-2.jpg', 'salon-3.jpg'].map((file, i) => (
+                <div key={file} className="salon-photo-card">
+                  <img
+                    src={`/images/salon/${file}`}
+                    alt={`SP Barber Fougères — photo ${i + 1}`}
+                    className="salon-photo-img"
+                    onError={(e) => { (e.currentTarget as HTMLImageElement).style.opacity = '0' }}
+                  />
+                  <div className="salon-photo-ph">
+                    <Camera size={24} strokeWidth={1.2} />
+                    <span>Photo {i + 1}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </section>
 
         {/* ── PRESTATIONS ── */}

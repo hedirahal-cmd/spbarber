@@ -121,4 +121,23 @@ export const PRODUCTS: Product[] = [
       'Tondeuse professionnelle dégradé fade pour homme. Lames acier japonais pour un skin fade précis. Résultat salon chez vous. Plusieurs modèles disponibles.',
     created_at: new Date().toISOString(),
   },
+  {
+    id: '7',
+    name: 'Poudre Texturante',
+    slug: 'poudre-texturante',
+    description:
+      'La Poudre Texturante SP Barber apporte volume, grip et style mat instantanément aux cheveux fins ou sans tenue. Sa formule légère en poudre active les racines sans alourdir ni graisser. Facile à appliquer, elle crée une texture naturelle et un effet volume immédiat, idéal pour les coiffures structurées ou décoiffées-coiffées. Plébiscitée par les barbiers professionnels pour les cheveux fins, elle transforme chaque style en coiffure qui dure. Un indispensable de la routine capillaire masculine pour un look naturellement travaillé.',
+    price: 2000,
+    images: ['/images/products/poudre-texturante.jpg'],
+    category: 'coiffant',
+    stock: 45,
+    is_dropshipping: false,
+    benefit: 'Volume & grip instantanés',
+    trust: ['Volume instantané dès la racine', 'Effet mat naturel longue tenue', 'Livraison sous 48h', 'Satisfait ou remboursé'],
+    related: ['1', '3'],
+    seo_title: 'Poudre Texturante Cheveux Homme — SP Barber | Volume & Grip Mat',
+    seo_description:
+      'Poudre texturante homme pour volume et grip mat instantanés. Formule légère, idéale cheveux fins. Résultat salon à la maison. Livraison offerte dès 49€.',
+    created_at: new Date().toISOString(),
+  },
 ]

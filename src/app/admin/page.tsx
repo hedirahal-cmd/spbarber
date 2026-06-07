@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { PRODUCTS } from '@/lib/products'
 
-type NavSection = 'produits' | 'commandes' | 'legal' | 'avis'
+type NavSection = 'produits' | 'commandes' | 'legal' | 'avis' | 'salon'
 
 const ORDER_STATUSES = ['pending', 'paid', 'shipped', 'delivered', 'cancelled']
 const LEGAL_SLUGS = [
@@ -91,7 +91,7 @@ function Sidebar({ active, setActive, logout }: { active: NavSection; setActive:
   const sections = [
     { label: 'CATALOGUE', items: [{ id: 'produits' as NavSection, label: 'Produits' }] },
     { label: 'VENTES', items: [{ id: 'commandes' as NavSection, label: 'Commandes' }] },
-    { label: 'CONTENU', items: [{ id: 'legal' as NavSection, label: 'Textes légaux' }, { id: 'avis' as NavSection, label: 'Avis clients' }] },
+    { label: 'CONTENU', items: [{ id: 'legal' as NavSection, label: 'Textes légaux' }, { id: 'avis' as NavSection, label: 'Avis clients' }, { id: 'salon' as NavSection, label: 'Photos salon' }] },
   ]
   return (
     <div style={{ width: 232, background: S.sidebar, height: '100vh', position: 'fixed', top: 0, left: 0, display: 'flex', flexDirection: 'column', zIndex: 10 }}>
@@ -352,6 +352,68 @@ function TabProduits() {
           </div>
         </div>
       )}
+    </div>
+  )
+}
+
+// ─── Tab Salon Photos ──────────────────────────────────────────
+function TabSalon() {
+  const PHOTOS = [
+    { slot: 1, file: 'salon-1.jpg', label: 'Photo principale' },
+    { slot: 2, file: 'salon-2.jpg', label: 'Intérieur salon' },
+    { slot: 3, file: 'salon-3.jpg', label: 'Ambiance / détail' },
+  ]
+  return (
+    <div style={{ flex: 1, overflowY: 'auto' }}>
+      <div style={{ padding: '20px 24px 16px' }}>
+        <h1 style={{ fontSize: 20, fontWeight: 600, color: S.text, margin: 0 }}>Photos du salon</h1>
+        <p style={{ fontSize: 13, color: S.muted, margin: '2px 0 0' }}>3 photos affichées sur la page /salon</p>
+      </div>
+      <div style={{ padding: '0 24px 24px' }}>
+
+        {/* Instruction */}
+        <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 8, padding: '14px 16px', marginBottom: 24, fontSize: 13, color: '#1e40af', lineHeight: 1.6 }}>
+          <strong>Pour modifier une photo :</strong> déposez votre fichier dans{' '}
+          <code style={{ background: '#dbeafe', padding: '2px 6px', borderRadius: 4, fontSize: 12 }}>/public/images/salon/</code>{' '}
+          avec le nom exact ci-dessous, puis redéployez le site (git push).
+        </div>
+
+        {/* Grille 3 slots */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
+          {PHOTOS.map(p => (
+            <div key={p.slot} style={{ ...S.card_, overflow: 'hidden' }}>
+              {/* Aperçu */}
+              <div style={{ aspectRatio: '1 / 1', background: S.bg, position: 'relative', overflow: 'hidden' }}>
+                {/* Placeholder visible en dessous */}
+                <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8, color: '#d1d5db' }}>
+                  <div style={{ fontSize: 36 }}>◨</div>
+                  <div style={{ fontSize: 11 }}>Aucune photo</div>
+                </div>
+                {/* Image par-dessus — masque le placeholder si elle charge */}
+                <img
+                  src={`/images/salon/${p.file}`}
+                  alt={p.label}
+                  style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                  onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }}
+                />
+              </div>
+              {/* Infos */}
+              <div style={{ padding: '12px 14px', borderTop: `1px solid ${S.border}` }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: S.text, marginBottom: 3 }}>{p.label}</div>
+                <div style={{ fontSize: 11, color: S.muted, fontFamily: 'monospace', background: S.bg, padding: '3px 8px', borderRadius: 4, display: 'inline-block' }}>{p.file}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Lien rapide */}
+        <div style={{ marginTop: 20, padding: '12px 16px', background: S.bg, borderRadius: 6, fontSize: 13, color: S.muted }}>
+          Chemin complet sur le serveur :{' '}
+          <code style={{ color: S.text }}>spbarber/public/images/salon/salon-1.jpg</code>
+          {' — '}
+          <a href="/salon" target="_blank" style={{ color: S.gold }}>Voir la page salon →</a>
+        </div>
+      </div>
     </div>
   )
 }
@@ -693,6 +755,7 @@ export default function AdminPage() {
           {nav === 'commandes' && <TabCommandes />}
           {nav === 'legal' && <TabLegal />}
           {nav === 'avis' && <TabAvis />}
+          {nav === 'salon' && <TabSalon />}
         </div>
       </div>
     </div>

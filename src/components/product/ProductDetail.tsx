@@ -7,7 +7,7 @@ import { Product, ProductVariant } from '@/types'
 import { PaymentLogos } from '@/components/PaymentLogos'
 import { AddToCartButton } from '@/components/AddToCartButton'
 import { PRODUCTS } from '@/lib/products'
-import { Lock, Truck, RotateCcw, CheckCircle2, AlertTriangle, ShoppingCart, Dumbbell, Sparkles, Leaf, FlaskConical, Scissors, Droplets, User, Zap, Zap as ZapIcon, Clock, Waves, AlignJustify, Package } from 'lucide-react'
+import { Lock, Truck, RotateCcw, CheckCircle2, AlertTriangle, ShoppingCart, Dumbbell, Sparkles, Leaf, FlaskConical, Scissors, Droplets, User, Zap, Zap as ZapIcon, Clock, Waves, AlignJustify, Package, Wind } from 'lucide-react'
 import { BeforeAfterSlider } from './BeforeAfterSlider'
 
 const SOCIAL_PROOF: Record<string, number> = {
@@ -44,6 +44,7 @@ function ProductIcon({ productId, size = 40 }: { productId: string; size?: numbe
   if (productId === '4') return <AlignJustify size={size} strokeWidth={1.2} />
   if (productId === '5') return <Zap        size={size} strokeWidth={1.2} />
   if (productId === '6') return <Package    size={size} strokeWidth={1.2} />
+  if (productId === '7') return <Wind       size={size} strokeWidth={1.2} />
   return <Scissors size={size} strokeWidth={1.2} />
 }
 

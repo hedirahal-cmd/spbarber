@@ -10,7 +10,7 @@ import { BeforeAfterSlider } from '@/components/product/BeforeAfterSlider'
 import {
   CheckCircle2, ShoppingCart, Clock, Truck,
   Dumbbell, Sparkles, Leaf, FlaskConical,
-  Droplets, Scissors, Zap, Waves, AlignJustify, Package,
+  Droplets, Scissors, Zap, Waves, AlignJustify, Package, Wind,
 } from 'lucide-react'
 
 const PRODUCT = PRODUCTS.find((p) => p.id === '2')!
@@ -25,6 +25,7 @@ function ProductIcon({ productId, size = 40 }: { productId: string; size?: numbe
   if (productId === '4') return <AlignJustify size={size} strokeWidth={1.2} />
   if (productId === '5') return <Zap        size={size} strokeWidth={1.2} />
   if (productId === '6') return <Package    size={size} strokeWidth={1.2} />
+  if (productId === '7') return <Wind       size={size} strokeWidth={1.2} />
   return <Scissors size={size} strokeWidth={1.2} />
 }
 

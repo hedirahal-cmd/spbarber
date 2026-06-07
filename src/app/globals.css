@@ -2755,8 +2755,63 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
 .salon-hour-closed .salon-hour-val { color: var(--gt); font-weight: 400; }
 
 /* Google Maps */
-.salon-map-sec { background: var(--gm); height: 360px; }
-.salon-map { width: 100%; height: 100%; border: none; display: block; }
+.salon-map-sec { background: var(--gm); height: 350px; }
+.salon-map { width: 100%; height: 100%; border: none; display: block; border-radius: 0; }
+
+/* Boutons d'action sous la carte */
+.salon-map-actions {
+  background: var(--b);
+  padding: 20px 48px;
+  display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+}
+.salon-btn-reserve {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--gold); color: var(--b);
+  padding: 14px 28px; text-decoration: none;
+  font-family: var(--fb); font-size: 11px; font-weight: 700;
+  letter-spacing: 2.5px; text-transform: uppercase;
+  transition: background 0.18s;
+}
+.salon-btn-reserve:hover { background: var(--goldl); }
+.salon-btn-route {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: transparent; color: var(--w);
+  border: 1.5px solid rgba(255,255,255,.3);
+  padding: 13px 28px; text-decoration: none;
+  font-family: var(--fb); font-size: 11px; font-weight: 700;
+  letter-spacing: 2.5px; text-transform: uppercase;
+  transition: border-color 0.18s;
+}
+.salon-btn-route:hover { border-color: var(--w); }
+
+/* Photos du salon */
+.salon-photos-sec { padding: 56px 48px; background: var(--g); }
+.salon-photos-inner { max-width: 960px; margin: 0 auto; }
+.salon-photos-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+  margin-top: 32px;
+}
+.salon-photo-card {
+  border-radius: 8px; overflow: hidden;
+  position: relative; aspect-ratio: 1;
+  background: var(--gm);
+}
+.salon-photo-img {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover; display: block;
+  transition: opacity 0.2s;
+}
+.salon-photo-ph {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 8px;
+  color: var(--gt); font-size: 11px;
+  font-family: var(--fb); letter-spacing: 1px;
+  pointer-events: none;
+}
 
 /* Prestations */
 .salon-services { padding: 64px 48px; background: var(--w); }
@@ -2842,6 +2897,14 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
   .salon-products-sec { padding: 40px 20px; }
   .salon-local-seo { padding: 36px 20px; }
   .salon-map-sec { height: 260px; }
+  .salon-map-actions { padding: 16px 20px; gap: 10px; }
+  .salon-photos-sec { padding: 40px 20px; }
+  .salon-photos-grid { grid-template-columns: repeat(3, 1fr); gap: 10px; }
+}
+@media (max-width: 480px) {
+  .salon-photos-grid { grid-template-columns: 1fr 1fr; }
+  .salon-btn-reserve, .salon-btn-route { width: 100%; justify-content: center; padding: 13px 20px; }
+  .salon-map-actions { flex-direction: column; }
 }
 
 /* ═══════════════════════════════════════════════════════════════
