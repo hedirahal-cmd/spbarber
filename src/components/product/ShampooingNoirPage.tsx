@@ -81,9 +81,17 @@ export function ShampooingNoirPage() {
       {/* ── BLOC 1 — Hero 2 colonnes ── */}
       <section className="sn-hero">
 
-        {/* Colonne gauche — slider avant/après */}
+        {/* Colonne gauche — scroll interne, photo + slider */}
         <div className="sn-hero-left">
+          {/* Photo produit placeholder */}
+          <div className="sn-hero-photo">
+            <Droplets size={56} strokeWidth={0.9} />
+            <span>Photo produit</span>
+          </div>
+
+          {/* Slider avant/après — hauteur 280px max */}
           <BeforeAfterSlider bare className="sn-hero-slider" />
+
           <div className="sn-pills">
             <span className="sn-pill">Sans ammoniaque</span>
             <span className="sn-pill">Résultat en 1 lavage</span>

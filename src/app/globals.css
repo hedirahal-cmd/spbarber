@@ -2901,7 +2901,7 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
 .sn-hero {
   display: grid;
   grid-template-columns: 55fr 45fr;
-  min-height: 580px;
+  align-items: start;
   background: var(--w);
 }
 .sn-hero-left {
@@ -2910,12 +2910,38 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
   display: flex;
   flex-direction: column;
   gap: 20px;
+  overflow-y: auto;
+  max-height: 100vh;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
+.sn-hero-left::-webkit-scrollbar { display: none; }
+
+/* Photo placeholder en haut de la colonne gauche */
+.sn-hero-photo {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  background: var(--g);
+  border: 1px solid var(--gm);
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: var(--gt);
+  font-size: 11px;
+  font-family: var(--fb);
+  letter-spacing: 0.5px;
+}
+
 .sn-hero-slider {
-  height: 420px;
+  width: 100%;
+  height: 280px;
+  max-height: 280px;
   margin-bottom: 0;
   border-radius: 4px;
-  flex: 1;
+  flex: none;
 }
 .sn-pills {
   display: flex;
@@ -2934,7 +2960,7 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
   white-space: nowrap;
 }
 
-/* ── Colonne droite — bloc achat ── */
+/* ── Colonne droite — sticky ── */
 .sn-hero-right {
   padding: 40px 48px 40px 36px;
   display: flex;
@@ -2942,6 +2968,8 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
   gap: 14px;
   background: var(--w);
   border-left: 1px solid var(--gm);
+  position: sticky;
+  top: 80px;
 }
 .sn-bc { font-size: 11px; color: var(--gt); }
 .sn-bc a { color: var(--gt); text-decoration: none; }
@@ -3196,9 +3224,19 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
 /* ── Responsive ── */
 @media (max-width: 960px) {
   .sn-hero { grid-template-columns: 1fr; }
-  .sn-hero-left { padding: 28px 24px; }
-  .sn-hero-slider { height: 300px; }
-  .sn-hero-right { padding: 32px 24px; border-left: none; border-top: 1px solid var(--gm); }
+  .sn-hero-left {
+    padding: 28px 24px;
+    overflow-y: visible;
+    max-height: none;
+  }
+  .sn-hero-slider { height: 260px; max-height: 260px; }
+  .sn-hero-right {
+    padding: 32px 24px;
+    border-left: none;
+    border-top: 1px solid var(--gm);
+    position: static;
+    top: auto;
+  }
   .sn-pd-sec { grid-template-columns: 1fr; }
   .sn-pd-left { min-height: 280px; border-right: none; border-bottom: 1px solid var(--gm); }
   .sn-pd-right { padding: 36px 24px; }
