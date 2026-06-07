@@ -3,6 +3,9 @@ import { notFound, redirect } from 'next/navigation'
 import { PRODUCTS } from '@/lib/products'
 import { ProductDetail } from '@/components/product/ProductDetail'
 import { schemaProduct, schemaBreadcrumb } from '@/lib/schema'
+import { supabase } from '@/lib/supabase'
+
+export const revalidate = 60
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -57,8 +60,21 @@ export async function generateStaticParams() {
 
 export default async function ProductPage({ params }: Props) {
   const { slug } = await params
-  const product = PRODUCTS.find((p) => p.slug === slug)
-  if (!product) notFound()
+  const rawProduct = PRODUCTS.find((p) => p.slug === slug)
+  if (!rawProduct) notFound()
+  let product = rawProduct!
+
+  try {
+    const { data } = await supabase.from('product_overrides').select('name,price,description,stock,benefit').eq('id', product.id).single()
+    if (data) product = {
+      ...product,
+      ...(data.name != null ? { name: String(data.name) } : {}),
+      ...(data.price != null ? { price: Number(data.price) } : {}),
+      ...(data.description != null ? { description: String(data.description) } : {}),
+      ...(data.stock != null ? { stock: Number(data.stock) } : {}),
+      ...(data.benefit != null ? { benefit: String(data.benefit) } : {}),
+    }
+  } catch {}
 
   if (product.is_dropshipping && product.dsers_url) {
     redirect(product.dsers_url)

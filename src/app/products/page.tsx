@@ -1,7 +1,10 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { PRODUCTS } from '@/lib/products'
+import { supabase } from '@/lib/supabase'
 import { formatPrice } from '@/lib/utils'
+
+export const revalidate = 60
 import { AddToCartButton } from '@/components/AddToCartButton'
 import { Scissors, Droplets, User, Zap, Sparkles } from 'lucide-react'
 
@@ -44,12 +47,26 @@ function getBadge(id: string) {
   return null
 }
 
-export default function ProductsPage() {
+type ProdOv = { id: string; name?: string | null; price?: number | null; description?: string | null; stock?: number | null; benefit?: string | null }
+
+export default async function ProductsPage() {
+  let overrides: Record<string, ProdOv> = {}
+  try {
+    const { data } = await supabase.from('product_overrides').select('id,name,price,description,stock,benefit')
+    if (data) (data as ProdOv[]).forEach(r => { overrides[r.id] = r })
+  } catch {}
+
+  function applyOv(p: (typeof PRODUCTS)[0]) {
+    const o = overrides[p.id]
+    if (!o) return p
+    return { ...p, name: o.name ?? p.name, price: o.price ?? p.price, description: o.description ?? p.description, stock: o.stock ?? p.stock, benefit: o.benefit ?? p.benefit }
+  }
+
   const sorted = [
     ...PRODUCTS.filter((p) => p.id === '5'),
     ...PRODUCTS.filter((p) => p.id === '2'),
     ...PRODUCTS.filter((p) => p.id !== '5' && p.id !== '2'),
-  ]
+  ].map(applyOv)
 
   return (
     <>

@@ -1,6 +1,7 @@
 'use client'
-import { MapPin, Clock, Phone, Camera } from 'lucide-react'
+import { MapPin, Clock, Phone } from 'lucide-react'
 import { type Salon, DEFAULT_SALONS } from '@/lib/salons'
+import { SalonCarousel } from '@/components/salon/SalonCarousel'
 
 export type { Salon }
 export { DEFAULT_SALONS }
@@ -42,35 +43,10 @@ function buildEmbedUrl(salon: Salon): string {
   return `https://maps.google.com/maps?q=${encodeURIComponent(q)}&output=embed&z=${z}`
 }
 
-function PhotoGrid({ prefix, label }: { prefix: string; label: string }) {
-  return (
-    <div className="hs-photos-sec">
-      <div className="hs-photos-title">LE SALON EN IMAGES</div>
-      <div className="hs-photos-grid">
-        {([1, 2, 3] as const).map((n) => (
-          <div key={n} className="hs-photo-card">
-            <img
-              src={`/images/salon/${prefix}-${n}.jpg`}
-              alt={`${label} — photo ${n}`}
-              className="hs-photo-img"
-              onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }}
-            />
-            <div className="hs-photo-ph">
-              <Camera size={28} strokeWidth={1.2} />
-              <span>Photo {n}</span>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-
 function SalonBlock({ salon }: { salon: Salon }) {
   const embedSrc = buildEmbedUrl(salon)
   const villeLabel = [salon.ville, salon.code_postal].filter(Boolean).join(', ')
   const hasRating = !!(salon.note_google && salon.nombre_avis)
-  const photoPrefix = salon.slug === 'fougeres' ? 'salon' : salon.slug
 
   return (
     <div className="hs-salon-block">
@@ -141,7 +117,10 @@ function SalonBlock({ salon }: { salon: Salon }) {
         </div>
       </div>
 
-      <PhotoGrid prefix={photoPrefix} label={salon.nom ?? ''} />
+      <div className="hs-photos-sec">
+        <div className="hs-photos-title">LE SALON EN IMAGES</div>
+        <SalonCarousel photos={salon.photos ?? []} label={salon.nom ?? ''} />
+      </div>
     </div>
   )
 }

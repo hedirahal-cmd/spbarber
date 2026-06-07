@@ -3654,6 +3654,87 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
   z-index: 0;
 }
 
+/* ── Carrousel salon ── */
+.sc-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #1a1a1a;
+  user-select: none;
+  touch-action: pan-y;
+}
+.sc-track {
+  display: flex;
+  height: 100%;
+  transition: transform 0.4s cubic-bezier(0.4,0,0.2,1);
+}
+.sc-slide {
+  flex: 0 0 100%;
+  height: 100%;
+}
+.sc-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.sc-placeholder {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 8px;
+  background: #1a1a1a;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: rgba(255,255,255,0.25);
+  font-size: 13px;
+  letter-spacing: 1px;
+}
+.sc-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.52);
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  transition: background 0.15s;
+}
+.sc-arrow:hover { background: rgba(0,0,0,0.78); }
+.sc-arrow-l { left: 12px; }
+.sc-arrow-r { right: 12px; }
+.sc-dots {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 6px;
+  z-index: 2;
+}
+.sc-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255,255,255,0.4);
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.2s;
+}
+.sc-dot-active { background: #fff; }
+
 /* ── Avis Google — fond noir ── */
 .hs-google-reviews {
   background: var(--b);

@@ -1,13 +1,15 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { MapPin, Clock, Phone, Scissors, Star, ArrowRight } from 'lucide-react'
-import { SalonPhotoGrid } from '@/components/salon/SalonPhotoGrid'
+import { SalonCarousel } from '@/components/salon/SalonCarousel'
 import { supabase } from '@/lib/supabase'
 import { DEFAULT_SALONS, type Salon } from '@/lib/salons'
 
+export const revalidate = 60
+
 async function getSalons(): Promise<Salon[]> {
   try {
-    const { data } = await supabase.from('salons').select('*').order('slug')
+    const { data } = await supabase.from('salons').select('*').order('ordre')
     if (data && data.length > 0) return data as Salon[]
   } catch {}
   return DEFAULT_SALONS
@@ -219,7 +221,7 @@ export default async function SalonPage() {
           <div className="salon-photos-inner">
             <div className="salon-sec-ey">— L&apos;ambiance en images —</div>
             <h2 className="salon-sec-title">LE SALON</h2>
-            <SalonPhotoGrid />
+            <SalonCarousel photos={fougeres.photos ?? []} label={fougeres.nom ?? 'SP Barber Shop'} />
           </div>
         </section>
 

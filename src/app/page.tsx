@@ -1,5 +1,7 @@
 import Link from 'next/link'
 import { PRODUCTS } from '@/lib/products'
+
+export const revalidate = 60
 import { AddToCartButton } from '@/components/AddToCartButton'
 import { formatPrice } from '@/lib/utils'
 import { Scissors, Droplets, User, Zap, Sparkles, Truck, Gift, RotateCcw } from 'lucide-react'
@@ -17,12 +19,54 @@ async function getSalonConfig(): Promise<SalonConfig> {
 
 async function getSalons(): Promise<Salon[]> {
   try {
-    const { data } = await supabase.from('salons').select('*').eq('actif', true).order('slug')
+    const { data } = await supabase.from('salons').select('*').eq('actif', true).order('ordre')
     if (data && data.length > 0) return data as Salon[]
   } catch {}
   return DEFAULT_SALONS
 }
 import { schemaOrganizationLocal, schemaBreadcrumb } from '@/lib/schema'
+
+type ReviewDisplay = { text: string; name: string; initials: string; color: string; product: string; date: string }
+type ProdOverride = { id: string; name?: string | null; price?: number | null; description?: string | null; stock?: number | null; benefit?: string | null }
+
+const AVATAR_COLORS_REV = ['#3a5a8a', '#8a3a5a', '#3a8a5a', '#5a3a8a', '#8a6a3a', '#3a7a8a']
+function strHash(s: string): number {
+  let h = 0
+  for (let i = 0; i < s.length; i++) { h = (h * 31 + s.charCodeAt(i)) >>> 0 }
+  return h
+}
+
+async function getReviews(): Promise<ReviewDisplay[]> {
+  try {
+    const { data } = await supabase.from('reviews').select('*').eq('visible', true).order('created_at', { ascending: false }).limit(6)
+    if (data && data.length > 0) return data.map(r => ({
+      text: `"${r.text}"`,
+      name: r.author as string,
+      initials: (r.author as string).split(' ').map((w: string) => w[0] ?? '').join('').toUpperCase().slice(0, 2),
+      color: AVATAR_COLORS_REV[strHash(r.author as string) % AVATAR_COLORS_REV.length],
+      product: (r.product_name as string) ?? '',
+      date: r.created_at ? new Date(r.created_at as string).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }) : '',
+    }))
+  } catch {}
+  return []
+}
+
+async function getProductOverrides(): Promise<Record<string, ProdOverride>> {
+  try {
+    const { data } = await supabase.from('product_overrides').select('id,name,price,description,stock,benefit')
+    if (!data) return {}
+    const map: Record<string, ProdOverride> = {}
+    ;(data as ProdOverride[]).forEach(r => { map[r.id] = r })
+    return map
+  } catch {}
+  return {}
+}
+
+function applyOverride(p: (typeof PRODUCTS)[0], ov: Record<string, ProdOverride>) {
+  const o = ov[p.id]
+  if (!o) return p
+  return { ...p, name: o.name ?? p.name, price: o.price ?? p.price, description: o.description ?? p.description, stock: o.stock ?? p.stock, benefit: o.benefit ?? p.benefit }
+}
 
 function CategoryIcon({ category, size = 64 }: { category: string; size?: number }) {
   if (category === 'coiffant') return <Scissors size={size} strokeWidth={1.2} />
@@ -89,15 +133,18 @@ const BARBIERS = [
 ]
 
 export default async function HomePage() {
-  const packBarbe = PRODUCTS.find((p) => p.id === '5')!
-  const shampNoir = PRODUCTS.find((p) => p.id === '2')!
-  const cireCheveux = PRODUCTS.find((p) => p.id === '1')!
-  const featured = PRODUCTS.filter((p) => p.id !== '5' && p.id !== '2' && p.id !== '1').slice(0, 6)
-
   const salonConfig      = await getSalonConfig()
   const salons           = await getSalons()
+  const reviewsDb        = await getReviews()
+  const reviews          = reviewsDb.length > 0 ? reviewsDb : REVIEWS
+  const overrides        = await getProductOverrides()
   const orgSchema        = schemaOrganizationLocal()
   const breadcrumbSchema = schemaBreadcrumb([{ name: 'Accueil', url: 'https://spbarber.fr' }])
+
+  const packBarbe = applyOverride(PRODUCTS.find((p) => p.id === '5')!, overrides)
+  const shampNoir = applyOverride(PRODUCTS.find((p) => p.id === '2')!, overrides)
+  const cireCheveux = applyOverride(PRODUCTS.find((p) => p.id === '1')!, overrides)
+  const featured = PRODUCTS.filter((p) => p.id !== '5' && p.id !== '2' && p.id !== '1').slice(0, 6).map(p => applyOverride(p, overrides))
 
   return (
     <>
@@ -403,7 +450,7 @@ export default async function HomePage() {
           </div>
         </div>
         <div className="h-rev-grid">
-          {REVIEWS.map((r, i) => (
+          {reviews.map((r, i) => (
             <div key={i} className="h-rev-card">
               <div className="h-rev-stars">★★★★★</div>
               <p className="h-rev-text">{r.text}</p>

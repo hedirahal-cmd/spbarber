@@ -1,5 +1,8 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { supabase } from '@/lib/supabase'
+
+export const revalidate = 60
 
 export const metadata: Metadata = {
   title: 'Conditions Générales de Vente — SP Barber',
@@ -8,7 +11,25 @@ export const metadata: Metadata = {
   robots: { index: false },
 }
 
-export default function CGVPage() {
+export default async function CGVPage() {
+  let dbContent: string | null = null
+  try {
+    const { data } = await supabase.from('legal_pages').select('content').eq('slug', 'cgv').single()
+    if (data?.content) dbContent = data.content as string
+  } catch {}
+
+  if (dbContent) return (
+    <div className="legal-page">
+      <div className="legal-inner">
+        <div className="legal-back">
+          <Link href="/">← Retour à l&apos;accueil</Link>
+        </div>
+        <h1 className="legal-h1">Conditions Générales de Vente</h1>
+        <div style={{ whiteSpace: 'pre-wrap', lineHeight: '1.8', fontSize: 15 }}>{dbContent}</div>
+      </div>
+    </div>
+  )
+
   return (
     <div className="legal-page">
       <div className="legal-inner">

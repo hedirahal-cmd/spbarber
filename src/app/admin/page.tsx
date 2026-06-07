@@ -361,7 +361,7 @@ function TabProduits() {
 type SalonRow = {
   slug: string; nom: string; adresse: string; ville: string; code_postal: string
   telephone: string; horaires: string; note_google: string; nombre_avis: string
-  lien_planity: string; lien_google_maps: string; actif: boolean
+  lien_planity: string; lien_google_maps: string; actif: boolean; photos: string[]
 }
 
 const SALON_DISPLAY: Record<string, { title: string; btn: string; confirm: string }> = {
@@ -370,13 +370,13 @@ const SALON_DISPLAY: Record<string, { title: string; btn: string; confirm: strin
 }
 
 const FALLBACK_SALONS: SalonRow[] = [
-  { slug: 'fougeres', nom: 'SP Barber Shop', adresse: '48 Boulevard Jean Jaurès', ville: 'Fougères', code_postal: '35300', telephone: '', horaires: 'Lun–Sam 9h–19h', note_google: '4.9', nombre_avis: '47', lien_planity: 'https://www.planity.com/sp-barber-shop-35300-fougeres', lien_google_maps: '', actif: true },
-  { slug: 'ernee', nom: 'SP Barbershop Ernée', adresse: '', ville: 'Ernée', code_postal: '53500', telephone: '', horaires: '', note_google: '', nombre_avis: '', lien_planity: '', lien_google_maps: 'https://www.google.com/search?q=Sp+barbershop+ernee', actif: true },
+  { slug: 'fougeres', nom: 'SP Barber Shop', adresse: '48 Boulevard Jean Jaurès', ville: 'Fougères', code_postal: '35300', telephone: '', horaires: 'Lun–Sam 9h–19h', note_google: '4.9', nombre_avis: '47', lien_planity: 'https://www.planity.com/sp-barber-shop-35300-fougeres', lien_google_maps: '', actif: true, photos: [] },
+  { slug: 'ernee', nom: 'SP Barbershop Ernée', adresse: '', ville: 'Ernée', code_postal: '53500', telephone: '', horaires: '', note_google: '', nombre_avis: '', lien_planity: '', lien_google_maps: 'https://www.google.com/search?q=Sp+barbershop+ernee', actif: true, photos: [] },
 ]
 
 function makeForms(rows: SalonRow[]): Record<string, SalonRow> {
   const map: Record<string, SalonRow> = {}
-  rows.forEach(r => { map[r.slug] = { ...r } })
+  rows.forEach(r => { map[r.slug] = { ...r, photos: Array.isArray(r.photos) ? r.photos : [] } })
   return map
 }
 
@@ -385,9 +385,18 @@ function SalonFormCard({
   onField, onSave,
 }: {
   salon: SalonRow; form: SalonRow; isSaving: boolean; isSaved: boolean; err: string
-  onField: (key: keyof SalonRow, val: string | boolean) => void
+  onField: (key: keyof SalonRow, val: string | boolean | string[]) => void
   onSave: () => void
 }) {
+  const [photoUrl, setPhotoUrl] = useState('')
+
+  function addPhoto() {
+    const url = photoUrl.trim()
+    if (!url) return
+    onField('photos', [...(form.photos ?? []), url])
+    setPhotoUrl('')
+  }
+
   const display = SALON_DISPLAY[salon.slug] ?? { title: form.nom || salon.slug, btn: 'Enregistrer', confirm: '✓ Salon mis à jour' }
   return (
     <div style={S.card_}>
@@ -457,6 +466,37 @@ function SalonFormCard({
           <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: S.text, marginBottom: 5 }}>Lien Google Maps (itinéraire)</label>
           <input value={form.lien_google_maps ?? ''} onChange={e => onField('lien_google_maps', e.target.value)} placeholder="https://www.google.com/maps/dir/…" style={S.input} />
         </div>
+
+        {/* Photos */}
+        <div style={{ borderTop: `1px solid ${S.border}`, paddingTop: 20, marginTop: 4 }}>
+          <div style={{ fontSize: 13, fontWeight: 600, color: S.text, marginBottom: 12 }}>Photos du salon</div>
+          {(form.photos ?? []).length === 0 && (
+            <div style={{ fontSize: 12, color: S.muted, marginBottom: 12, fontStyle: 'italic' }}>Aucune photo. Ajoutez des URLs ci-dessous.</div>
+          )}
+          {(form.photos ?? []).map((url, idx) => (
+            <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8, background: S.bg, borderRadius: 6, padding: '6px 10px' }}>
+              <img src={url} alt="" style={{ width: 80, height: 45, objectFit: 'cover', borderRadius: 4, flexShrink: 0, background: '#e5e7eb' }} onError={(e) => { (e.currentTarget as HTMLImageElement).style.opacity = '0.3' }} />
+              <span style={{ flex: 1, fontSize: 12, color: S.muted, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{url}</span>
+              <button onClick={() => onField('photos', (form.photos ?? []).filter((_, i) => i !== idx))} style={{ ...S.btnSecondary, padding: '4px 10px', fontSize: 12, color: '#b91c1c', borderColor: '#fca5a5', flexShrink: 0 }}>×</button>
+            </div>
+          ))}
+          <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+            <input
+              value={photoUrl}
+              onChange={e => setPhotoUrl(e.target.value)}
+              placeholder="https://exemple.com/photo.jpg"
+              style={{ ...S.input, flex: 1 }}
+              onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addPhoto() } }}
+            />
+            <button onClick={addPhoto} style={{ ...S.btnSecondary, flexShrink: 0 }}>Ajouter</button>
+          </div>
+          <div style={{ marginTop: 12 }}>
+            <button onClick={onSave} disabled={isSaving} style={S.btnPrimary}>
+              {isSaving ? 'Sauvegarde…' : 'Enregistrer les photos'}
+            </button>
+            <div style={{ fontSize: 11, color: S.muted, marginTop: 4 }}>Sauvegarde aussi les informations du salon ci-dessus.</div>
+          </div>
+        </div>
       </div>
     </div>
   )
@@ -475,15 +515,16 @@ function TabSalons() {
       .then(r => r.json())
       .then((rows: SalonRow[]) => {
         if (Array.isArray(rows) && rows.length > 0) {
-          setSalons(rows)
-          setForms(makeForms(rows))
+          const normalized = rows.map(r => ({ ...r, photos: Array.isArray(r.photos) ? r.photos : [] }))
+          setSalons(normalized)
+          setForms(makeForms(normalized))
         }
       })
       .catch(() => {})
       .finally(() => setLoading(false))
   }, [])
 
-  function setField(slug: string, key: keyof SalonRow, val: string | boolean) {
+  function setField(slug: string, key: keyof SalonRow, val: string | boolean | string[]) {
     setForms(f => ({ ...f, [slug]: { ...f[slug], [key]: val } }))
     setSaved(null)
   }
