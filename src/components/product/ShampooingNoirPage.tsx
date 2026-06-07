@@ -254,7 +254,9 @@ export function ShampooingNoirPage() {
               <div key={rp.id} className="sac-card">
                 <Link href={`/products/${rp.slug}`} className="sac-card-link">
                   <div className="sac-img">
-                    <ProductIcon productId={rp.id} size={40} />
+                    <div className="sac-icon-ring">
+                      <ProductIcon productId={rp.id} size={56} />
+                    </div>
                   </div>
                   <div className="sac-info">
                     <div className="sac-cat">{CATEGORY_LABELS[rp.category] ?? rp.category}</div>
