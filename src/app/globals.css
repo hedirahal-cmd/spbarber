@@ -2468,6 +2468,10 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
   font-size: 11px; color: #c0392b;
   text-align: center; margin: -4px 0 8px;
 }
+.cdr-checkout-cancel {
+  font-size: 11px; color: var(--gt);
+  text-align: center; margin: -4px 0 8px;
+}
 
 /* Ligne sécurité compacte */
 .cdr-foot-secure {

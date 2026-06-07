@@ -4,7 +4,7 @@ import {
   X, ShoppingCart, Plus, Minus, ChevronDown, ChevronUp,
   Lock, Scissors, Droplets, User, Zap, Sparkles,
 } from 'lucide-react'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { PaymentLogos } from './PaymentLogos'
 import { formatPrice } from '@/lib/utils'
 import { PRODUCTS } from '@/lib/products'
@@ -30,7 +30,9 @@ export function CartDrawer() {
 
   const [loading, setLoading]             = useState(false)
   const [checkoutError, setCheckoutError] = useState('')
+  const [cancelMsg, setCancelMsg]         = useState(false)
   const [suggOpen, setSuggOpen]           = useState(true)
+  const safetyTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [couponOpen, setCouponOpen]       = useState(false)
   const [couponCode, setCouponCode]       = useState('')
   const [couponApplied, setCouponApplied] = useState(false)
@@ -51,6 +53,32 @@ export function CartDrawer() {
     document.body.style.overflow = isOpen ? 'hidden' : ''
     return () => { document.body.style.overflow = '' }
   }, [isOpen])
+
+  /* Reset loading si l'utilisateur revient en arrière depuis Stripe */
+  useEffect(() => {
+    const resetOnReturn = () => {
+      setLoading((prev) => {
+        if (prev) setCancelMsg(true)
+        return false
+      })
+      if (safetyTimer.current) clearTimeout(safetyTimer.current)
+    }
+    const onVisibility = () => { if (document.visibilityState === 'visible') resetOnReturn() }
+    const onPageShow = (e: PageTransitionEvent) => { if (e.persisted) resetOnReturn() }
+    document.addEventListener('visibilitychange', onVisibility)
+    window.addEventListener('pageshow', onPageShow)
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibility)
+      window.removeEventListener('pageshow', onPageShow)
+    }
+  }, [])
+
+  /* Auto-dismiss du message d'annulation après 3s */
+  useEffect(() => {
+    if (!cancelMsg) return
+    const t = setTimeout(() => setCancelMsg(false), 3000)
+    return () => clearTimeout(t)
+  }, [cancelMsg])
 
   /* Barre de progression */
   let progMsg: React.ReactNode
@@ -81,6 +109,14 @@ export function CartDrawer() {
     if (!items.length || loading) return
     setLoading(true)
     setCheckoutError('')
+    setCancelMsg(false)
+
+    /* Timeout de sécurité : si après 8s aucune redirection n'a eu lieu, reset */
+    safetyTimer.current = setTimeout(() => {
+      setLoading(false)
+      setCheckoutError('Une erreur est survenue, réessayez.')
+    }, 8000)
+
     try {
       const res = await fetch('/api/stripe/checkout', {
         method: 'POST',
@@ -92,13 +128,17 @@ export function CartDrawer() {
       })
       const data = await res.json()
       if (data.url) {
+        clearTimeout(safetyTimer.current)
         window.location.href = data.url
+        /* loading reste true pendant la navigation vers Stripe */
       } else {
+        clearTimeout(safetyTimer.current)
         if (data.couponError) { setCouponError(data.couponError); setCouponApplied(false) }
         else setCheckoutError('Une erreur est survenue, réessayez.')
         setLoading(false)
       }
     } catch {
+      clearTimeout(safetyTimer.current!)
       setCheckoutError('Une erreur est survenue, réessayez.')
       setLoading(false)
     }
@@ -269,6 +309,9 @@ export function CartDrawer() {
             </button>
             {checkoutError && (
               <p className="cdr-checkout-err" role="alert">{checkoutError}</p>
+            )}
+            {cancelMsg && !checkoutError && (
+              <p className="cdr-checkout-cancel" role="status">Paiement annulé — votre panier est intact</p>
             )}
 
             {/* Sécurité + logos — 1 seule rangée compacte */}
