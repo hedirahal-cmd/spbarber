@@ -91,7 +91,7 @@ function Sidebar({ active, setActive, logout }: { active: NavSection; setActive:
   const sections = [
     { label: 'CATALOGUE', items: [{ id: 'produits' as NavSection, label: 'Produits' }] },
     { label: 'VENTES', items: [{ id: 'commandes' as NavSection, label: 'Commandes' }] },
-    { label: 'CONTENU', items: [{ id: 'legal' as NavSection, label: 'Textes légaux' }, { id: 'avis' as NavSection, label: 'Avis clients' }, { id: 'salon' as NavSection, label: 'Photos salon' }] },
+    { label: 'CONTENU', items: [{ id: 'legal' as NavSection, label: 'Textes légaux' }, { id: 'avis' as NavSection, label: 'Avis clients' }, { id: 'salon' as NavSection, label: 'Salon' }] },
   ]
   return (
     <div style={{ width: 232, background: S.sidebar, height: '100vh', position: 'fixed', top: 0, left: 0, display: 'flex', flexDirection: 'column', zIndex: 10 }}>
@@ -356,63 +356,225 @@ function TabProduits() {
   )
 }
 
-// ─── Tab Salon Photos ──────────────────────────────────────────
+// ─── Tab Salon ─────────────────────────────────────────────────
+type GReview = { text: string; name: string; initials: string; color: string; date: string }
+type SalonCfg = { phone: string; google_rating: string; google_reviews_count: number; google_reviews_url: string; google_reviews: GReview[] }
+
+const EMPTY_REVIEW: GReview = { text: '', name: '', initials: '', color: '#1a3a5a', date: '' }
+const DEFAULT_CFG: SalonCfg = {
+  phone: '', google_rating: '4,9', google_reviews_count: 47,
+  google_reviews_url: 'https://www.google.com/maps/search/SP+Barber+Foug%C3%A8res',
+  google_reviews: [{ ...EMPTY_REVIEW }, { ...EMPTY_REVIEW, color: '#3a1a5a' }, { ...EMPTY_REVIEW, color: '#1a5a3a' }],
+}
+const PHOTOS = [
+  { slot: 1, file: 'salon-1.jpg', label: 'Photo principale' },
+  { slot: 2, file: 'salon-2.jpg', label: 'Intérieur salon' },
+  { slot: 3, file: 'salon-3.jpg', label: 'Ambiance / détail' },
+]
+
 function TabSalon() {
-  const PHOTOS = [
-    { slot: 1, file: 'salon-1.jpg', label: 'Photo principale' },
-    { slot: 2, file: 'salon-2.jpg', label: 'Intérieur salon' },
-    { slot: 3, file: 'salon-3.jpg', label: 'Ambiance / détail' },
-  ]
+  const [cfg, setCfg] = useState<SalonCfg>(DEFAULT_CFG)
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
+  const [err, setErr] = useState('')
+
+  useEffect(() => {
+    fetch('/api/admin/salon').then(r => r.json()).then((d: SalonCfg) => {
+      if (d && !('error' in d)) {
+        const reviews = Array.isArray(d.google_reviews) && d.google_reviews.length === 3
+          ? d.google_reviews
+          : DEFAULT_CFG.google_reviews
+        setCfg({ ...DEFAULT_CFG, ...d, google_reviews: reviews })
+      }
+    }).catch(() => {}).finally(() => setLoading(false))
+  }, [])
+
+  function setField(key: keyof SalonCfg, val: string | number) {
+    setCfg(c => ({ ...c, [key]: val }))
+    setSaved(false)
+  }
+  function setReview(i: number, key: keyof GReview, val: string) {
+    setCfg(c => {
+      const reviews = [...c.google_reviews]
+      reviews[i] = { ...reviews[i], [key]: val }
+      return { ...c, google_reviews: reviews }
+    })
+    setSaved(false)
+  }
+
+  async function save() {
+    setSaving(true); setErr('')
+    const res = await fetch('/api/admin/salon', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(cfg),
+    })
+    setSaving(false)
+    if (res.ok) { setSaved(true) } else { setErr('Erreur lors de la sauvegarde') }
+  }
+
+  if (loading) return <div style={{ padding: 40, color: S.muted, textAlign: 'center' }}>Chargement…</div>
+
   return (
     <div style={{ flex: 1, overflowY: 'auto' }}>
-      <div style={{ padding: '20px 24px 16px' }}>
-        <h1 style={{ fontSize: 20, fontWeight: 600, color: S.text, margin: 0 }}>Photos du salon</h1>
-        <p style={{ fontSize: 13, color: S.muted, margin: '2px 0 0' }}>3 photos affichées sur la page /salon</p>
-      </div>
-      <div style={{ padding: '0 24px 24px' }}>
-
-        {/* Instruction */}
-        <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 8, padding: '14px 16px', marginBottom: 24, fontSize: 13, color: '#1e40af', lineHeight: 1.6 }}>
-          <strong>Pour modifier une photo :</strong> déposez votre fichier dans{' '}
-          <code style={{ background: '#dbeafe', padding: '2px 6px', borderRadius: 4, fontSize: 12 }}>/public/images/salon/</code>{' '}
-          avec le nom exact ci-dessous, puis redéployez le site (git push).
+      <div style={{ padding: '20px 24px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div>
+          <h1 style={{ fontSize: 20, fontWeight: 600, color: S.text, margin: 0 }}>Salon</h1>
+          <p style={{ fontSize: 13, color: S.muted, margin: '2px 0 0' }}>Informations du salon, avis Google et photos</p>
         </div>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          {saved && <span style={{ fontSize: 13, color: '#15803d', fontWeight: 500 }}>✓ Sauvegardé</span>}
+          {err && <span style={{ fontSize: 13, color: '#b91c1c' }}>{err}</span>}
+          <button onClick={save} disabled={saving} style={S.btnPrimary}>
+            {saving ? 'Sauvegarde…' : 'Sauvegarder'}
+          </button>
+          <a href="/" target="_blank" style={{ ...S.btnSecondary, textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}>
+            Voir le site →
+          </a>
+        </div>
+      </div>
 
-        {/* Grille 3 slots */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
-          {PHOTOS.map(p => (
-            <div key={p.slot} style={{ ...S.card_, overflow: 'hidden' }}>
-              {/* Aperçu */}
-              <div style={{ aspectRatio: '1 / 1', background: S.bg, position: 'relative', overflow: 'hidden' }}>
-                {/* Placeholder visible en dessous */}
-                <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8, color: '#d1d5db' }}>
-                  <div style={{ fontSize: 36 }}>◨</div>
-                  <div style={{ fontSize: 11 }}>Aucune photo</div>
-                </div>
-                {/* Image par-dessus — masque le placeholder si elle charge */}
-                <img
-                  src={`/images/salon/${p.file}`}
-                  alt={p.label}
-                  style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-                  onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }}
+      <div style={{ padding: '0 24px 40px', display: 'flex', flexDirection: 'column', gap: 24, maxWidth: 900 }}>
+
+        {/* ─ Infos générales ─ */}
+        <div style={S.card_}>
+          <div style={{ padding: '14px 20px', borderBottom: `1px solid ${S.border}`, fontWeight: 600, fontSize: 14, color: S.text }}>
+            Informations générales
+          </div>
+          <div style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div>
+              <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: S.text, marginBottom: 6 }}>Téléphone</label>
+              <input
+                value={cfg.phone}
+                onChange={e => setField('phone', e.target.value)}
+                placeholder="ex : 02 99 00 00 00"
+                style={S.input}
+              />
+              <div style={{ fontSize: 11, color: S.muted, marginTop: 4 }}>Affiché sous les horaires sur la homepage et /salon</div>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: 12 }}>
+              <div>
+                <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: S.text, marginBottom: 6 }}>Note Google</label>
+                <input
+                  value={cfg.google_rating}
+                  onChange={e => setField('google_rating', e.target.value)}
+                  placeholder="4,9"
+                  style={S.input}
                 />
               </div>
-              {/* Infos */}
-              <div style={{ padding: '12px 14px', borderTop: `1px solid ${S.border}` }}>
-                <div style={{ fontSize: 13, fontWeight: 600, color: S.text, marginBottom: 3 }}>{p.label}</div>
-                <div style={{ fontSize: 11, color: S.muted, fontFamily: 'monospace', background: S.bg, padding: '3px 8px', borderRadius: 4, display: 'inline-block' }}>{p.file}</div>
+              <div>
+                <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: S.text, marginBottom: 6 }}>Nombre d&apos;avis Google</label>
+                <input
+                  type="number"
+                  value={cfg.google_reviews_count}
+                  onChange={e => setField('google_reviews_count', Number(e.target.value))}
+                  style={S.input}
+                />
               </div>
             </div>
-          ))}
+            <div>
+              <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: S.text, marginBottom: 6 }}>Lien Google Maps (page avis)</label>
+              <input
+                value={cfg.google_reviews_url}
+                onChange={e => setField('google_reviews_url', e.target.value)}
+                placeholder="https://g.page/r/…"
+                style={S.input}
+              />
+              <div style={{ fontSize: 11, color: S.muted, marginTop: 4 }}>Lien du bouton "Voir tous les avis sur Google →" en bas de la homepage</div>
+            </div>
+          </div>
         </div>
 
-        {/* Lien rapide */}
-        <div style={{ marginTop: 20, padding: '12px 16px', background: S.bg, borderRadius: 6, fontSize: 13, color: S.muted }}>
-          Chemin complet sur le serveur :{' '}
-          <code style={{ color: S.text }}>spbarber/public/images/salon/salon-1.jpg</code>
-          {' — '}
-          <a href="/salon" target="_blank" style={{ color: S.gold }}>Voir la page salon →</a>
+        {/* ─ Avis Google ─ */}
+        <div style={S.card_}>
+          <div style={{ padding: '14px 20px', borderBottom: `1px solid ${S.border}`, fontWeight: 600, fontSize: 14, color: S.text }}>
+            Avis Google <span style={{ fontWeight: 400, fontSize: 12, color: S.muted, marginLeft: 8 }}>— affichés sur la homepage (fond noir)</span>
+          </div>
+          <div style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 20 }}>
+            {cfg.google_reviews.map((r, i) => (
+              <div key={i} style={{ border: `1px solid ${S.border}`, borderRadius: 8, overflow: 'hidden' }}>
+                {/* Header avis */}
+                <div style={{ padding: '10px 16px', background: S.bg, borderBottom: `1px solid ${S.border}`, display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <div style={{ width: 32, height: 32, borderRadius: '50%', background: r.color || '#1a3a5a', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: '#fff', flexShrink: 0 }}>
+                    {r.initials || '??'}
+                  </div>
+                  <span style={{ fontSize: 13, fontWeight: 600, color: S.text }}>Avis {i + 1}</span>
+                  <span style={{ fontSize: 12, color: S.muted }}>{r.name || 'Nom non renseigné'}</span>
+                </div>
+                <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  {/* Texte de l'avis */}
+                  <div>
+                    <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: S.text, marginBottom: 5 }}>Texte de l&apos;avis</label>
+                    <textarea
+                      rows={3}
+                      value={r.text}
+                      onChange={e => setReview(i, 'text', e.target.value)}
+                      placeholder={`Copiez-collez l'avis Google ici…`}
+                      style={{ ...S.input, resize: 'vertical', lineHeight: 1.6 }}
+                    />
+                  </div>
+                  {/* Nom, initiales, date */}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 80px 1fr 100px', gap: 10 }}>
+                    <div>
+                      <label style={{ display: 'block', fontSize: 12, fontWeight: 500, color: S.text, marginBottom: 4 }}>Nom complet</label>
+                      <input value={r.name} onChange={e => setReview(i, 'name', e.target.value)} placeholder="Thomas G." style={S.input} />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: 12, fontWeight: 500, color: S.text, marginBottom: 4 }}>Initiales</label>
+                      <input value={r.initials} onChange={e => setReview(i, 'initials', e.target.value.toUpperCase().slice(0, 2))} placeholder="TG" maxLength={2} style={S.input} />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: 12, fontWeight: 500, color: S.text, marginBottom: 4 }}>Date</label>
+                      <input value={r.date} onChange={e => setReview(i, 'date', e.target.value)} placeholder="Il y a 2 semaines" style={S.input} />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: 12, fontWeight: 500, color: S.text, marginBottom: 4 }}>Couleur avatar</label>
+                      <input type="color" value={r.color || '#1a3a5a'} onChange={e => setReview(i, 'color', e.target.value)} style={{ ...S.input, padding: '4px 6px', height: 36, cursor: 'pointer' }} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
+
+        {/* ─ Photos du salon ─ */}
+        <div style={S.card_}>
+          <div style={{ padding: '14px 20px', borderBottom: `1px solid ${S.border}`, fontWeight: 600, fontSize: 14, color: S.text }}>
+            Photos du salon
+          </div>
+          <div style={{ padding: 20 }}>
+            <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 8, padding: '12px 16px', marginBottom: 20, fontSize: 13, color: '#1e40af', lineHeight: 1.6 }}>
+              <strong>Pour modifier une photo :</strong> déposez votre fichier dans{' '}
+              <code style={{ background: '#dbeafe', padding: '2px 6px', borderRadius: 4, fontSize: 12 }}>/public/images/salon/</code>{' '}
+              avec le nom exact ci-dessous, puis faites un git push.
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
+              {PHOTOS.map(p => (
+                <div key={p.slot} style={{ border: `1px solid ${S.border}`, borderRadius: 8, overflow: 'hidden' }}>
+                  <div style={{ aspectRatio: '1 / 1', background: S.bg, position: 'relative', overflow: 'hidden' }}>
+                    <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8, color: '#d1d5db' }}>
+                      <div style={{ fontSize: 32 }}>◨</div>
+                      <div style={{ fontSize: 11 }}>Aucune photo</div>
+                    </div>
+                    <img
+                      src={`/images/salon/${p.file}`}
+                      alt={p.label}
+                      style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                      onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }}
+                    />
+                  </div>
+                  <div style={{ padding: '10px 14px', borderTop: `1px solid ${S.border}` }}>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: S.text, marginBottom: 3 }}>{p.label}</div>
+                    <div style={{ fontSize: 11, color: S.muted, fontFamily: 'monospace', background: S.bg, padding: '3px 8px', borderRadius: 4, display: 'inline-block' }}>{p.file}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
   )

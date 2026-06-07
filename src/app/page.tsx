@@ -3,7 +3,16 @@ import { PRODUCTS } from '@/lib/products'
 import { AddToCartButton } from '@/components/AddToCartButton'
 import { formatPrice } from '@/lib/utils'
 import { Scissors, Droplets, User, Zap, Sparkles, Truck, Gift, RotateCcw } from 'lucide-react'
-import { HomeSalonSection } from '@/components/home/HomeSalonSection'
+import { HomeSalonSection, DEFAULT_SALON_CONFIG, type SalonConfig } from '@/components/home/HomeSalonSection'
+import { supabase } from '@/lib/supabase'
+
+async function getSalonConfig(): Promise<SalonConfig> {
+  try {
+    const { data } = await supabase.from('salon_config').select('*').eq('id', 1).single()
+    if (data) return data as SalonConfig
+  } catch {}
+  return DEFAULT_SALON_CONFIG
+}
 import { schemaOrganizationLocal, schemaBreadcrumb } from '@/lib/schema'
 
 function CategoryIcon({ category, size = 64 }: { category: string; size?: number }) {
@@ -70,12 +79,13 @@ const BARBIERS = [
   },
 ]
 
-export default function HomePage() {
+export default async function HomePage() {
   const packBarbe = PRODUCTS.find((p) => p.id === '5')!
   const shampNoir = PRODUCTS.find((p) => p.id === '2')!
   const cireCheveux = PRODUCTS.find((p) => p.id === '1')!
   const featured = PRODUCTS.filter((p) => p.id !== '5' && p.id !== '2' && p.id !== '1').slice(0, 6)
 
+  const salonConfig      = await getSalonConfig()
   const orgSchema        = schemaOrganizationLocal()
   const breadcrumbSchema = schemaBreadcrumb([{ name: 'Accueil', url: 'https://spbarber.fr' }])
 
@@ -365,7 +375,7 @@ export default function HomePage() {
       </div>
 
       {/* ── SALON ── */}
-      <HomeSalonSection />
+      <HomeSalonSection config={salonConfig} />
 
       {/* ── AVIS ── */}
       <section className="h-reviews">

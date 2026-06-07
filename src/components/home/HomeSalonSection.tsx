@@ -1,32 +1,37 @@
 'use client'
 import { MapPin, Clock, Phone, Camera } from 'lucide-react'
 
-// Remplacer par de vrais avis Google copiés-collés depuis la fiche GMB
-const GOOGLE_REVIEWS = [
-  {
-    text: `"Meilleur barbier de Fougères. Je reviens depuis 3 ans, toujours impeccable. L'équipe est pro et l'ambiance est top."`,
-    name: 'Thomas G.',
-    initials: 'TG',
-    color: '#1a3a5a',
-    date: 'Il y a 2 semaines',
-  },
-  {
-    text: `"Ambiance au top, équipe vraiment professionnelle. Mon dégradé est parfait à chaque visite. Je recommande à 100%."`,
-    name: 'Mohamed A.',
-    initials: 'MA',
-    color: '#3a1a5a',
-    date: 'Il y a 1 mois',
-  },
-  {
-    text: `"Réservation facile sur Planity, aucune attente, résultat impeccable. Le meilleur salon de la région."`,
-    name: 'Pierre L.',
-    initials: 'PL',
-    color: '#1a5a3a',
-    date: 'Il y a 3 semaines',
-  },
-]
+export interface GoogleReview {
+  text: string
+  name: string
+  initials: string
+  color: string
+  date: string
+}
 
-export function HomeSalonSection() {
+export interface SalonConfig {
+  phone: string
+  google_rating: string
+  google_reviews_count: number
+  google_reviews_url: string
+  google_reviews: GoogleReview[]
+}
+
+export const DEFAULT_SALON_CONFIG: SalonConfig = {
+  phone: '',
+  google_rating: '4,9',
+  google_reviews_count: 47,
+  google_reviews_url: 'https://www.google.com/maps/search/SP+Barber+Foug%C3%A8res',
+  google_reviews: [
+    { text: "Meilleur barbier de Fougères. Je reviens depuis 3 ans, toujours impeccable. L'équipe est pro et l'ambiance est top.", name: 'Thomas G.', initials: 'TG', color: '#1a3a5a', date: 'Il y a 2 semaines' },
+    { text: "Ambiance au top, équipe vraiment professionnelle. Mon dégradé est parfait à chaque visite. Je recommande à 100%.", name: 'Mohamed A.', initials: 'MA', color: '#3a1a5a', date: 'Il y a 1 mois' },
+    { text: "Réservation facile sur Planity, aucune attente, résultat impeccable. Le meilleur salon de la région.", name: 'Pierre L.', initials: 'PL', color: '#1a5a3a', date: 'Il y a 3 semaines' },
+  ],
+}
+
+export function HomeSalonSection({ config = DEFAULT_SALON_CONFIG }: { config?: SalonConfig }) {
+  const reviews = config.google_reviews?.length ? config.google_reviews : DEFAULT_SALON_CONFIG.google_reviews
+
   return (
     <>
       {/* ── Section principale — fond crème ── */}
@@ -43,7 +48,9 @@ export function HomeSalonSection() {
 
               <div className="hs-salon-stars">
                 <span className="hs-salon-stars-icons">★★★★★</span>
-                <span className="hs-salon-stars-label">4,9/5 · 47 avis Google</span>
+                <span className="hs-salon-stars-label">
+                  {config.google_rating}/5 · {config.google_reviews_count} avis Google
+                </span>
               </div>
 
               <div className="hs-salon-meta">
@@ -55,10 +62,14 @@ export function HomeSalonSection() {
                   <Clock size={14} strokeWidth={1.8} />
                   <span>Lun – Sam · 9h00 – 19h00</span>
                 </div>
-                <div className="hs-salon-meta-item">
-                  <Phone size={14} strokeWidth={1.8} />
-                  <span>À compléter</span>
-                </div>
+                {config.phone && (
+                  <div className="hs-salon-meta-item">
+                    <Phone size={14} strokeWidth={1.8} />
+                    <a href={`tel:${config.phone.replace(/\s/g, '')}`} style={{ color: 'inherit', textDecoration: 'none' }}>
+                      {config.phone}
+                    </a>
+                  </div>
+                )}
               </div>
 
               <div className="hs-salon-actions">
@@ -127,7 +138,7 @@ export function HomeSalonSection() {
             <h2 className="hs-gr-title">CE QUE DISENT NOS CLIENTS GOOGLE</h2>
           </div>
           <div className="hs-gr-grid">
-            {GOOGLE_REVIEWS.map((r, i) => (
+            {reviews.map((r, i) => (
               <div key={i} className="hs-gr-card">
                 <div className="hs-gr-card-top">
                   <div className="hs-gr-av" style={{ background: r.color }}>{r.initials}</div>
@@ -143,7 +154,7 @@ export function HomeSalonSection() {
             ))}
           </div>
           <a
-            href="https://www.google.com/maps/search/SP+Barber+Foug%C3%A8res"
+            href={config.google_reviews_url || DEFAULT_SALON_CONFIG.google_reviews_url}
             target="_blank"
             rel="noopener noreferrer"
             className="hs-gr-link"
