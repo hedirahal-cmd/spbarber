@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { PRODUCTS } from '@/lib/products'
 
-type NavSection = 'produits' | 'commandes' | 'legal' | 'avis' | 'salon' | 'salons'
+type NavSection = 'produits' | 'commandes' | 'legal' | 'avis' | 'salons'
 
 const ORDER_STATUSES = ['pending', 'paid', 'shipped', 'delivered', 'cancelled']
 const LEGAL_SLUGS = [
@@ -92,7 +92,7 @@ function Sidebar({ active, setActive, logout }: { active: NavSection; setActive:
     { label: 'CATALOGUE', items: [{ id: 'produits' as NavSection, label: 'Produits' }] },
     { label: 'VENTES', items: [{ id: 'commandes' as NavSection, label: 'Commandes' }] },
     { label: 'SALONS', items: [{ id: 'salons' as NavSection, label: 'Salons' }] },
-    { label: 'CONTENU', items: [{ id: 'legal' as NavSection, label: 'Textes légaux' }, { id: 'avis' as NavSection, label: 'Avis clients' }, { id: 'salon' as NavSection, label: 'Avis Google' }] },
+    { label: 'CONTENU', items: [{ id: 'legal' as NavSection, label: 'Textes légaux' }, { id: 'avis' as NavSection, label: 'Avis clients' }] },
   ]
   return (
     <div style={{ width: 232, background: S.sidebar, height: '100vh', position: 'fixed', top: 0, left: 0, display: 'flex', flexDirection: 'column', zIndex: 10 }}>
@@ -369,6 +369,17 @@ const SALON_DISPLAY: Record<string, { title: string; btn: string; confirm: strin
   ernee: { title: 'SP Barbershop — Ernée', btn: 'Enregistrer Ernée', confirm: '✓ Salon Ernée mis à jour' },
 }
 
+const FALLBACK_SALONS: SalonRow[] = [
+  { slug: 'fougeres', nom: 'SP Barber Shop', adresse: '48 Boulevard Jean Jaurès', ville: 'Fougères', code_postal: '35300', telephone: '', horaires: 'Lun–Sam 9h–19h', note_google: '4.9', nombre_avis: '47', lien_planity: 'https://www.planity.com/sp-barber-shop-35300-fougeres', lien_google_maps: '', actif: true },
+  { slug: 'ernee', nom: 'SP Barbershop Ernée', adresse: '', ville: 'Ernée', code_postal: '53500', telephone: '', horaires: '', note_google: '', nombre_avis: '', lien_planity: '', lien_google_maps: 'https://www.google.com/search?q=Sp+barbershop+ernee', actif: true },
+]
+
+function makeForms(rows: SalonRow[]): Record<string, SalonRow> {
+  const map: Record<string, SalonRow> = {}
+  rows.forEach(r => { map[r.slug] = { ...r } })
+  return map
+}
+
 function SalonFormCard({
   salon, form, isSaving, isSaved, err,
   onField, onSave,
@@ -452,8 +463,8 @@ function SalonFormCard({
 }
 
 function TabSalons() {
-  const [salons, setSalons] = useState<SalonRow[]>([])
-  const [forms, setForms] = useState<Record<string, SalonRow>>({})
+  const [salons, setSalons] = useState<SalonRow[]>(FALLBACK_SALONS)
+  const [forms, setForms] = useState<Record<string, SalonRow>>(makeForms(FALLBACK_SALONS))
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState<string | null>(null)
   const [saved, setSaved] = useState<string | null>(null)
@@ -463,11 +474,9 @@ function TabSalons() {
     fetch('/api/admin/salons')
       .then(r => r.json())
       .then((rows: SalonRow[]) => {
-        if (Array.isArray(rows)) {
+        if (Array.isArray(rows) && rows.length > 0) {
           setSalons(rows)
-          const map: Record<string, SalonRow> = {}
-          rows.forEach(r => { map[r.slug] = { ...r } })
-          setForms(map)
+          setForms(makeForms(rows))
         }
       })
       .catch(() => {})
@@ -496,56 +505,50 @@ function TabSalons() {
     }
   }
 
-  if (loading) return <div style={{ padding: 40, color: S.muted, textAlign: 'center' }}>Chargement…</div>
-
-  const fougeres = salons.find(s => s.slug === 'fougeres')
-  const ernee = salons.find(s => s.slug === 'ernee')
+  const fougeres = salons.find(s => s.slug === 'fougeres') ?? FALLBACK_SALONS[0]
+  const ernee = salons.find(s => s.slug === 'ernee') ?? FALLBACK_SALONS[1]
 
   return (
     <div style={{ flex: 1, overflowY: 'auto' }}>
-      <div style={{ padding: '20px 24px 16px' }}>
-        <h1 style={{ fontSize: 20, fontWeight: 600, color: S.text, margin: 0 }}>Salons</h1>
-        <p style={{ fontSize: 13, color: S.muted, margin: '2px 0 0' }}>Informations des salons affichées sur le site</p>
+      <div style={{ padding: '20px 24px 16px', display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div>
+          <h1 style={{ fontSize: 20, fontWeight: 600, color: S.text, margin: 0 }}>Salons</h1>
+          <p style={{ fontSize: 13, color: S.muted, margin: '2px 0 0' }}>Informations affichées sur le site — chargement {loading ? 'en cours…' : 'terminé'}</p>
+        </div>
       </div>
 
       <div style={{ padding: '0 24px 40px', display: 'flex', flexDirection: 'column', gap: 0, maxWidth: 860 }}>
 
-        {fougeres && (
-          <SalonFormCard
-            salon={fougeres}
-            form={forms['fougeres'] ?? fougeres}
-            isSaving={saving === 'fougeres'}
-            isSaved={saved === 'fougeres'}
-            err={errs['fougeres'] ?? ''}
-            onField={(key, val) => setField('fougeres', key, val)}
-            onSave={() => save('fougeres')}
-          />
-        )}
+        <SalonFormCard
+          salon={fougeres}
+          form={forms['fougeres'] ?? fougeres}
+          isSaving={saving === 'fougeres'}
+          isSaved={saved === 'fougeres'}
+          err={errs['fougeres'] ?? ''}
+          onField={(key, val) => setField('fougeres', key, val)}
+          onSave={() => save('fougeres')}
+        />
 
-        {fougeres && ernee && (
-          <div style={{ margin: '32px 0', position: 'relative' }}>
-            <div style={{ borderTop: `1px solid ${S.border}` }} />
-            <span style={{
-              position: 'absolute', top: -10, left: '50%', transform: 'translateX(-50%)',
-              background: S.bg, padding: '0 20px', fontSize: 11, color: S.muted,
-              letterSpacing: 2, textTransform: 'uppercase', whiteSpace: 'nowrap',
-            }}>
-              Deuxième salon
-            </span>
-          </div>
-        )}
+        <div style={{ margin: '32px 0', position: 'relative' }}>
+          <div style={{ borderTop: `1px solid ${S.border}` }} />
+          <span style={{
+            position: 'absolute', top: -10, left: '50%', transform: 'translateX(-50%)',
+            background: S.bg, padding: '0 20px', fontSize: 11, color: S.muted,
+            letterSpacing: 2, textTransform: 'uppercase', whiteSpace: 'nowrap',
+          }}>
+            Deuxième salon
+          </span>
+        </div>
 
-        {ernee && (
-          <SalonFormCard
-            salon={ernee}
-            form={forms['ernee'] ?? ernee}
-            isSaving={saving === 'ernee'}
-            isSaved={saved === 'ernee'}
-            err={errs['ernee'] ?? ''}
-            onField={(key, val) => setField('ernee', key, val)}
-            onSave={() => save('ernee')}
-          />
-        )}
+        <SalonFormCard
+          salon={ernee}
+          form={forms['ernee'] ?? ernee}
+          isSaving={saving === 'ernee'}
+          isSaved={saved === 'ernee'}
+          err={errs['ernee'] ?? ''}
+          onField={(key, val) => setField('ernee', key, val)}
+          onSave={() => save('ernee')}
+        />
 
       </div>
     </div>
@@ -1113,7 +1116,6 @@ export default function AdminPage() {
           {nav === 'commandes' && <TabCommandes />}
           {nav === 'legal' && <TabLegal />}
           {nav === 'avis' && <TabAvis />}
-          {nav === 'salon' && <TabSalon />}
           {nav === 'salons' && <TabSalons />}
         </div>
       </div>

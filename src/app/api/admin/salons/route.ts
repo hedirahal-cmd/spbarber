@@ -22,8 +22,7 @@ export async function PUT(req: NextRequest) {
 
   const { error } = await supabase
     .from('salons')
-    .update({ ...fields, updated_at: new Date().toISOString() })
-    .eq('slug', slug)
+    .upsert({ slug, ...fields, updated_at: new Date().toISOString() }, { onConflict: 'slug' })
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json({ ok: true })
