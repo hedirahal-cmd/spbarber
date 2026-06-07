@@ -29,6 +29,7 @@ export function CartDrawer() {
   const { items, isOpen, closeCart, removeItem, updateQuantity, addItem, total, itemCount } = useCart()
 
   const [loading, setLoading]             = useState(false)
+  const [checkoutError, setCheckoutError] = useState('')
   const [suggOpen, setSuggOpen]           = useState(true)
   const [couponOpen, setCouponOpen]       = useState(false)
   const [couponCode, setCouponCode]       = useState('')
@@ -77,8 +78,9 @@ export function CartDrawer() {
 
   /* Checkout */
   async function handleCheckout() {
-    if (!items.length) return
+    if (!items.length || loading) return
     setLoading(true)
+    setCheckoutError('')
     try {
       const res = await fetch('/api/stripe/checkout', {
         method: 'POST',
@@ -93,11 +95,11 @@ export function CartDrawer() {
         window.location.href = data.url
       } else {
         if (data.couponError) { setCouponError(data.couponError); setCouponApplied(false) }
-        else alert(data.error || 'Erreur paiement. Réessayez.')
+        else setCheckoutError('Une erreur est survenue, réessayez.')
         setLoading(false)
       }
     } catch {
-      alert('Erreur de connexion. Réessayez.')
+      setCheckoutError('Une erreur est survenue, réessayez.')
       setLoading(false)
     }
   }
@@ -251,12 +253,23 @@ export function CartDrawer() {
             </div>
 
             {/* CTA — or, texte noir, 52px */}
-            <button className="cdr-checkout" onClick={handleCheckout} disabled={loading}>
-              {loading
-                ? 'Chargement…'
-                : <><Lock size={14} strokeWidth={2.5} /> Valider ma commande</>
-              }
+            <button
+              className={`cdr-checkout${loading ? ' cdr-checkout--loading' : ''}`}
+              onClick={handleCheckout}
+              disabled={loading}
+            >
+              {loading ? (
+                <>
+                  <span className="cdr-spinner" aria-hidden="true" />
+                  Redirection en cours...
+                </>
+              ) : (
+                <><Lock size={14} strokeWidth={2.5} /> Valider ma commande</>
+              )}
             </button>
+            {checkoutError && (
+              <p className="cdr-checkout-err" role="alert">{checkoutError}</p>
+            )}
 
             {/* Sécurité + logos — 1 seule rangée compacte */}
             <div className="cdr-foot-secure">

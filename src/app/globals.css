@@ -2454,7 +2454,20 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
   margin-bottom: 8px;
 }
 .cdr-checkout:hover:not(:disabled) { background: var(--goldl); }
-.cdr-checkout:disabled { opacity: 0.6; cursor: not-allowed; }
+.cdr-checkout:disabled { cursor: not-allowed; }
+.cdr-checkout--loading { opacity: 0.8; cursor: wait; }
+@keyframes cdr-spin { to { transform: rotate(360deg); } }
+.cdr-spinner {
+  width: 14px; height: 14px; flex-shrink: 0;
+  border: 2px solid rgba(12,12,12,0.2);
+  border-top-color: var(--b);
+  border-radius: 50%;
+  animation: cdr-spin 0.65s linear infinite;
+}
+.cdr-checkout-err {
+  font-size: 11px; color: #c0392b;
+  text-align: center; margin: -4px 0 8px;
+}
 
 /* Ligne sécurité compacte */
 .cdr-foot-secure {

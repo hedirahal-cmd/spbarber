@@ -8,10 +8,12 @@ import { Trash2, Plus, Minus, Lock } from 'lucide-react'
 export default function CartPage() {
   const { items, removeItem, updateQuantity, total } = useCart()
   const [loading, setLoading] = useState(false)
+  const [checkoutError, setCheckoutError] = useState('')
 
   async function handleCheckout() {
-    if (items.length === 0) return
+    if (items.length === 0 || loading) return
     setLoading(true)
+    setCheckoutError('')
     try {
       const res = await fetch('/api/stripe/checkout', {
         method: 'POST',
@@ -22,11 +24,11 @@ export default function CartPage() {
       if (data.url) {
         window.location.href = data.url
       } else {
-        alert('Erreur lors du paiement. Veuillez réessayer.')
+        setCheckoutError('Une erreur est survenue, réessayez.')
         setLoading(false)
       }
     } catch {
-      alert('Erreur de connexion. Veuillez réessayer.')
+      setCheckoutError('Une erreur est survenue, réessayez.')
       setLoading(false)
     }
   }
@@ -104,11 +106,20 @@ export default function CartPage() {
           <button
             onClick={handleCheckout}
             disabled={loading}
-            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%', padding: '14px 0', background: loading ? 'var(--gm)' : 'var(--b)', color: 'var(--w)', fontSize: 11, letterSpacing: 3, textTransform: 'uppercase', fontFamily: 'var(--fb)', fontWeight: 700, border: 'none', cursor: loading ? 'wait' : 'pointer' }}
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%', padding: '14px 0', background: 'var(--gold)', color: 'var(--b)', fontSize: 11, letterSpacing: 3, textTransform: 'uppercase', fontFamily: 'var(--fb)', fontWeight: 700, border: 'none', cursor: loading ? 'wait' : 'pointer', opacity: loading ? 0.8 : 1 }}
           >
-            <Lock size={12} strokeWidth={2} />
-            {loading ? 'Chargement...' : 'Passer commande'}
+            {loading ? (
+              <>
+                <span className="cdr-spinner" aria-hidden="true" />
+                Redirection en cours...
+              </>
+            ) : (
+              <><Lock size={12} strokeWidth={2} />Valider ma commande</>
+            )}
           </button>
+          {checkoutError && (
+            <p role="alert" style={{ fontSize: 11, color: '#c0392b', textAlign: 'center', marginTop: 8 }}>{checkoutError}</p>
+          )}
         </div>
       </div>
     </div>
