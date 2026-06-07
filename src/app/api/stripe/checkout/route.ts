@@ -8,6 +8,24 @@ function getBaseUrl(): string {
   return process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'
 }
 
+const POIDS_PRODUIT: Record<string, number> = {
+  'cire-cheveux-premium': 150,
+  'shampooing-noir-colorant': 300,
+  'creme-curl-control': 200,
+  'peigne-texture-expert': 100,
+  'pack-barbe-complet': 600,
+  'tondeuse-fade-pro': 800,
+}
+
+function getColissimoPrice(poidsTotal: number): number {
+  if (poidsTotal <= 250) return 490
+  if (poidsTotal <= 500) return 590
+  if (poidsTotal <= 750) return 690
+  if (poidsTotal <= 1000) return 790
+  if (poidsTotal <= 2000) return 890
+  return 990
+}
+
 export async function POST(req: NextRequest) {
   try {
     const { items, coupon, email }: { items: CartItem[]; coupon?: string; email?: string } = await req.json()
@@ -17,6 +35,14 @@ export async function POST(req: NextRequest) {
       0,
     )
     const isFreeShip = subtotal >= 4900
+
+    const poidsTotal = items.reduce((sum, item) => {
+      const poids = POIDS_PRODUIT[item.product.slug] ?? 200
+      return sum + poids * item.quantity
+    }, 0)
+
+    const prixStandard = isFreeShip ? 0 : getColissimoPrice(poidsTotal)
+    const prixRetrait = isFreeShip ? 0 : Math.max(0, prixStandard - 100)
 
     const line_items = items.map((item) => ({
       price_data: {
@@ -54,10 +80,10 @@ export async function POST(req: NextRequest) {
         {
           shipping_rate_data: {
             type: 'fixed_amount',
-            fixed_amount: { amount: isFreeShip ? 0 : 590, currency: 'eur' },
+            fixed_amount: { amount: prixStandard, currency: 'eur' },
             display_name: isFreeShip
-              ? 'Colissimo Standard — Offerte !'
-              : 'Colissimo Standard (2-3 jours ouvrés)',
+              ? 'Colissimo Domicile — Offerte !'
+              : `Colissimo Domicile (2-3 jours ouvrés)`,
             delivery_estimate: {
               minimum: { unit: 'business_day', value: 2 },
               maximum: { unit: 'business_day', value: 3 },
@@ -67,13 +93,13 @@ export async function POST(req: NextRequest) {
         {
           shipping_rate_data: {
             type: 'fixed_amount',
-            fixed_amount: { amount: isFreeShip ? 0 : 990, currency: 'eur' },
+            fixed_amount: { amount: prixRetrait, currency: 'eur' },
             display_name: isFreeShip
-              ? 'Colissimo Express — Offerte !'
-              : 'Colissimo Express (1-2 jours ouvrés)',
+              ? 'Colissimo Point Retrait — Offert !'
+              : `Colissimo Point Retrait (2-4 jours ouvrés)`,
             delivery_estimate: {
-              minimum: { unit: 'business_day', value: 1 },
-              maximum: { unit: 'business_day', value: 2 },
+              minimum: { unit: 'business_day', value: 2 },
+              maximum: { unit: 'business_day', value: 4 },
             },
           },
         },

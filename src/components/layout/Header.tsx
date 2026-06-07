@@ -5,11 +5,12 @@ import { useState } from 'react'
 import { useCart } from '@/hooks/useCart'
 
 const NAV_LINKS = [
-  { label: 'Best Sellers', href: '/products' },
-  { label: 'Packs', href: '/products/pack-barbe-complet' },
-  { label: 'Tous les Produits', href: '/products' },
-  { label: 'Notre Salon', href: '/#salon' },
+  { label: 'Produits', href: '/products' },
+  { label: 'Nos salons', href: '/nos-salons' },
+  { label: 'Barbers', href: '/barbers' },
+  { label: 'Conseils', href: '/conseils' },
 ]
+const PLANITY_URL = 'https://www.planity.com/sp-barber-shop-35300-fougeres'
 
 export function Header() {
   const [menuOpen, setMenuOpen] = useState(false)
@@ -46,8 +47,16 @@ export function Header() {
             SP<span style={{ color: 'var(--gold)' }}>.</span>BARBER
           </Link>
 
-          {/* Droite : Panier */}
+          {/* Droite : Réserver + Panier */}
           <div className="site-nav-right">
+            <a
+              href={PLANITY_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="site-nav-reserve"
+            >
+              Réserver
+            </a>
             <button
               className="site-nav-cart"
               onClick={openCart}
@@ -68,6 +77,9 @@ export function Header() {
                 {label}
               </Link>
             ))}
+            <a href={PLANITY_URL} target="_blank" rel="noopener noreferrer" className="mobile-menu-reserve" onClick={() => setMenuOpen(false)}>
+              Réserver sur Planity →
+            </a>
           </div>
         )}
       </nav>

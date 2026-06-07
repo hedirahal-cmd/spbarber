@@ -358,10 +358,13 @@ function TabProduits() {
 }
 
 // ─── Tab Salons (table salons) ─────────────────────────────────
+type AvisGoogle = { texte: string; auteur: string; date: string; etoiles: number }
+
 type SalonRow = {
   slug: string; nom: string; adresse: string; ville: string; code_postal: string
   telephone: string; horaires: string; note_google: string; nombre_avis: string
   lien_planity: string; lien_google_maps: string; actif: boolean; photos: string[]
+  avis_google: AvisGoogle[]
 }
 
 const SALON_DISPLAY: Record<string, { title: string; btn: string; confirm: string }> = {
@@ -370,13 +373,19 @@ const SALON_DISPLAY: Record<string, { title: string; btn: string; confirm: strin
 }
 
 const FALLBACK_SALONS: SalonRow[] = [
-  { slug: 'fougeres', nom: 'SP Barber Shop', adresse: '48 Boulevard Jean Jaurès', ville: 'Fougères', code_postal: '35300', telephone: '', horaires: 'Lun–Sam 9h–19h', note_google: '4.9', nombre_avis: '47', lien_planity: 'https://www.planity.com/sp-barber-shop-35300-fougeres', lien_google_maps: '', actif: true, photos: [] },
-  { slug: 'ernee', nom: 'SP Barbershop Ernée', adresse: '', ville: 'Ernée', code_postal: '53500', telephone: '', horaires: '', note_google: '', nombre_avis: '', lien_planity: '', lien_google_maps: 'https://www.google.com/search?q=Sp+barbershop+ernee', actif: true, photos: [] },
+  { slug: 'fougeres', nom: 'SP Barber Shop', adresse: '48 Boulevard Jean Jaurès', ville: 'Fougères', code_postal: '35300', telephone: '', horaires: 'Lun–Sam 9h–19h', note_google: '4.9', nombre_avis: '47', lien_planity: 'https://www.planity.com/sp-barber-shop-35300-fougeres', lien_google_maps: '', actif: true, photos: [], avis_google: [] },
+  { slug: 'ernee', nom: 'SP Barbershop Ernée', adresse: '', ville: 'Ernée', code_postal: '53500', telephone: '', horaires: '', note_google: '', nombre_avis: '', lien_planity: '', lien_google_maps: 'https://www.google.com/search?q=Sp+barbershop+ernee', actif: true, photos: [], avis_google: [] },
 ]
 
 function makeForms(rows: SalonRow[]): Record<string, SalonRow> {
   const map: Record<string, SalonRow> = {}
-  rows.forEach(r => { map[r.slug] = { ...r, photos: Array.isArray(r.photos) ? r.photos : [] } })
+  rows.forEach(r => {
+    map[r.slug] = {
+      ...r,
+      photos: Array.isArray(r.photos) ? r.photos : [],
+      avis_google: Array.isArray(r.avis_google) ? r.avis_google : [],
+    }
+  })
   return map
 }
 
@@ -385,7 +394,7 @@ function SalonFormCard({
   onField, onSave,
 }: {
   salon: SalonRow; form: SalonRow; isSaving: boolean; isSaved: boolean; err: string
-  onField: (key: keyof SalonRow, val: string | boolean | string[]) => void
+  onField: (key: keyof SalonRow, val: string | boolean | string[] | AvisGoogle[]) => void
   onSave: () => void
 }) {
   const [photoUrl, setPhotoUrl] = useState('')
@@ -497,6 +506,99 @@ function SalonFormCard({
             <div style={{ fontSize: 11, color: S.muted, marginTop: 4 }}>Sauvegarde aussi les informations du salon ci-dessus.</div>
           </div>
         </div>
+
+        {/* Avis Google */}
+        <div style={{ borderTop: `1px solid ${S.border}`, paddingTop: 20, marginTop: 4 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: S.text }}>Avis Google</div>
+            <button
+              onClick={() => onField('avis_google', [...(form.avis_google ?? []), { texte: '', auteur: '', date: '', etoiles: 5 }])}
+              style={{ ...S.btnSecondary, fontSize: 12, padding: '5px 12px' }}
+            >
+              + Ajouter un avis
+            </button>
+          </div>
+          {(form.avis_google ?? []).length === 0 && (
+            <div style={{ fontSize: 12, color: S.muted, fontStyle: 'italic', marginBottom: 12 }}>
+              Aucun avis. Les avis seront affichés sur la page d&apos;accueil.
+            </div>
+          )}
+          {(form.avis_google ?? []).map((avis, idx) => (
+            <div key={idx} style={{ border: `1px solid ${S.border}`, borderRadius: 6, padding: 14, marginBottom: 10, background: S.bg }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                <span style={{ fontSize: 12, fontWeight: 600, color: S.muted }}>Avis {idx + 1}</span>
+                <button
+                  onClick={() => onField('avis_google', (form.avis_google ?? []).filter((_, i) => i !== idx))}
+                  style={{ ...S.btnSecondary, fontSize: 12, padding: '3px 10px', color: '#b91c1c', borderColor: '#fca5a5' }}
+                >
+                  Supprimer
+                </button>
+              </div>
+              <div style={{ marginBottom: 8 }}>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 500, color: S.text, marginBottom: 4 }}>Texte de l&apos;avis</label>
+                <textarea
+                  rows={3}
+                  value={avis.texte}
+                  onChange={e => {
+                    const updated = [...(form.avis_google ?? [])]
+                    updated[idx] = { ...updated[idx], texte: e.target.value }
+                    onField('avis_google', updated)
+                  }}
+                  style={{ ...S.input, resize: 'vertical' }}
+                />
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: 12, fontWeight: 500, color: S.text, marginBottom: 4 }}>Prénom + initiale</label>
+                  <input
+                    value={avis.auteur}
+                    onChange={e => {
+                      const updated = [...(form.avis_google ?? [])]
+                      updated[idx] = { ...updated[idx], auteur: e.target.value }
+                      onField('avis_google', updated)
+                    }}
+                    placeholder="Thomas G."
+                    style={S.input}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: 12, fontWeight: 500, color: S.text, marginBottom: 4 }}>Date</label>
+                  <input
+                    value={avis.date}
+                    onChange={e => {
+                      const updated = [...(form.avis_google ?? [])]
+                      updated[idx] = { ...updated[idx], date: e.target.value }
+                      onField('avis_google', updated)
+                    }}
+                    placeholder="Il y a 2 semaines"
+                    style={S.input}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: 12, fontWeight: 500, color: S.text, marginBottom: 4 }}>Étoiles (1-5)</label>
+                  <select
+                    value={avis.etoiles}
+                    onChange={e => {
+                      const updated = [...(form.avis_google ?? [])]
+                      updated[idx] = { ...updated[idx], etoiles: Number(e.target.value) }
+                      onField('avis_google', updated)
+                    }}
+                    style={S.input}
+                  >
+                    {[1, 2, 3, 4, 5].map(n => <option key={n} value={n}>{'★'.repeat(n)} ({n})</option>)}
+                  </select>
+                </div>
+              </div>
+            </div>
+          ))}
+          {(form.avis_google ?? []).length > 0 && (
+            <div style={{ marginTop: 8 }}>
+              <button onClick={onSave} disabled={isSaving} style={S.btnPrimary}>
+                {isSaving ? 'Sauvegarde…' : 'Enregistrer les avis'}
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )
@@ -524,7 +626,7 @@ function TabSalons() {
       .finally(() => setLoading(false))
   }, [])
 
-  function setField(slug: string, key: keyof SalonRow, val: string | boolean | string[]) {
+  function setField(slug: string, key: keyof SalonRow, val: string | boolean | string[] | AvisGoogle[]) {
     setForms(f => ({ ...f, [slug]: { ...f[slug], [key]: val } }))
     setSaved(null)
   }
@@ -827,6 +929,9 @@ function TabCommandes() {
   const [loading, setLoading] = useState(true)
   const [updating, setUpdating] = useState<string | null>(null)
   const [selected, setSelected] = useState<Record<string, unknown> | null>(null)
+  const [trackingInputs, setTrackingInputs] = useState<Record<string, string>>({})
+  const [shipping, setShipping] = useState<string | null>(null)
+  const [shipOk, setShipOk] = useState<string | null>(null)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -842,6 +947,24 @@ function TabCommandes() {
     await load()
     setUpdating(null)
     if (selected && String(selected.id) === id) setSelected(s => s ? { ...s, status } : s)
+  }
+
+  async function markShipped(id: string) {
+    const tracking = trackingInputs[id]?.trim() ?? ''
+    if (!tracking) return
+    setShipping(id)
+    const res = await fetch('/api/admin/ship', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, tracking_number: tracking }),
+    })
+    setShipping(null)
+    if (res.ok) {
+      setShipOk(id)
+      setTimeout(() => setShipOk(s => s === id ? null : s), 3000)
+      await load()
+      setSelected(s => s && String(s.id) === id ? { ...s, status: 'shipped', tracking_number: tracking } : s)
+    }
   }
 
   return (
@@ -920,6 +1043,39 @@ function TabCommandes() {
             >
               {ORDER_STATUSES.map(s => <option key={s} value={s}>{statusLabel(s)}</option>)}
             </select>
+
+            {/* Tracking / expédition */}
+            <div style={{ ...S.card_, padding: 14, marginBottom: 16 }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: S.text, marginBottom: 8 }}>Expédition Colissimo</div>
+              {selected.tracking_number ? (
+                <div style={{ fontSize: 13, color: '#15803d', marginBottom: 8 }}>
+                  Numéro de suivi : <strong>{String(selected.tracking_number)}</strong>
+                </div>
+              ) : null}
+              {selected.status !== 'shipped' && selected.status !== 'delivered' ? (
+                <>
+                  <input
+                    value={trackingInputs[String(selected.id)] ?? ''}
+                    onChange={e => setTrackingInputs(t => ({ ...t, [String(selected.id)]: e.target.value }))}
+                    placeholder="Numéro de suivi Colissimo"
+                    style={{ ...S.input, marginBottom: 8 }}
+                  />
+                  {shipOk === String(selected.id) && (
+                    <div style={{ fontSize: 12, color: '#15803d', marginBottom: 6, fontWeight: 500 }}>✓ Expédié — email client envoyé</div>
+                  )}
+                  <button
+                    onClick={() => markShipped(String(selected.id))}
+                    disabled={shipping === String(selected.id) || !(trackingInputs[String(selected.id)]?.trim())}
+                    style={{ ...S.btnPrimary, width: '100%', opacity: !(trackingInputs[String(selected.id)]?.trim()) ? 0.5 : 1 }}
+                  >
+                    {shipping === String(selected.id) ? 'Envoi…' : 'Marquer comme expédié'}
+                  </button>
+                  <div style={{ fontSize: 11, color: S.muted, marginTop: 4 }}>Envoie un email de suivi au client via Resend.</div>
+                </>
+              ) : (
+                <div style={{ fontSize: 12, color: S.muted }}>Commande déjà expédiée ou livrée.</div>
+              )}
+            </div>
 
             {!!selected.shipping_address && (
               <>

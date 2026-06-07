@@ -125,6 +125,11 @@ function SalonBlock({ salon }: { salon: Salon }) {
   )
 }
 
+const AVATAR_COLORS_AV = ['#1a3a5a', '#3a1a5a', '#1a5a3a', '#5a3a1a', '#3a5a1a', '#1a3a3a']
+function strHashAv(s: string): number { let h = 0; for (let i = 0; i < s.length; i++) { h = (h * 31 + s.charCodeAt(i)) >>> 0 } return h }
+function colorFromAuteur(s: string): string { return AVATAR_COLORS_AV[strHashAv(s) % AVATAR_COLORS_AV.length] }
+function initialsFromAuteur(s: string): string { return s.split(' ').map(w => w[0] ?? '').join('').toUpperCase().slice(0, 2) || '??' }
+
 export function HomeSalonSection({
   config = DEFAULT_SALON_CONFIG,
   salons = DEFAULT_SALONS,
@@ -132,8 +137,22 @@ export function HomeSalonSection({
   config?: SalonConfig
   salons?: Salon[]
 }) {
-  const reviews = config.google_reviews?.length ? config.google_reviews : DEFAULT_SALON_CONFIG.google_reviews
   const activeSalons = salons.filter(s => s.actif)
+  const fougeres = salons.find(s => s.slug === 'fougeres')
+  const avisDb = fougeres?.avis_google ?? []
+  const hasAvisDb = avisDb.length > 0
+
+  const reviewsToShow: GoogleReview[] = hasAvisDb
+    ? avisDb.map(a => ({
+        text: a.texte,
+        name: a.auteur,
+        initials: initialsFromAuteur(a.auteur),
+        color: colorFromAuteur(a.auteur),
+        date: a.date,
+      }))
+    : (config.google_reviews?.length ? config.google_reviews : DEFAULT_SALON_CONFIG.google_reviews)
+
+  const showAvisSection = hasAvisDb || (config.google_reviews?.length > 0)
 
   return (
     <>
@@ -162,39 +181,41 @@ export function HomeSalonSection({
         </div>
       </section>
 
-      {/* ── Avis Google — fond noir ── */}
-      <section className="hs-google-reviews">
-        <div className="hs-gr-inner">
-          <div className="hs-gr-head">
-            <div className="hs-gr-eyebrow">— Fougères —</div>
-            <h2 className="hs-gr-title">CE QUE DISENT NOS CLIENTS GOOGLE</h2>
-          </div>
-          <div className="hs-gr-grid">
-            {reviews.map((r, i) => (
-              <div key={i} className="hs-gr-card">
-                <div className="hs-gr-card-top">
-                  <div className="hs-gr-av" style={{ background: r.color }}>{r.initials}</div>
-                  <div>
-                    <div className="hs-gr-name">{r.name}</div>
-                    <div className="hs-gr-stars">★★★★★</div>
+      {/* ── Avis Google — fond noir ── masqué si aucun avis */}
+      {showAvisSection && (
+        <section className="hs-google-reviews">
+          <div className="hs-gr-inner">
+            <div className="hs-gr-head">
+              <div className="hs-gr-eyebrow">— Fougères —</div>
+              <h2 className="hs-gr-title">CE QUE DISENT NOS CLIENTS GOOGLE</h2>
+            </div>
+            <div className="hs-gr-grid">
+              {reviewsToShow.map((r, i) => (
+                <div key={i} className="hs-gr-card">
+                  <div className="hs-gr-card-top">
+                    <div className="hs-gr-av" style={{ background: r.color }}>{r.initials}</div>
+                    <div>
+                      <div className="hs-gr-name">{r.name}</div>
+                      <div className="hs-gr-stars">★★★★★</div>
+                    </div>
+                    <div className="hs-gr-google-logo">G</div>
                   </div>
-                  <div className="hs-gr-google-logo">G</div>
+                  <p className="hs-gr-text">{r.text}</p>
+                  <div className="hs-gr-date">{r.date} · Google Maps</div>
                 </div>
-                <p className="hs-gr-text">{r.text}</p>
-                <div className="hs-gr-date">{r.date} · Google Maps</div>
-              </div>
-            ))}
+              ))}
+            </div>
+            <a
+              href={config.google_reviews_url || DEFAULT_SALON_CONFIG.google_reviews_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hs-gr-link"
+            >
+              Voir tous les avis sur Google →
+            </a>
           </div>
-          <a
-            href={config.google_reviews_url || DEFAULT_SALON_CONFIG.google_reviews_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hs-gr-link"
-          >
-            Voir tous les avis sur Google →
-          </a>
-        </div>
-      </section>
+        </section>
+      )}
     </>
   )
 }

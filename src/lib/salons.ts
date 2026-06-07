@@ -13,6 +13,14 @@ export interface Salon {
   actif: boolean
   ordre?: number | null
   photos?: string[] | null
+  avis_google?: AvisGoogle[] | null
+}
+
+export interface AvisGoogle {
+  texte: string
+  auteur: string
+  date: string
+  etoiles: number
 }
 
 export const DEFAULT_SALONS: Salon[] = [
