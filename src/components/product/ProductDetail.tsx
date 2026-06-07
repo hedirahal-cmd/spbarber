@@ -38,13 +38,13 @@ function CategoryIcon({ category, size = 64 }: { category: string; size?: number
 }
 
 function ProductIcon({ productId, size = 40 }: { productId: string; size?: number }) {
-  if (productId === '1') return <Sparkles size={size} strokeWidth={1.2} />
-  if (productId === '2') return <Droplets size={size} strokeWidth={1.2} />
-  if (productId === '3') return <Waves size={size} strokeWidth={1.2} />
+  if (productId === '1') return <Scissors   size={size} strokeWidth={1.2} />
+  if (productId === '2') return <Droplets   size={size} strokeWidth={1.2} />
+  if (productId === '3') return <Waves      size={size} strokeWidth={1.2} />
   if (productId === '4') return <AlignJustify size={size} strokeWidth={1.2} />
-  if (productId === '5') return <Package size={size} strokeWidth={1.2} />
-  if (productId === '6') return <Zap size={size} strokeWidth={1.2} />
-  return <Sparkles size={size} strokeWidth={1.2} />
+  if (productId === '5') return <Zap        size={size} strokeWidth={1.2} />
+  if (productId === '6') return <Package    size={size} strokeWidth={1.2} />
+  return <Scissors size={size} strokeWidth={1.2} />
 }
 
 const CATEGORY_LABELS: Record<string, string> = {

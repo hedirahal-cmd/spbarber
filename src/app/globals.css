@@ -1443,84 +1443,71 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
 }
 .sac-sub { font-size: 13px; color: var(--gt); font-family: var(--fs); font-style: italic; }
 
-/* Grille — max 300px par carte, gap 32px */
+/* Grille */
 .sac-grid {
   display: flex; flex-wrap: wrap; justify-content: center;
   gap: 32px; padding: 0 48px; background: none;
 }
 
-/* Carte — radius 12px, shadow, hover élévation */
+/* Carte — fond sombre identique homepage bestsellers */
 .sac-card {
-  background: var(--w);
-  border: 1px solid rgba(0,0,0,.07);
-  border-radius: 12px;
+  background: #1a1a1a;
+  border: none;
+  border-radius: 0;
   max-width: 300px; flex: 1 1 240px;
   display: flex; flex-direction: column;
   overflow: hidden;
-  box-shadow: 0 2px 12px rgba(0,0,0,.06);
-  transition: transform 0.24s ease, box-shadow 0.24s ease, border-color 0.24s ease;
+  transition: opacity 0.2s;
 }
-.sac-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 12px 36px rgba(0,0,0,.12);
-  border-color: rgba(184,144,58,.25);
-}
+.sac-card:hover { opacity: 0.93; }
 
 .sac-card-link {
   display: flex; flex-direction: column; align-items: stretch;
   text-align: center; text-decoration: none; color: inherit; flex: 1;
 }
 
-/* Zone icône — 120px, fond presque noir */
+/* Zone icône — 200px, quasi noir, icône gris */
 .sac-img {
-  width: 100%; height: 120px;
-  background: #161616;
+  width: 100%; height: 200px;
+  background: #111111;
   display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0; color: var(--gold);
+  flex-shrink: 0; color: #888;
 }
 
-/* Cercle doré autour de l'icône */
-.sac-icon-ring {
-  width: 76px; height: 76px;
-  border-radius: 50%;
-  border: 1.5px solid rgba(184,144,58,.32);
-  background: rgba(184,144,58,.07);
-  display: flex; align-items: center; justify-content: center;
-  transition: border-color 0.22s, background 0.22s;
-}
-.sac-card:hover .sac-icon-ring {
-  border-color: rgba(184,144,58,.72);
-  background: rgba(184,144,58,.13);
-}
+/* Annule le cercle doré ajouté précédemment */
+.sac-icon-ring { display: contents; }
 
 /* Infos */
 .sac-info {
-  display: flex; flex-direction: column; align-items: center; gap: 4px;
-  padding: 20px 20px 18px; flex: 1;
+  display: flex; flex-direction: column; align-items: center; gap: 0;
+  padding: 22px 24px 16px; flex: 1;
+  border-top: 1px solid rgba(255,255,255,.05);
 }
 .sac-cat {
-  font-size: 9px; letter-spacing: 2.5px; text-transform: uppercase;
-  color: var(--gold); font-weight: 700; font-family: var(--fd);
+  font-size: 9px; letter-spacing: 3px; text-transform: uppercase;
+  color: var(--gold); font-weight: 600; font-family: var(--fb);
+  margin-bottom: 10px;
 }
 .sac-benefit {
-  font-family: var(--fs); font-size: 15px; font-weight: 600;
-  color: var(--b); line-height: 1.35; margin-top: 3px;
+  font-family: var(--fs); font-size: 20px; font-weight: 300;
+  color: #fff; line-height: 1.2; margin-bottom: 6px;
 }
-.sac-name { font-size: 11px; color: var(--gt); }
+.sac-name { font-size: 11px; color: rgba(248,246,243,.42); margin-bottom: 14px; }
 .sac-price {
-  font-family: var(--fd); font-size: 20px; letter-spacing: 1px;
-  color: var(--b); margin-top: 6px;
+  font-family: var(--fd); font-size: 30px; letter-spacing: 2px;
+  color: var(--goldl); line-height: 1;
 }
 
-/* Bouton — toujours visible, jamais tronqué */
+/* Bouton — fond or, texte noir, pleine largeur */
 .sac-atc {
-  display: block; width: 100%; height: 48px; flex-shrink: 0;
-  background: var(--b); color: var(--w); border: none;
-  font-size: 9px; letter-spacing: 2.5px; text-transform: uppercase;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  width: 100%; padding: 13px 24px; flex-shrink: 0;
+  background: var(--gold); color: var(--b); border: none;
+  font-size: 10px; letter-spacing: 3px; text-transform: uppercase;
   font-weight: 700; font-family: var(--fb); cursor: pointer;
-  transition: background 0.2s, color 0.2s, letter-spacing 0.2s;
+  transition: background 0.2s;
 }
-.sac-atc:hover { background: var(--gold); color: var(--b); letter-spacing: 3px; }
+.sac-atc:hover { background: var(--goldl); }
 
 /* ─ Cart suggestions (clairement séparées du panier réel) ─ */
 .cart-sugg { border-top: 2px solid var(--b); background: var(--g); flex-shrink: 0; }
