@@ -209,6 +209,68 @@ export default function SalonPage() {
           </div>
         </section>
 
+        {/* ── DEUXIÈME SALON — ERNÉE ── */}
+        <section className="salon-ernee-sec">
+          <div className="salon-ernee-inner">
+            <div className="salon-sec-ey">— Deuxième adresse —</div>
+            <h2 className="salon-sec-title">SP BARBERSHOP ERNÉE</h2>
+            <p className="salon-sec-sub">
+              Retrouvez-nous également à Ernée (Mayenne, 53500) pour les mêmes prestations barbier premium.
+            </p>
+
+            <div className="salon-ernee-top">
+              <div className="salon-ernee-info">
+                <div className="salon-info-card">
+                  <div className="salon-info-icon"><MapPin size={24} strokeWidth={1.5} /></div>
+                  <h3 className="salon-info-ttl">Adresse</h3>
+                  <p className="salon-info-txt">Ernée, 53500<br />Mayenne, France</p>
+                  <a
+                    href="https://www.google.com/search?q=Sp+barbershop+ernee"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="salon-info-link"
+                  >
+                    Voir sur Google Maps →
+                  </a>
+                </div>
+                <div className="salon-info-card">
+                  <div className="salon-info-icon"><Clock size={24} strokeWidth={1.5} /></div>
+                  <h3 className="salon-info-ttl">Horaires</h3>
+                  <div className="salon-hours">
+                    <div className="salon-hour-row">
+                      <span>Horaires</span>
+                      <span className="salon-hour-val">À venir</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="salon-ernee-map">
+                <iframe
+                  title="SP Barbershop Ernée — 53500 Mayenne"
+                  src="https://maps.google.com/maps?q=SP+Barbershop+Ern%C3%A9e+53500&output=embed&z=14"
+                  className="salon-map"
+                  loading="lazy"
+                  allowFullScreen
+                  referrerPolicy="no-referrer-when-downgrade"
+                  aria-label="Carte Google Maps — SP Barbershop Ernée"
+                />
+              </div>
+            </div>
+
+            <div className="salon-map-actions">
+              <a
+                href="https://www.google.com/maps/dir/?api=1&destination=Ern%C3%A9e+53500+France"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="salon-btn-route"
+              >
+                Itinéraire →
+              </a>
+            </div>
+          </div>
+        </section>
+
         {/* ── PRESTATIONS ── */}
         <section className="salon-services">
           <div className="salon-services-inner">

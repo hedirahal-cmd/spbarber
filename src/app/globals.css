@@ -2867,6 +2867,24 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
 }
 .salon-service-desc { font-size: 12px; color: var(--gt); line-height: 1.5; }
 
+/* Deuxième salon Ernée */
+.salon-ernee-sec { background: var(--g); padding: 72px 48px; border-top: 1px solid var(--gm); }
+.salon-ernee-inner { max-width: 900px; margin: 0 auto; text-align: center; }
+.salon-ernee-top {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  margin: 40px 0 0;
+  text-align: left;
+}
+.salon-ernee-info { display: flex; flex-direction: column; gap: 16px; }
+.salon-ernee-map { border-radius: 6px; overflow: hidden; min-height: 300px; }
+.salon-ernee-map .salon-map { height: 300px; border-radius: 6px; }
+@media (max-width: 768px) {
+  .salon-ernee-top { grid-template-columns: 1fr; }
+  .salon-ernee-sec { padding: 52px 28px; }
+}
+
 /* Produits en ligne CTA */
 .salon-products-sec { background: var(--b); padding: 60px 48px; text-align: center; }
 .salon-products-inner { max-width: 600px; margin: 0 auto; }
@@ -3467,6 +3485,36 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
 }
 .hs-salon-inner { max-width: 1140px; margin: 0 auto; }
 
+/* En-tête "NOS SALONS" */
+.hs-salons-hd { text-align: center; margin-bottom: 60px; }
+.hs-salons-eyebrow {
+  font-family: var(--fb); font-size: 11px; letter-spacing: 4px;
+  text-transform: uppercase; color: var(--gold); margin-bottom: 10px;
+}
+.hs-salons-title {
+  font-family: var(--fd); font-size: clamp(42px, 6vw, 64px);
+  letter-spacing: 2px; color: var(--b); line-height: 1; margin-bottom: 12px;
+}
+.hs-salons-sub {
+  font-family: var(--fb); font-size: 15px; color: var(--gt); line-height: 1.5;
+}
+
+/* Wrapper de chaque bloc salon */
+.hs-salon-block { margin-bottom: 8px; }
+
+/* Séparateur entre les deux salons */
+.hs-divider {
+  display: flex; align-items: center; gap: 20px;
+  margin: 52px 0;
+}
+.hs-divider::before, .hs-divider::after {
+  content: ''; flex: 1; height: 1px; background: var(--gold); opacity: 0.45;
+}
+.hs-divider-text {
+  font-family: var(--fd); font-size: 11px; letter-spacing: 5px;
+  color: var(--gold); white-space: nowrap; text-transform: uppercase;
+}
+
 /* ── Ligne du haut — 2 colonnes ── */
 .hs-salon-top {
   display: grid;
@@ -3717,16 +3765,21 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
   .hs-salon-map { height: 260px; }
   .hs-google-reviews { padding: 52px 28px 60px; }
   .hs-gr-grid { grid-template-columns: 1fr; gap: 12px; }
+  .hs-salons-hd { margin-bottom: 40px; }
+  .hs-divider { margin: 36px 0; }
 }
 @media (max-width: 640px) {
   .hs-salon { padding: 40px 20px 0; }
   .hs-salon-title { font-size: 38px; }
+  .hs-salons-title { font-size: 36px; }
   .hs-salon-actions { flex-direction: column; }
   .hs-salon-btn-reserve, .hs-salon-btn-route { width: 100%; justify-content: center; }
   .hs-photos-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
   .hs-photos-sec { padding-bottom: 44px; }
   .hs-google-reviews { padding: 40px 20px 52px; }
   .hs-gr-grid { grid-template-columns: 1fr; }
+  .hs-salons-hd { margin-bottom: 32px; }
+  .hs-divider { margin: 28px 0; }
 }
 
 /* ═══ COMMANDE CONFIRMÉE ═══ */

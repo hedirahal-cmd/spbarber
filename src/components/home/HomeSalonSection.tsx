@@ -29,6 +29,30 @@ export const DEFAULT_SALON_CONFIG: SalonConfig = {
   ],
 }
 
+function PhotoGrid({ prefix, label }: { prefix: string; label: string }) {
+  return (
+    <div className="hs-photos-sec">
+      <div className="hs-photos-title">LE SALON EN IMAGES</div>
+      <div className="hs-photos-grid">
+        {([1, 2, 3] as const).map((n) => (
+          <div key={n} className="hs-photo-card">
+            <img
+              src={`/images/salon/${prefix}-${n}.jpg`}
+              alt={`${label} — photo ${n}`}
+              className="hs-photo-img"
+              onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }}
+            />
+            <div className="hs-photo-ph">
+              <Camera size={28} strokeWidth={1.2} />
+              <span>Photo {n}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 export function HomeSalonSection({ config = DEFAULT_SALON_CONFIG }: { config?: SalonConfig }) {
   const reviews = config.google_reviews?.length ? config.google_reviews : DEFAULT_SALON_CONFIG.google_reviews
 
@@ -38,93 +62,133 @@ export function HomeSalonSection({ config = DEFAULT_SALON_CONFIG }: { config?: S
       <section id="salon" className="hs-salon">
         <div className="hs-salon-inner">
 
-          {/* Ligne du haut — 2 colonnes */}
-          <div className="hs-salon-top">
-
-            {/* Colonne gauche — infos */}
-            <div className="hs-salon-left">
-              <div className="hs-salon-eyebrow">SALON PHYSIQUE — FOUGÈRES</div>
-              <h2 className="hs-salon-title">SP BARBER SHOP</h2>
-
-              <div className="hs-salon-stars">
-                <span className="hs-salon-stars-icons">★★★★★</span>
-                <span className="hs-salon-stars-label">
-                  {config.google_rating}/5 · {config.google_reviews_count} avis Google
-                </span>
-              </div>
-
-              <div className="hs-salon-meta">
-                <div className="hs-salon-meta-item">
-                  <MapPin size={14} strokeWidth={1.8} />
-                  <span>48 Boulevard Jean Jaurès, 35300 Fougères</span>
-                </div>
-                <div className="hs-salon-meta-item">
-                  <Clock size={14} strokeWidth={1.8} />
-                  <span>Lun – Sam · 9h00 – 19h00</span>
-                </div>
-                {config.phone && (
-                  <div className="hs-salon-meta-item">
-                    <Phone size={14} strokeWidth={1.8} />
-                    <a href={`tel:${config.phone.replace(/\s/g, '')}`} style={{ color: 'inherit', textDecoration: 'none' }}>
-                      {config.phone}
-                    </a>
-                  </div>
-                )}
-              </div>
-
-              <div className="hs-salon-actions">
-                <a
-                  href="https://www.planity.com/sp-barber-shop-35300-fougeres"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hs-salon-btn-reserve"
-                >
-                  RÉSERVER EN LIGNE →
-                </a>
-                <a
-                  href="https://www.google.com/maps/dir/?api=1&destination=48+Boulevard+Jean+Jaur%C3%A8s+35300+Foug%C3%A8res"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hs-salon-btn-route"
-                >
-                  ITINÉRAIRE →
-                </a>
-              </div>
-            </div>
-
-            {/* Colonne droite — Google Maps */}
-            <div className="hs-salon-right">
-              <iframe
-                title="SP Barber — 48 Boulevard Jean Jaurès 35300 Fougères"
-                src="https://maps.google.com/maps?q=48+Boulevard+Jean+Jaur%C3%A8s,+35300+Foug%C3%A8res&output=embed&z=16"
-                className="hs-salon-map"
-                loading="lazy"
-                allowFullScreen
-                referrerPolicy="no-referrer-when-downgrade"
-                aria-label="Carte Google Maps — SP Barber Fougères"
-              />
-            </div>
+          {/* En-tête de section */}
+          <div className="hs-salons-hd">
+            <div className="hs-salons-eyebrow">2 SALONS EN BRETAGNE &amp; MAYENNE</div>
+            <h2 className="hs-salons-title">NOS SALONS</h2>
+            <p className="hs-salons-sub">Retrouvez-nous à Fougères et Ernée</p>
           </div>
 
-          {/* Ligne du bas — Photos du salon */}
-          <div className="hs-photos-sec">
-            <div className="hs-photos-title">LE SALON EN IMAGES</div>
-            <div className="hs-photos-grid">
-              {(['salon-1.jpg', 'salon-2.jpg', 'salon-3.jpg'] as const).map((file, i) => (
-                <div key={file} className="hs-photo-card">
-                  <img
-                    src={`/images/salon/${file}`}
-                    alt={`SP Barber Fougères — photo ${i + 1}`}
-                    className="hs-photo-img"
-                    onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }}
-                  />
-                  <div className="hs-photo-ph">
-                    <Camera size={28} strokeWidth={1.2} />
-                    <span>Photo {i + 1}</span>
+          {/* ── Bloc Fougères ── */}
+          <div className="hs-salon-block">
+            <div className="hs-salon-eyebrow">SALON PHYSIQUE — FOUGÈRES, 35300</div>
+
+            <div className="hs-salon-top">
+              <div className="hs-salon-left">
+                <h3 className="hs-salon-title">SP BARBER SHOP</h3>
+
+                <div className="hs-salon-stars">
+                  <span className="hs-salon-stars-icons">★★★★★</span>
+                  <span className="hs-salon-stars-label">
+                    {config.google_rating}/5 · {config.google_reviews_count} avis Google
+                  </span>
+                </div>
+
+                <div className="hs-salon-meta">
+                  <div className="hs-salon-meta-item">
+                    <MapPin size={14} strokeWidth={1.8} />
+                    <span>48 Boulevard Jean Jaurès, 35300 Fougères</span>
+                  </div>
+                  <div className="hs-salon-meta-item">
+                    <Clock size={14} strokeWidth={1.8} />
+                    <span>Lun – Sam · 9h00 – 19h00</span>
+                  </div>
+                  {config.phone && (
+                    <div className="hs-salon-meta-item">
+                      <Phone size={14} strokeWidth={1.8} />
+                      <a href={`tel:${config.phone.replace(/\s/g, '')}`} style={{ color: 'inherit', textDecoration: 'none' }}>
+                        {config.phone}
+                      </a>
+                    </div>
+                  )}
+                </div>
+
+                <div className="hs-salon-actions">
+                  <a
+                    href="https://www.planity.com/sp-barber-shop-35300-fougeres"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hs-salon-btn-reserve"
+                  >
+                    RÉSERVER EN LIGNE →
+                  </a>
+                  <a
+                    href="https://www.google.com/maps/dir/?api=1&destination=48+Boulevard+Jean+Jaur%C3%A8s+35300+Foug%C3%A8res"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hs-salon-btn-route"
+                  >
+                    ITINÉRAIRE →
+                  </a>
+                </div>
+              </div>
+
+              <div className="hs-salon-right">
+                <iframe
+                  title="SP Barber — 48 Boulevard Jean Jaurès 35300 Fougères"
+                  src="https://maps.google.com/maps?q=48+Boulevard+Jean+Jaur%C3%A8s,+35300+Foug%C3%A8res&output=embed&z=16"
+                  className="hs-salon-map"
+                  loading="lazy"
+                  allowFullScreen
+                  referrerPolicy="no-referrer-when-downgrade"
+                  aria-label="Carte Google Maps — SP Barber Fougères"
+                />
+              </div>
+            </div>
+
+            <PhotoGrid prefix="salon" label="SP Barber Fougères" />
+          </div>
+
+          {/* ── Séparateur ── */}
+          <div className="hs-divider" aria-hidden="true">
+            <span className="hs-divider-text">NOS SALONS</span>
+          </div>
+
+          {/* ── Bloc Ernée ── */}
+          <div className="hs-salon-block">
+            <div className="hs-salon-eyebrow">SALON PHYSIQUE — ERNÉE, 53500</div>
+
+            <div className="hs-salon-top">
+              <div className="hs-salon-left">
+                <h3 className="hs-salon-title">SP BARBERSHOP ERNÉE</h3>
+
+                <div className="hs-salon-meta">
+                  <div className="hs-salon-meta-item">
+                    <MapPin size={14} strokeWidth={1.8} />
+                    <span>Ernée, 53500</span>
+                  </div>
+                  <div className="hs-salon-meta-item">
+                    <Clock size={14} strokeWidth={1.8} />
+                    <span>Horaires à venir</span>
                   </div>
                 </div>
-              ))}
+
+                <div className="hs-salon-actions">
+                  <a
+                    href="https://www.google.com/search?q=Sp+barbershop+ernee"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hs-salon-btn-route"
+                  >
+                    ITINÉRAIRE →
+                  </a>
+                </div>
+              </div>
+
+              <div className="hs-salon-right">
+                <iframe
+                  title="SP Barbershop Ernée — 53500"
+                  src="https://maps.google.com/maps?q=SP+Barbershop+Ern%C3%A9e+53500&output=embed&z=14"
+                  className="hs-salon-map"
+                  loading="lazy"
+                  allowFullScreen
+                  referrerPolicy="no-referrer-when-downgrade"
+                  aria-label="Carte Google Maps — SP Barbershop Ernée"
+                />
+              </div>
             </div>
+
+            <PhotoGrid prefix="ernee" label="SP Barbershop Ernée" />
           </div>
 
         </div>
