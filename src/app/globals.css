@@ -125,22 +125,6 @@ button { font-family: var(--fb); }
   transition: color 0.2s;
 }
 .site-nav-cart:hover { color: var(--gold); }
-.site-nav-reserve {
-  display: none;
-  padding: 7px 14px;
-  background: var(--gold);
-  color: #fff;
-  font-family: var(--fb);
-  font-size: 10px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  text-decoration: none;
-  border-radius: 3px;
-  transition: background 0.15s;
-  white-space: nowrap;
-}
-.site-nav-reserve:hover { background: var(--goldl); color: #fff; }
-@media (min-width: 768px) { .site-nav-reserve { display: inline-flex; } }
 .site-nav-cart-badge {
   position: absolute;
   top: 6px;
@@ -219,20 +203,6 @@ button { font-family: var(--fb); }
   transition: color 0.2s;
 }
 .mobile-menu a:hover { color: var(--gold); }
-.mobile-menu-reserve {
-  margin: 8px 20px 4px;
-  padding: 12px 20px;
-  background: var(--gold);
-  color: #fff !important;
-  font-family: var(--fb);
-  font-size: 10px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  text-decoration: none !important;
-  border-radius: 3px;
-  text-align: center;
-  display: block;
-}
 
 /* ═══ FLOATING CART ═══ */
 .float-cart {
@@ -4240,4 +4210,204 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
   .sag-section { padding: 44px 0 40px; }
   .sag-grid { grid-template-columns: 1fr; gap: 14px; }
   .sag-inner { padding: 0 16px; }
+}
+
+/* ═══ PAGE BARBERS ═══ */
+.barbers-page { background: var(--w); }
+.barbers-hero {
+  background: var(--b);
+  padding: 72px 28px 64px;
+  text-align: center;
+}
+.barbers-hero-inner { max-width: 700px; margin: 0 auto; }
+.barbers-hero-ey {
+  font-size: 10px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 14px;
+}
+.barbers-hero-title {
+  font-family: var(--fd);
+  font-size: 64px;
+  letter-spacing: 8px;
+  color: var(--w);
+  line-height: 1;
+  margin-bottom: 20px;
+}
+.barbers-hero-sub {
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--gt);
+}
+.barbers-grid-sec {
+  padding: 64px 28px 72px;
+  background: var(--g);
+}
+.barbers-grid-inner { max-width: 1100px; margin: 0 auto; }
+.barbers-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 28px;
+}
+.barber-card {
+  background: var(--w);
+  border: 1px solid var(--gm);
+  border-radius: 6px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+.barber-card:hover {
+  box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+  transform: translateY(-2px);
+}
+.barber-photo {
+  aspect-ratio: 4/3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.barber-initials {
+  font-family: var(--fd);
+  font-size: 56px;
+  letter-spacing: 4px;
+  color: rgba(255,255,255,0.7);
+}
+.barber-body { padding: 24px 22px 22px; flex: 1; display: flex; flex-direction: column; gap: 10px; }
+.barber-salon-badge {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--gold);
+  border: 1px solid var(--gold);
+  padding: 3px 10px;
+  border-radius: 20px;
+  align-self: flex-start;
+}
+.barber-name {
+  font-family: var(--fd);
+  font-size: 28px;
+  letter-spacing: 3px;
+  color: var(--b);
+  line-height: 1;
+}
+.barber-specialite {
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--gt);
+  font-weight: 500;
+}
+.barber-desc {
+  font-size: 14px;
+  line-height: 1.65;
+  color: #4a4a4a;
+  flex: 1;
+}
+.barber-stats {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 14px 0;
+  border-top: 1px solid var(--gm);
+  border-bottom: 1px solid var(--gm);
+}
+.barber-stat { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.barber-stat-val { font-family: var(--fd); font-size: 24px; letter-spacing: 2px; color: var(--b); line-height: 1; }
+.barber-stat-lbl { font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--gt); }
+.barber-stat-sep { width: 1px; height: 32px; background: var(--gm); }
+.barber-produit {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.barber-produit-lbl { font-size: 12px; color: var(--gt); }
+.barber-produit-link {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--gold);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.barber-produit-link:hover { color: var(--b); }
+/* CTA section */
+.barbers-cta-sec {
+  background: var(--b);
+  padding: 72px 28px;
+  text-align: center;
+}
+.barbers-cta-inner { max-width: 600px; margin: 0 auto; }
+.barbers-cta-ey {
+  font-size: 10px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 14px;
+}
+.barbers-cta-title {
+  font-family: var(--fd);
+  font-size: 44px;
+  letter-spacing: 6px;
+  color: var(--w);
+  margin-bottom: 16px;
+}
+.barbers-cta-sub {
+  font-size: 14px;
+  color: var(--gt);
+  line-height: 1.7;
+  margin-bottom: 32px;
+}
+.barbers-cta-btns { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+.barbers-cta-btn-primary {
+  background: var(--gold);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  padding: 13px 28px;
+  border-radius: 3px;
+  text-decoration: none;
+  transition: background 0.2s;
+}
+.barbers-cta-btn-primary:hover { background: var(--goldl); }
+.barbers-cta-btn-secondary {
+  background: transparent;
+  color: var(--w);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  padding: 12px 28px;
+  border: 1px solid rgba(255,255,255,0.25);
+  border-radius: 3px;
+  text-decoration: none;
+  transition: border-color 0.2s, color 0.2s;
+}
+.barbers-cta-btn-secondary:hover { border-color: var(--w); color: var(--w); }
+.barbers-back {
+  padding: 24px 28px;
+  display: flex;
+  gap: 16px;
+  font-size: 13px;
+  color: var(--gt);
+}
+.barbers-back a { color: var(--gt); text-decoration: none; transition: color 0.2s; }
+.barbers-back a:hover { color: var(--b); }
+@media (max-width: 900px) {
+  .barbers-grid { grid-template-columns: 1fr 1fr; gap: 20px; }
+  .barbers-hero-title { font-size: 48px; }
+}
+@media (max-width: 560px) {
+  .barbers-hero { padding: 52px 20px 44px; }
+  .barbers-hero-title { font-size: 36px; letter-spacing: 5px; }
+  .barbers-grid-sec { padding: 44px 16px 52px; }
+  .barbers-grid { grid-template-columns: 1fr; }
+  .barbers-cta-sec { padding: 52px 20px; }
+  .barbers-cta-title { font-size: 32px; }
 }

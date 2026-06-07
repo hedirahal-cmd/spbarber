@@ -143,7 +143,7 @@ export function HomeSalonSection({
   const activeSalons = salons.filter(s => s.actif)
 
   return (
-    <section id="salon" className="hs-salon">
+    <section id="salons" className="hs-salon">
       <div className="hs-salon-inner">
 
         <div className="hs-salons-hd">

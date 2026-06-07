@@ -2,20 +2,30 @@
 import Link from 'next/link'
 import { Menu, X, ShoppingBag } from 'lucide-react'
 import { useState } from 'react'
+import { usePathname } from 'next/navigation'
 import { useCart } from '@/hooks/useCart'
 
 const NAV_LINKS = [
   { label: 'Produits', href: '/products' },
-  { label: 'Nos salons', href: '/nos-salons' },
   { label: 'Barbers', href: '/barbers' },
   { label: 'Conseils', href: '/conseils' },
 ]
-const PLANITY_URL = 'https://www.planity.com/sp-barber-shop-35300-fougeres'
 
 export function Header() {
   const [menuOpen, setMenuOpen] = useState(false)
   const openCart = useCart((s) => s.openCart)
   const count = useCart((s) => s.itemCount())
+  const pathname = usePathname()
+
+  function handleSalonsClick(e: React.MouseEvent) {
+    e.preventDefault()
+    setMenuOpen(false)
+    if (pathname === '/') {
+      document.getElementById('salons')?.scrollIntoView({ behavior: 'smooth' })
+    } else {
+      window.location.href = '/#salons'
+    }
+  }
 
   return (
     <>
@@ -36,27 +46,20 @@ export function Header() {
               {menuOpen ? <X size={22} /> : <Menu size={22} />}
             </button>
             <div className="site-nav-links-desktop">
+              <a href="/#salons" onClick={handleSalonsClick}>Nos salons</a>
               {NAV_LINKS.map(({ label, href }) => (
                 <Link key={label} href={href}>{label}</Link>
               ))}
             </div>
           </div>
 
-          {/* Centre : Logo — positionné en absolu */}
+          {/* Centre : Logo */}
           <Link href="/" className="site-nav-logo">
             SP<span style={{ color: 'var(--gold)' }}>.</span>BARBER
           </Link>
 
-          {/* Droite : Réserver + Panier */}
+          {/* Droite : Panier uniquement */}
           <div className="site-nav-right">
-            <a
-              href={PLANITY_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="site-nav-reserve"
-            >
-              Réserver
-            </a>
             <button
               className="site-nav-cart"
               onClick={openCart}
@@ -72,14 +75,12 @@ export function Header() {
         {/* Menu mobile */}
         {menuOpen && (
           <div className="mobile-menu">
+            <a href="/#salons" onClick={handleSalonsClick}>Nos salons</a>
             {NAV_LINKS.map(({ label, href }) => (
               <Link key={label} href={href} onClick={() => setMenuOpen(false)}>
                 {label}
               </Link>
             ))}
-            <a href={PLANITY_URL} target="_blank" rel="noopener noreferrer" className="mobile-menu-reserve" onClick={() => setMenuOpen(false)}>
-              Réserver sur Planity →
-            </a>
           </div>
         )}
       </nav>
