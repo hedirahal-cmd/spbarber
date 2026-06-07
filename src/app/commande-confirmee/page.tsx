@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { stripe } from '@/lib/stripe'
 import type Stripe from 'stripe'
 import type { Metadata } from 'next'
+import { ClearCartOnMount } from '@/components/ClearCartOnMount'
 
 export const metadata: Metadata = {
   title: 'Commande confirmée — SP Barber Shop',
@@ -54,6 +55,7 @@ export default async function CommandeConfirmeePage({
 
   return (
     <main className="confm-page">
+      <ClearCartOnMount />
       <div className="confm-inner">
         {/* Icône succès */}
         <div className="confm-check">
