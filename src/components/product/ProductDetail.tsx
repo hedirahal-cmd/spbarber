@@ -7,7 +7,7 @@ import { Product, ProductVariant } from '@/types'
 import { PaymentLogos } from '@/components/PaymentLogos'
 import { AddToCartButton } from '@/components/AddToCartButton'
 import { PRODUCTS } from '@/lib/products'
-import { Lock, Truck, RotateCcw, CheckCircle2, AlertTriangle, ShoppingCart, Dumbbell, Sparkles, Leaf, FlaskConical, Scissors, Droplets, User, Zap, Zap as ZapIcon, Clock, Waves, AlignJustify, Package, Wind } from 'lucide-react'
+import { Lock, Truck, RotateCcw, CheckCircle2, AlertTriangle, ShoppingCart, Dumbbell, Sparkles, Leaf, FlaskConical, Scissors, Droplets, User, Zap, Clock, Waves, AlignJustify, Package, Wind } from 'lucide-react'
 import { BeforeAfterSlider } from './BeforeAfterSlider'
 
 const SOCIAL_PROOF: Record<string, number> = {
