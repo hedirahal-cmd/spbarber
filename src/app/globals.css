@@ -3711,3 +3711,192 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
   .hs-google-reviews { padding: 40px 20px 52px; }
   .hs-gr-grid { grid-template-columns: 1fr; }
 }
+
+/* ═══ COMMANDE CONFIRMÉE ═══ */
+.confm-page {
+  min-height: 100vh;
+  background: var(--w);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 80px 24px 100px;
+}
+.confm-inner {
+  width: 100%;
+  max-width: 560px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0;
+}
+.confm-check {
+  width: 72px;
+  height: 72px;
+  margin-bottom: 28px;
+}
+.confm-check svg { width: 100%; height: 100%; }
+.confm-eyebrow {
+  font-family: var(--fb);
+  font-size: 11px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 10px;
+}
+.confm-title {
+  font-family: var(--fd);
+  font-size: 52px;
+  line-height: 1;
+  letter-spacing: 1px;
+  color: var(--b);
+  margin-bottom: 16px;
+}
+.confm-sub {
+  font-family: var(--fb);
+  font-size: 14px;
+  color: var(--gt);
+  line-height: 1.6;
+  margin-bottom: 12px;
+}
+.confm-ref {
+  display: inline-block;
+  font-family: var(--fb);
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--b);
+  background: var(--g);
+  border: 1px solid var(--gm);
+  border-radius: 4px;
+  padding: 6px 14px;
+  margin-bottom: 36px;
+}
+.confm-items {
+  width: 100%;
+  background: var(--g);
+  border: 1px solid var(--gm);
+  border-radius: 10px;
+  padding: 20px 24px;
+  margin-bottom: 20px;
+  text-align: left;
+}
+.confm-items-hd {
+  font-family: var(--fb);
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--gt);
+  margin-bottom: 14px;
+}
+.confm-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  font-size: 14px;
+  font-family: var(--fb);
+  color: var(--b);
+  padding: 6px 0;
+  border-bottom: 1px solid var(--gm);
+}
+.confm-item:last-of-type { border-bottom: none; }
+.confm-item-name { flex: 1; }
+.confm-item-price { white-space: nowrap; font-weight: 500; }
+.confm-total {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--fb);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--b);
+  padding-top: 12px;
+  border-top: 1px solid var(--gm);
+  margin-top: 8px;
+}
+.confm-ship {
+  width: 100%;
+  background: var(--g);
+  border: 1px solid var(--gm);
+  border-radius: 10px;
+  padding: 18px 24px;
+  margin-bottom: 20px;
+  text-align: left;
+}
+.confm-ship-hd {
+  font-family: var(--fb);
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--gt);
+  margin-bottom: 8px;
+}
+.confm-ship-name {
+  font-family: var(--fb);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--b);
+  margin-bottom: 2px;
+}
+.confm-addr {
+  font-family: var(--fb);
+  font-size: 13px;
+  color: var(--gt);
+  line-height: 1.6;
+}
+.confm-delay {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--fb);
+  font-size: 13px;
+  color: var(--gt);
+  background: var(--g);
+  border: 1px solid var(--gm);
+  border-radius: 8px;
+  padding: 12px 18px;
+  margin-bottom: 36px;
+  text-align: left;
+  width: 100%;
+}
+.confm-delay-icon { font-size: 18px; flex-shrink: 0; }
+.confm-delay strong { color: var(--b); }
+.confm-ctas {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+.confm-btn-primary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 52px;
+  background: var(--b);
+  color: var(--w);
+  font-family: var(--fd);
+  font-size: 16px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  border-radius: 6px;
+  transition: background 0.2s;
+}
+.confm-btn-primary:hover { background: var(--gold); }
+.confm-btn-ghost {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 48px;
+  border: 1px solid var(--gm);
+  border-radius: 6px;
+  font-family: var(--fb);
+  font-size: 13px;
+  color: var(--gt);
+  transition: border-color 0.2s, color 0.2s;
+}
+.confm-btn-ghost:hover { border-color: var(--b); color: var(--b); }
+@media (max-width: 640px) {
+  .confm-page { padding: 52px 20px 80px; }
+  .confm-title { font-size: 38px; }
+  .confm-items, .confm-ship { padding: 16px 16px; }
+}

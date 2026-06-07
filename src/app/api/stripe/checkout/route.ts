@@ -32,26 +32,32 @@ export async function POST(req: NextRequest) {
 
     const base = getBaseUrl()
 
+    const compactItems = items.map((item) => ({
+      id: item.product.id,
+      name: item.variant ? `${item.product.name} — ${item.variant.name}` : item.product.name,
+      qty: item.quantity,
+      price: item.variant?.price ?? item.product.price,
+    }))
+
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
       customer_creation: 'if_required',
-      // Sans payment_method_types, Stripe affiche automatiquement
-      // Apple Pay, Google Pay et toutes les methodes actives du Dashboard
       line_items,
+      metadata: { items: JSON.stringify(compactItems).slice(0, 500) },
       ...(coupon ? { discounts: [{ coupon }] } : {}),
       ...(email ? { customer_email: email } : {}),
-      success_url: `${base}/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${base}/checkout`,
+      success_url: `${base}/commande-confirmee?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${base}/cart`,
       locale: 'fr',
       shipping_address_collection: { allowed_countries: ['FR', 'BE', 'CH', 'LU'] },
       shipping_options: [
         {
           shipping_rate_data: {
             type: 'fixed_amount',
-            fixed_amount: { amount: isFreeShip ? 0 : 690, currency: 'eur' },
+            fixed_amount: { amount: isFreeShip ? 0 : 590, currency: 'eur' },
             display_name: isFreeShip
-              ? 'Colissimo Domicile — Offerte !'
-              : 'Colissimo Domicile (2-3 jours ouvres)',
+              ? 'Colissimo Standard — Offerte !'
+              : 'Colissimo Standard (2-3 jours ouvrés)',
             delivery_estimate: {
               minimum: { unit: 'business_day', value: 2 },
               maximum: { unit: 'business_day', value: 3 },
@@ -61,13 +67,13 @@ export async function POST(req: NextRequest) {
         {
           shipping_rate_data: {
             type: 'fixed_amount',
-            fixed_amount: { amount: isFreeShip ? 0 : 490, currency: 'eur' },
+            fixed_amount: { amount: isFreeShip ? 0 : 990, currency: 'eur' },
             display_name: isFreeShip
-              ? 'Colissimo Point Relais — Offerte !'
-              : 'Colissimo Point Relais (3-5 jours ouvres)',
+              ? 'Colissimo Express — Offerte !'
+              : 'Colissimo Express (1-2 jours ouvrés)',
             delivery_estimate: {
-              minimum: { unit: 'business_day', value: 3 },
-              maximum: { unit: 'business_day', value: 5 },
+              minimum: { unit: 'business_day', value: 1 },
+              maximum: { unit: 'business_day', value: 2 },
             },
           },
         },
