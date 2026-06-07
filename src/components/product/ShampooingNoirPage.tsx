@@ -10,7 +10,7 @@ import { BeforeAfterSlider } from '@/components/product/BeforeAfterSlider'
 import {
   CheckCircle2, ShoppingCart, Clock, Truck,
   Dumbbell, Sparkles, Leaf, FlaskConical,
-  Droplets, Scissors, Zap,
+  Droplets, Scissors, Zap, Waves, AlignJustify, Package,
 } from 'lucide-react'
 
 const PRODUCT = PRODUCTS.find((p) => p.id === '2')!
@@ -18,10 +18,13 @@ const REVIEWS = { count: 87, rating: '4,8' }
 const SOCIAL_COUNT = 51
 const FREE_SHIP = 4900
 
-function CategoryIcon({ category, size = 40 }: { category: string; size?: number }) {
-  if (category === 'coiffant') return <Scissors size={size} strokeWidth={1.2} />
-  if (category === 'soin') return <Droplets size={size} strokeWidth={1.2} />
-  if (category === 'barbe') return <Zap size={size} strokeWidth={1.2} />
+function ProductIcon({ productId, size = 40 }: { productId: string; size?: number }) {
+  if (productId === '1') return <Sparkles size={size} strokeWidth={1.2} />
+  if (productId === '2') return <Droplets size={size} strokeWidth={1.2} />
+  if (productId === '3') return <Waves size={size} strokeWidth={1.2} />
+  if (productId === '4') return <AlignJustify size={size} strokeWidth={1.2} />
+  if (productId === '5') return <Package size={size} strokeWidth={1.2} />
+  if (productId === '6') return <Zap size={size} strokeWidth={1.2} />
   return <Sparkles size={size} strokeWidth={1.2} />
 }
 
@@ -243,7 +246,7 @@ export function ShampooingNoirPage() {
               <div key={rp.id} className="sac-card">
                 <Link href={`/products/${rp.slug}`} className="sac-card-link">
                   <div className="sac-img">
-                    <CategoryIcon category={rp.category} size={40} />
+                    <ProductIcon productId={rp.id} size={40} />
                   </div>
                   <div className="sac-info">
                     <div className="sac-cat">{CATEGORY_LABELS[rp.category] ?? rp.category}</div>

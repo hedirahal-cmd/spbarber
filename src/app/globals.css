@@ -1441,10 +1441,10 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
 .sac-sub { font-size: 12px; color: var(--gt); }
 .sac-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 24px; background: none; }
 .sac-card { background: var(--w); border: 1px solid #e8e4de; border-radius: 8px; max-width: 320px; flex: 1 1 260px; display: flex; flex-direction: column; overflow: hidden; }
-.sac-card-link { display: flex; flex-direction: column; align-items: center; text-align: center; text-decoration: none; color: inherit; gap: 12px; flex: 1; padding: 20px 20px 16px; transition: opacity 0.2s; }
-.sac-card-link:hover { opacity: 0.85; }
-.sac-img { width: 80px; height: 80px; background: linear-gradient(150deg, #eceae6, #d8d4cc); display: flex; align-items: center; justify-content: center; border-radius: 4px; flex-shrink: 0; }
-.sac-info { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.sac-card-link { display: flex; flex-direction: column; align-items: stretch; text-align: center; text-decoration: none; color: inherit; flex: 1; transition: opacity 0.2s; }
+.sac-card-link:hover { opacity: 0.88; }
+.sac-img { width: 100%; height: 180px; background: #1a1a1a; display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: var(--gold); }
+.sac-info { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 16px 20px 16px; }
 .sac-cat { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--gold); font-weight: 600; }
 .sac-benefit { font-family: var(--fs); font-size: 14px; font-weight: 600; color: var(--b); line-height: 1.3; }
 .sac-name { font-size: 11px; color: var(--gt); }

@@ -7,7 +7,7 @@ import { Product, ProductVariant } from '@/types'
 import { PaymentLogos } from '@/components/PaymentLogos'
 import { AddToCartButton } from '@/components/AddToCartButton'
 import { PRODUCTS } from '@/lib/products'
-import { Lock, Truck, RotateCcw, CheckCircle2, AlertTriangle, ShoppingCart, Dumbbell, Sparkles, Leaf, FlaskConical, Scissors, Droplets, User, Zap, Zap as ZapIcon, Clock } from 'lucide-react'
+import { Lock, Truck, RotateCcw, CheckCircle2, AlertTriangle, ShoppingCart, Dumbbell, Sparkles, Leaf, FlaskConical, Scissors, Droplets, User, Zap, Zap as ZapIcon, Clock, Waves, AlignJustify, Package } from 'lucide-react'
 import { BeforeAfterSlider } from './BeforeAfterSlider'
 
 const SOCIAL_PROOF: Record<string, number> = {
@@ -34,6 +34,16 @@ function CategoryIcon({ category, size = 64 }: { category: string; size?: number
   if (category === 'soin') return <Droplets size={size} strokeWidth={1.2} />
   if (category === 'barbe') return <User size={size} strokeWidth={1.2} />
   if (category === 'accessoire') return <Zap size={size} strokeWidth={1.2} />
+  return <Sparkles size={size} strokeWidth={1.2} />
+}
+
+function ProductIcon({ productId, size = 40 }: { productId: string; size?: number }) {
+  if (productId === '1') return <Sparkles size={size} strokeWidth={1.2} />
+  if (productId === '2') return <Droplets size={size} strokeWidth={1.2} />
+  if (productId === '3') return <Waves size={size} strokeWidth={1.2} />
+  if (productId === '4') return <AlignJustify size={size} strokeWidth={1.2} />
+  if (productId === '5') return <Package size={size} strokeWidth={1.2} />
+  if (productId === '6') return <Zap size={size} strokeWidth={1.2} />
   return <Sparkles size={size} strokeWidth={1.2} />
 }
 
@@ -259,7 +269,7 @@ export function ProductDetail({ product }: { product: Product }) {
               <div key={rp.id} className="sac-card">
                 <Link href={`/products/${rp.slug}`} className="sac-card-link">
                   <div className="sac-img">
-                    <CategoryIcon category={rp.category} size={40} />
+                    <ProductIcon productId={rp.id} size={40} />
                   </div>
                   <div className="sac-info">
                     <div className="sac-cat">{CATEGORY_LABELS[rp.category] ?? rp.category}</div>
