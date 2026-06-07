@@ -17,12 +17,14 @@ export async function GET() {
 export async function PUT(req: NextRequest) {
   if (!(await isAdmin())) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const body = await req.json()
-  const { slug, ...fields } = body
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { slug, id, updated_at, ...fields } = body
   if (!slug) return NextResponse.json({ error: 'slug requis' }, { status: 400 })
 
   const { error } = await supabase
     .from('salons')
-    .upsert({ slug, ...fields, updated_at: new Date().toISOString() }, { onConflict: 'slug' })
+    .update({ ...fields, updated_at: new Date().toISOString() })
+    .eq('slug', slug)
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json({ ok: true })

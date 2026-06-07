@@ -501,7 +501,8 @@ function TabSalons() {
       setSaved(slug)
       setTimeout(() => setSaved(s => s === slug ? null : s), 2500)
     } else {
-      setErrs(e => ({ ...e, [slug]: 'Erreur lors de la sauvegarde' }))
+      const data = await res.json().catch(() => ({}))
+      setErrs(e => ({ ...e, [slug]: `Erreur ${res.status}${data?.error ? ` — ${data.error}` : ''}` }))
     }
   }
 
