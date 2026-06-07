@@ -88,8 +88,10 @@ export default function HomePage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
       />
-      {/* ── HERO ── */}
+      {/* ── HERO — 2 colonnes : headline + trust | objectifs ── */}
       <section className="hero">
+
+        {/* Colonne gauche — headline */}
         <div className="hero-l">
           <div className="hero-proof-bar">
             <span className="hero-proof-item">
@@ -109,57 +111,49 @@ export default function HomePage() {
             Impeccable chaque matin, sans rendez-vous chez le barbier. Les formules professionnelles des pros, livrées directement chez vous en 48h.
           </p>
 
-          <div className="h-ctas">
-            <Link href="/products" className="btn-hero-primary">
-              Découvrir les produits
-              <span className="btn-hero-arrow">→</span>
-            </Link>
-          </div>
-
           <div className="hero-trust-checks">
             <span className="hero-check-item"><span className="hero-check-v">✓</span> Formules utilisées par les barbiers pros</span>
             <span className="hero-check-item"><span className="hero-check-v">✓</span> Livraison offerte dès 49€</span>
             <span className="hero-check-item"><span className="hero-check-v">✓</span> Retour 30 jours</span>
           </div>
         </div>
-      </section>
 
-      {/* ── QUIZ — Trouvez votre produit en 30 secondes ── */}
-      <section className="quiz-sec">
-        <div className="quiz-head">
-          <div className="quiz-eyebrow">Trouvez votre produit en 30 secondes</div>
-          <h2 className="quiz-title">Quel est votre objectif ?</h2>
+        {/* Colonne droite — 4 boutons problème/solution */}
+        <div className="hero-r">
+          <div className="hq-label">Trouvez votre produit en 30 secondes</div>
+          <div className="hq-title">Quel est votre objectif&nbsp;?</div>
+          <div className="hq-grid">
+            <Link href="/products/shampooing-noir-colorant" className="hq-btn">
+              <span className="hq-icon"><Sparkles size={18} strokeWidth={1.8} /></span>
+              <span className="hq-txt">
+                <span className="hq-main">J&apos;ai des cheveux blancs</span>
+                <span className="hq-sub">Shampooing colorant</span>
+              </span>
+            </Link>
+            <Link href="/products/cire-cheveux-premium" className="hq-btn">
+              <span className="hq-icon"><Scissors size={18} strokeWidth={1.8} /></span>
+              <span className="hq-txt">
+                <span className="hq-main">J&apos;ai du mal à me coiffer</span>
+                <span className="hq-sub">Cire fixante</span>
+              </span>
+            </Link>
+            <Link href="/products/pack-barbe-complet" className="hq-btn">
+              <span className="hq-icon"><User size={18} strokeWidth={1.8} /></span>
+              <span className="hq-txt">
+                <span className="hq-main">J&apos;ai une barbe sèche</span>
+                <span className="hq-sub">Pack Barbe Complet</span>
+              </span>
+            </Link>
+            <Link href="/products" className="hq-btn">
+              <span className="hq-icon"><Zap size={18} strokeWidth={1.8} /></span>
+              <span className="hq-txt">
+                <span className="hq-main">Je veux une routine complète</span>
+                <span className="hq-sub">Voir tous les produits</span>
+              </span>
+            </Link>
+          </div>
         </div>
-        <div className="quiz-grid">
-          <Link href="/products/shampooing-noir-colorant" className="quiz-btn">
-            <span className="quiz-btn-icon"><Sparkles size={22} strokeWidth={1.5} /></span>
-            <span className="quiz-btn-txt">
-              J&apos;ai des cheveux blancs
-              <span className="quiz-btn-sub">→ Shampooing colorant</span>
-            </span>
-          </Link>
-          <Link href="/products/cire-cheveux-premium" className="quiz-btn">
-            <span className="quiz-btn-icon"><Scissors size={22} strokeWidth={1.5} /></span>
-            <span className="quiz-btn-txt">
-              J&apos;ai du mal à me coiffer
-              <span className="quiz-btn-sub">→ Cire fixante</span>
-            </span>
-          </Link>
-          <Link href="/products/pack-barbe-complet" className="quiz-btn">
-            <span className="quiz-btn-icon"><User size={22} strokeWidth={1.5} /></span>
-            <span className="quiz-btn-txt">
-              J&apos;ai une barbe sèche
-              <span className="quiz-btn-sub">→ Pack Barbe Complet</span>
-            </span>
-          </Link>
-          <Link href="/products" className="quiz-btn">
-            <span className="quiz-btn-icon"><Zap size={22} strokeWidth={1.5} /></span>
-            <span className="quiz-btn-txt">
-              Je veux une routine complète
-              <span className="quiz-btn-sub">→ Voir tous les produits</span>
-            </span>
-          </Link>
-        </div>
+
       </section>
 
       {/* ── NOS 2 BESTSELLERS ── */}

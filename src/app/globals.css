@@ -644,18 +644,21 @@ button { font-family: var(--fb); }
   letter-spacing: 0.5px;
 }
 
-/* ═══ HERO ═══ */
+/* ═══ HERO — 2 colonnes : headline gauche / objectifs droite ═══ */
 .hero {
-  display: block;
+  display: grid;
+  grid-template-columns: 55fr 45fr;
   background: var(--b);
   position: relative;
   overflow: hidden;
+  align-items: center;
+  border-bottom: 1px solid rgba(255,255,255,.06);
 }
 .hero-l {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 36px 48px 28px;
+  padding: 52px 40px 52px 48px;
   position: relative;
   overflow: hidden;
 }
@@ -663,7 +666,7 @@ button { font-family: var(--fb); }
   content: "SP";
   position: absolute;
   bottom: -60px;
-  right: -10px;
+  left: -10px;
   font-family: var(--fd);
   font-size: 300px;
   color: rgba(255,255,255,.02);
@@ -705,31 +708,82 @@ button { font-family: var(--fb); }
   max-width: 340px;
   font-weight: 300;
 }
-.h-ctas { margin-bottom: 16px; }
-.btn-hero-primary {
-  background: var(--gold);
-  color: var(--w);
-  border: none;
-  cursor: pointer;
-  padding: 18px 36px;
-  font-family: var(--fb);
-  font-size: 12px;
+/* Colonne droite — zone objectifs */
+.hero-r {
+  padding: 52px 48px 52px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  justify-content: center;
+  border-left: 1px solid rgba(255,255,255,.06);
+}
+.hq-label {
+  font-size: 10px;
   letter-spacing: 3px;
   text-transform: uppercase;
+  color: rgba(248,246,243,.35);
+  font-family: var(--fb);
   font-weight: 700;
-  transition: all 0.2s;
-  display: inline-flex;
-  align-items: center;
+}
+.hq-title {
+  font-family: var(--fd);
+  font-size: clamp(20px, 2.2vw, 28px);
+  letter-spacing: 2px;
+  color: var(--w);
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.hq-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 10px;
-  border-radius: 3px;
 }
-.btn-hero-primary:hover {
-  background: var(--goldl);
+.hq-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 14px;
+  background: #1a1a1a;
+  border: 1px solid #333;
+  text-decoration: none;
+  color: inherit;
+  min-height: 72px;
+  transition: border-color 0.2s, transform 0.18s, background 0.2s;
+}
+.hq-btn:hover {
+  border-color: var(--gold);
+  background: rgba(184,144,58,.07);
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(184,144,58,.35);
 }
-.btn-hero-arrow { font-size: 16px; transition: transform 0.2s; }
-.btn-hero-primary:hover .btn-hero-arrow { transform: translateX(4px); }
+.hq-icon {
+  flex-shrink: 0;
+  width: 38px; height: 38px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--gold);
+  background: rgba(184,144,58,.1);
+  border-radius: 50%;
+}
+.hq-txt {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.hq-main {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--w);
+  font-family: var(--fb);
+  line-height: 1.3;
+}
+.hq-sub {
+  font-size: 10px;
+  color: var(--gold);
+  font-weight: 400;
+  font-family: var(--fb);
+  letter-spacing: 0.3px;
+}
+
 .hero-inline-trust { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .hero-inline-trust span { font-size: 10px; color: rgba(248,246,243,.35); letter-spacing: 0.5px; }
 .hero-trust-dot { color: rgba(248,246,243,.2); }
@@ -1398,12 +1452,22 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
   .kit-banner { grid-template-columns: 1fr; }
   .sticky-atc { padding: 8px 16px; }
 }
+@media (max-width: 900px) {
+  .hero { grid-template-columns: 1fr; }
+  .hero-l { padding: 36px 24px 20px; }
+  .hero-r { padding: 0 24px 36px; border-left: none; border-top: 1px solid rgba(255,255,255,.06); }
+  .hq-grid { grid-template-columns: 1fr 1fr; }
+  .h-sub { display: none; }
+}
 @media (max-width: 480px) {
   .rea-c-sep { display: none; }
-  .hero-l { padding: 36px 20px 28px; }
-  .h-sub { max-width: 100%; }
-  .hero-trust-checks { gap: 8px; }
+  .hero-l { padding: 28px 20px 16px; }
+  .hero-r { padding: 0 20px 28px; }
+  .hero-trust-checks { gap: 8px; margin-top: 0; }
   .hero-check-item { font-size: 10px; }
+  .hq-btn { padding: 12px; gap: 10px; min-height: 64px; }
+  .hq-icon { width: 34px; height: 34px; }
+  .hq-main { font-size: 11px; }
 }
 
 /* ═══════════════════════════════════
