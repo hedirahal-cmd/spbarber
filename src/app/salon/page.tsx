@@ -2,6 +2,16 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { MapPin, Clock, Phone, Scissors, Star, ArrowRight } from 'lucide-react'
 import { SalonPhotoGrid } from '@/components/salon/SalonPhotoGrid'
+import { supabase } from '@/lib/supabase'
+import { DEFAULT_SALONS, type Salon } from '@/lib/salons'
+
+async function getSalons(): Promise<Salon[]> {
+  try {
+    const { data } = await supabase.from('salons').select('*').order('slug')
+    if (data && data.length > 0) return data as Salon[]
+  } catch {}
+  return DEFAULT_SALONS
+}
 
 export const metadata: Metadata = {
   title: 'Salon Barbier Fougères — SP Barber | 48 Bd Jean Jaurès 35300',
@@ -76,7 +86,11 @@ const SERVICES = [
   { name: 'Coloration Homme', price: 'sur devis', desc: 'Coloration naturelle, camouflage cheveux blancs, traitement colorant.' },
 ]
 
-export default function SalonPage() {
+export default async function SalonPage() {
+  const salons = await getSalons()
+  const fougeres = salons.find(s => s.slug === 'fougeres') ?? DEFAULT_SALONS[0]
+  const ernee = salons.find(s => s.slug === 'ernee') ?? DEFAULT_SALONS[1]
+
   return (
     <>
       <script
@@ -139,7 +153,7 @@ export default function SalonPage() {
               <div className="salon-hours">
                 <div className="salon-hour-row">
                   <span>Lundi – Samedi</span>
-                  <span className="salon-hour-val">9h00 – 19h00</span>
+                  <span className="salon-hour-val">{fougeres.horaires || '9h00 – 19h00'}</span>
                 </div>
                 <div className="salon-hour-row salon-hour-closed">
                   <span>Dimanche</span>
@@ -223,26 +237,43 @@ export default function SalonPage() {
                 <div className="salon-info-card">
                   <div className="salon-info-icon"><MapPin size={24} strokeWidth={1.5} /></div>
                   <h3 className="salon-info-ttl">Adresse</h3>
-                  <p className="salon-info-txt">Ernée, 53500<br />Mayenne, France</p>
-                  <a
-                    href="https://www.google.com/search?q=Sp+barbershop+ernee"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="salon-info-link"
-                  >
-                    Voir sur Google Maps →
-                  </a>
+                  <p className="salon-info-txt">
+                    {ernee.adresse && <>{ernee.adresse}<br /></>}
+                    {ernee.code_postal} {ernee.ville}, France
+                  </p>
+                  {ernee.lien_google_maps && (
+                    <a href={ernee.lien_google_maps} target="_blank" rel="noopener noreferrer" className="salon-info-link">
+                      Voir sur Google Maps →
+                    </a>
+                  )}
                 </div>
-                <div className="salon-info-card">
-                  <div className="salon-info-icon"><Clock size={24} strokeWidth={1.5} /></div>
-                  <h3 className="salon-info-ttl">Horaires</h3>
-                  <div className="salon-hours">
-                    <div className="salon-hour-row">
-                      <span>Horaires</span>
-                      <span className="salon-hour-val">À venir</span>
+                {(ernee.telephone || ernee.horaires) && (
+                  <div className="salon-info-card">
+                    <div className="salon-info-icon"><Clock size={24} strokeWidth={1.5} /></div>
+                    <h3 className="salon-info-ttl">Horaires</h3>
+                    <div className="salon-hours">
+                      <div className="salon-hour-row">
+                        <span>Horaires</span>
+                        <span className="salon-hour-val">{ernee.horaires || 'À venir'}</span>
+                      </div>
+                    </div>
+                    {ernee.telephone && (
+                      <a href={`tel:${ernee.telephone.replace(/\s/g, '')}`} className="salon-info-link" style={{ marginTop: 8, display: 'inline-block' }}>
+                        <Phone size={13} strokeWidth={1.8} style={{ display: 'inline', marginRight: 4 }} />
+                        {ernee.telephone}
+                      </a>
+                    )}
+                  </div>
+                )}
+                {(!ernee.telephone && !ernee.horaires) && (
+                  <div className="salon-info-card">
+                    <div className="salon-info-icon"><Clock size={24} strokeWidth={1.5} /></div>
+                    <h3 className="salon-info-ttl">Horaires</h3>
+                    <div className="salon-hours">
+                      <div className="salon-hour-row"><span>Horaires</span><span className="salon-hour-val">À venir</span></div>
                     </div>
                   </div>
-                </div>
+                )}
               </div>
 
               <div className="salon-ernee-map">
@@ -258,16 +289,20 @@ export default function SalonPage() {
               </div>
             </div>
 
-            <div className="salon-map-actions">
-              <a
-                href="https://www.google.com/maps/dir/?api=1&destination=Ern%C3%A9e+53500+France"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="salon-btn-route"
-              >
-                Itinéraire →
-              </a>
-            </div>
+            {(ernee.lien_planity || ernee.lien_google_maps) && (
+              <div className="salon-map-actions">
+                {ernee.lien_planity && (
+                  <a href={ernee.lien_planity} target="_blank" rel="noopener noreferrer" className="salon-btn-reserve">
+                    Réserver en ligne →
+                  </a>
+                )}
+                {ernee.lien_google_maps && (
+                  <a href={ernee.lien_google_maps} target="_blank" rel="noopener noreferrer" className="salon-btn-route">
+                    Itinéraire →
+                  </a>
+                )}
+              </div>
+            )}
           </div>
         </section>
 

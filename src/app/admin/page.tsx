@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { PRODUCTS } from '@/lib/products'
 
-type NavSection = 'produits' | 'commandes' | 'legal' | 'avis' | 'salon'
+type NavSection = 'produits' | 'commandes' | 'legal' | 'avis' | 'salon' | 'salons'
 
 const ORDER_STATUSES = ['pending', 'paid', 'shipped', 'delivered', 'cancelled']
 const LEGAL_SLUGS = [
@@ -91,7 +91,7 @@ function Sidebar({ active, setActive, logout }: { active: NavSection; setActive:
   const sections = [
     { label: 'CATALOGUE', items: [{ id: 'produits' as NavSection, label: 'Produits' }] },
     { label: 'VENTES', items: [{ id: 'commandes' as NavSection, label: 'Commandes' }] },
-    { label: 'CONTENU', items: [{ id: 'legal' as NavSection, label: 'Textes légaux' }, { id: 'avis' as NavSection, label: 'Avis clients' }, { id: 'salon' as NavSection, label: 'Salon' }] },
+    { label: 'CONTENU', items: [{ id: 'legal' as NavSection, label: 'Textes légaux' }, { id: 'avis' as NavSection, label: 'Avis clients' }, { id: 'salon' as NavSection, label: 'Config avis' }, { id: 'salons' as NavSection, label: 'Salons' }] },
   ]
   return (
     <div style={{ width: 232, background: S.sidebar, height: '100vh', position: 'fixed', top: 0, left: 0, display: 'flex', flexDirection: 'column', zIndex: 10 }}>
@@ -352,6 +352,152 @@ function TabProduits() {
           </div>
         </div>
       )}
+    </div>
+  )
+}
+
+// ─── Tab Salons (table salons) ─────────────────────────────────
+type SalonRow = {
+  slug: string; nom: string; adresse: string; ville: string; code_postal: string
+  telephone: string; horaires: string; note_google: string; nombre_avis: string
+  lien_planity: string; lien_google_maps: string; actif: boolean
+}
+
+function TabSalons() {
+  const [salons, setSalons] = useState<SalonRow[]>([])
+  const [forms, setForms] = useState<Record<string, SalonRow>>({})
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState<string | null>(null)
+  const [saved, setSaved] = useState<string | null>(null)
+  const [err, setErr] = useState('')
+
+  useEffect(() => {
+    fetch('/api/admin/salons')
+      .then(r => r.json())
+      .then((rows: SalonRow[]) => {
+        if (Array.isArray(rows)) {
+          setSalons(rows)
+          const map: Record<string, SalonRow> = {}
+          rows.forEach(r => { map[r.slug] = { ...r } })
+          setForms(map)
+        }
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [])
+
+  function setField(slug: string, key: keyof SalonRow, val: string | boolean) {
+    setForms(f => ({ ...f, [slug]: { ...f[slug], [key]: val } }))
+    setSaved(null)
+  }
+
+  async function save(slug: string) {
+    setSaving(slug); setErr('')
+    const res = await fetch('/api/admin/salons', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(forms[slug]),
+    })
+    setSaving(null)
+    if (res.ok) {
+      setSaved(slug)
+      setTimeout(() => setSaved(s => s === slug ? null : s), 2000)
+    } else {
+      setErr('Erreur lors de la sauvegarde')
+    }
+  }
+
+  if (loading) return <div style={{ padding: 40, color: S.muted, textAlign: 'center' }}>Chargement…</div>
+
+  return (
+    <div style={{ flex: 1, overflowY: 'auto' }}>
+      <div style={{ padding: '20px 24px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div>
+          <h1 style={{ fontSize: 20, fontWeight: 600, color: S.text, margin: 0 }}>Salons</h1>
+          <p style={{ fontSize: 13, color: S.muted, margin: '2px 0 0' }}>Informations des salons affichées sur le site</p>
+        </div>
+        {err && <span style={{ fontSize: 13, color: '#b91c1c' }}>{err}</span>}
+      </div>
+
+      <div style={{ padding: '0 24px 40px', display: 'flex', flexDirection: 'column', gap: 28, maxWidth: 860 }}>
+        {salons.map(salon => {
+          const form = forms[salon.slug] ?? salon
+          const isSaving = saving === salon.slug
+          const isSaved = saved === salon.slug
+          return (
+            <div key={salon.slug} style={S.card_}>
+              {/* Header carte */}
+              <div style={{ padding: '14px 20px', borderBottom: `1px solid ${S.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div>
+                  <div style={{ fontWeight: 600, fontSize: 15, color: S.text }}>{form.nom || salon.slug}</div>
+                  <div style={{ fontSize: 12, color: S.muted, marginTop: 2 }}>{form.ville} {form.code_postal}</div>
+                </div>
+                <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                  {isSaved && <span style={{ fontSize: 13, color: '#15803d', fontWeight: 500 }}>✓ Salon mis à jour</span>}
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: S.muted, cursor: 'pointer' }}>
+                    <input type="checkbox" checked={form.actif} onChange={e => setField(salon.slug, 'actif', e.target.checked)} />
+                    Actif
+                  </label>
+                  <button onClick={() => save(salon.slug)} disabled={isSaving} style={S.btnPrimary}>
+                    {isSaving ? 'Sauvegarde…' : 'Enregistrer'}
+                  </button>
+                </div>
+              </div>
+
+              {/* Formulaire */}
+              <div style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 16 }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: S.text, marginBottom: 5 }}>Nom du salon</label>
+                  <input value={form.nom ?? ''} onChange={e => setField(salon.slug, 'nom', e.target.value)} style={S.input} />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: S.text, marginBottom: 5 }}>Adresse</label>
+                  <input value={form.adresse ?? ''} onChange={e => setField(salon.slug, 'adresse', e.target.value)} placeholder="48 Boulevard Jean Jaurès" style={S.input} />
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 120px', gap: 12 }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: S.text, marginBottom: 5 }}>Ville</label>
+                    <input value={form.ville ?? ''} onChange={e => setField(salon.slug, 'ville', e.target.value)} style={S.input} />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: S.text, marginBottom: 5 }}>Code postal</label>
+                    <input value={form.code_postal ?? ''} onChange={e => setField(salon.slug, 'code_postal', e.target.value)} style={S.input} />
+                  </div>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: S.text, marginBottom: 5 }}>Téléphone</label>
+                    <input value={form.telephone ?? ''} onChange={e => setField(salon.slug, 'telephone', e.target.value)} placeholder="02 99 00 00 00" style={S.input} />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: S.text, marginBottom: 5 }}>Horaires</label>
+                    <input value={form.horaires ?? ''} onChange={e => setField(salon.slug, 'horaires', e.target.value)} placeholder="Lun–Sam 9h–19h" style={S.input} />
+                  </div>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: 12 }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: S.text, marginBottom: 5 }}>Note Google</label>
+                    <input value={form.note_google ?? ''} onChange={e => setField(salon.slug, 'note_google', e.target.value)} placeholder="4.9" style={S.input} />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: S.text, marginBottom: 5 }}>Nombre d&apos;avis</label>
+                    <input value={form.nombre_avis ?? ''} onChange={e => setField(salon.slug, 'nombre_avis', e.target.value)} placeholder="47" style={S.input} />
+                  </div>
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: S.text, marginBottom: 5 }}>Lien Planity</label>
+                  <input value={form.lien_planity ?? ''} onChange={e => setField(salon.slug, 'lien_planity', e.target.value)} placeholder="https://www.planity.com/…" style={S.input} />
+                  <div style={{ fontSize: 11, color: S.muted, marginTop: 4 }}>Si vide → bouton &quot;Réserver en ligne&quot; masqué</div>
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: S.text, marginBottom: 5 }}>Lien Google Maps (itinéraire)</label>
+                  <input value={form.lien_google_maps ?? ''} onChange={e => setField(salon.slug, 'lien_google_maps', e.target.value)} placeholder="https://www.google.com/maps/dir/…" style={S.input} />
+                </div>
+              </div>
+            </div>
+          )
+        })}
+      </div>
     </div>
   )
 }
@@ -918,6 +1064,7 @@ export default function AdminPage() {
           {nav === 'legal' && <TabLegal />}
           {nav === 'avis' && <TabAvis />}
           {nav === 'salon' && <TabSalon />}
+          {nav === 'salons' && <TabSalons />}
         </div>
       </div>
     </div>

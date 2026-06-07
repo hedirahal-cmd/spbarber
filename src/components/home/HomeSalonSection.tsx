@@ -1,5 +1,9 @@
 'use client'
 import { MapPin, Clock, Phone, Camera } from 'lucide-react'
+import { type Salon, DEFAULT_SALONS } from '@/lib/salons'
+
+export type { Salon }
+export { DEFAULT_SALONS }
 
 export interface GoogleReview {
   text: string
@@ -29,6 +33,15 @@ export const DEFAULT_SALON_CONFIG: SalonConfig = {
   ],
 }
 
+function buildEmbedUrl(salon: Salon): string {
+  const parts = salon.adresse
+    ? [salon.adresse, salon.code_postal, salon.ville]
+    : [salon.nom, salon.ville, salon.code_postal]
+  const q = parts.filter(Boolean).join(' ')
+  const z = salon.adresse ? 16 : 14
+  return `https://maps.google.com/maps?q=${encodeURIComponent(q)}&output=embed&z=${z}`
+}
+
 function PhotoGrid({ prefix, label }: { prefix: string; label: string }) {
   return (
     <div className="hs-photos-sec">
@@ -53,8 +66,95 @@ function PhotoGrid({ prefix, label }: { prefix: string; label: string }) {
   )
 }
 
-export function HomeSalonSection({ config = DEFAULT_SALON_CONFIG }: { config?: SalonConfig }) {
+function SalonBlock({ salon }: { salon: Salon }) {
+  const embedSrc = buildEmbedUrl(salon)
+  const villeLabel = [salon.ville, salon.code_postal].filter(Boolean).join(', ')
+  const hasRating = !!(salon.note_google && salon.nombre_avis)
+  const photoPrefix = salon.slug === 'fougeres' ? 'salon' : salon.slug
+
+  return (
+    <div className="hs-salon-block">
+      <div className="hs-salon-eyebrow">
+        SALON PHYSIQUE — {salon.ville?.toUpperCase()}{salon.code_postal ? `, ${salon.code_postal}` : ''}
+      </div>
+
+      <div className="hs-salon-top">
+        <div className="hs-salon-left">
+          <h3 className="hs-salon-title">{salon.nom}</h3>
+
+          {hasRating && (
+            <div className="hs-salon-stars">
+              <span className="hs-salon-stars-icons">★★★★★</span>
+              <span className="hs-salon-stars-label">
+                {salon.note_google}/5 · {salon.nombre_avis} avis Google
+              </span>
+            </div>
+          )}
+
+          <div className="hs-salon-meta">
+            {(salon.adresse || salon.ville) && (
+              <div className="hs-salon-meta-item">
+                <MapPin size={14} strokeWidth={1.8} />
+                <span>{[salon.adresse, salon.code_postal, salon.ville].filter(Boolean).join(', ')}</span>
+              </div>
+            )}
+            {salon.horaires && (
+              <div className="hs-salon-meta-item">
+                <Clock size={14} strokeWidth={1.8} />
+                <span>{salon.horaires}</span>
+              </div>
+            )}
+            {salon.telephone && (
+              <div className="hs-salon-meta-item">
+                <Phone size={14} strokeWidth={1.8} />
+                <a href={`tel:${salon.telephone.replace(/\s/g, '')}`} style={{ color: 'inherit', textDecoration: 'none' }}>
+                  {salon.telephone}
+                </a>
+              </div>
+            )}
+          </div>
+
+          <div className="hs-salon-actions">
+            {salon.lien_planity && (
+              <a href={salon.lien_planity} target="_blank" rel="noopener noreferrer" className="hs-salon-btn-reserve">
+                RÉSERVER EN LIGNE →
+              </a>
+            )}
+            {salon.lien_google_maps && (
+              <a href={salon.lien_google_maps} target="_blank" rel="noopener noreferrer" className="hs-salon-btn-route">
+                ITINÉRAIRE →
+              </a>
+            )}
+          </div>
+        </div>
+
+        <div className="hs-salon-right">
+          <iframe
+            title={`${salon.nom} — ${villeLabel}`}
+            src={embedSrc}
+            className="hs-salon-map"
+            loading="lazy"
+            allowFullScreen
+            referrerPolicy="no-referrer-when-downgrade"
+            aria-label={`Carte Google Maps — ${salon.nom}`}
+          />
+        </div>
+      </div>
+
+      <PhotoGrid prefix={photoPrefix} label={salon.nom ?? ''} />
+    </div>
+  )
+}
+
+export function HomeSalonSection({
+  config = DEFAULT_SALON_CONFIG,
+  salons = DEFAULT_SALONS,
+}: {
+  config?: SalonConfig
+  salons?: Salon[]
+}) {
   const reviews = config.google_reviews?.length ? config.google_reviews : DEFAULT_SALON_CONFIG.google_reviews
+  const activeSalons = salons.filter(s => s.actif)
 
   return (
     <>
@@ -69,127 +169,16 @@ export function HomeSalonSection({ config = DEFAULT_SALON_CONFIG }: { config?: S
             <p className="hs-salons-sub">Retrouvez-nous à Fougères et Ernée</p>
           </div>
 
-          {/* ── Bloc Fougères ── */}
-          <div className="hs-salon-block">
-            <div className="hs-salon-eyebrow">SALON PHYSIQUE — FOUGÈRES, 35300</div>
-
-            <div className="hs-salon-top">
-              <div className="hs-salon-left">
-                <h3 className="hs-salon-title">SP BARBER SHOP</h3>
-
-                <div className="hs-salon-stars">
-                  <span className="hs-salon-stars-icons">★★★★★</span>
-                  <span className="hs-salon-stars-label">
-                    {config.google_rating}/5 · {config.google_reviews_count} avis Google
-                  </span>
+          {activeSalons.map((salon, i) => (
+            <div key={salon.slug}>
+              {i > 0 && (
+                <div className="hs-divider" aria-hidden="true">
+                  <span className="hs-divider-text">NOS SALONS</span>
                 </div>
-
-                <div className="hs-salon-meta">
-                  <div className="hs-salon-meta-item">
-                    <MapPin size={14} strokeWidth={1.8} />
-                    <span>48 Boulevard Jean Jaurès, 35300 Fougères</span>
-                  </div>
-                  <div className="hs-salon-meta-item">
-                    <Clock size={14} strokeWidth={1.8} />
-                    <span>Lun – Sam · 9h00 – 19h00</span>
-                  </div>
-                  {config.phone && (
-                    <div className="hs-salon-meta-item">
-                      <Phone size={14} strokeWidth={1.8} />
-                      <a href={`tel:${config.phone.replace(/\s/g, '')}`} style={{ color: 'inherit', textDecoration: 'none' }}>
-                        {config.phone}
-                      </a>
-                    </div>
-                  )}
-                </div>
-
-                <div className="hs-salon-actions">
-                  <a
-                    href="https://www.planity.com/sp-barber-shop-35300-fougeres"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="hs-salon-btn-reserve"
-                  >
-                    RÉSERVER EN LIGNE →
-                  </a>
-                  <a
-                    href="https://www.google.com/maps/dir/?api=1&destination=48+Boulevard+Jean+Jaur%C3%A8s+35300+Foug%C3%A8res"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="hs-salon-btn-route"
-                  >
-                    ITINÉRAIRE →
-                  </a>
-                </div>
-              </div>
-
-              <div className="hs-salon-right">
-                <iframe
-                  title="SP Barber — 48 Boulevard Jean Jaurès 35300 Fougères"
-                  src="https://maps.google.com/maps?q=48+Boulevard+Jean+Jaur%C3%A8s,+35300+Foug%C3%A8res&output=embed&z=16"
-                  className="hs-salon-map"
-                  loading="lazy"
-                  allowFullScreen
-                  referrerPolicy="no-referrer-when-downgrade"
-                  aria-label="Carte Google Maps — SP Barber Fougères"
-                />
-              </div>
+              )}
+              <SalonBlock salon={salon} />
             </div>
-
-            <PhotoGrid prefix="salon" label="SP Barber Fougères" />
-          </div>
-
-          {/* ── Séparateur ── */}
-          <div className="hs-divider" aria-hidden="true">
-            <span className="hs-divider-text">NOS SALONS</span>
-          </div>
-
-          {/* ── Bloc Ernée ── */}
-          <div className="hs-salon-block">
-            <div className="hs-salon-eyebrow">SALON PHYSIQUE — ERNÉE, 53500</div>
-
-            <div className="hs-salon-top">
-              <div className="hs-salon-left">
-                <h3 className="hs-salon-title">SP BARBERSHOP ERNÉE</h3>
-
-                <div className="hs-salon-meta">
-                  <div className="hs-salon-meta-item">
-                    <MapPin size={14} strokeWidth={1.8} />
-                    <span>Ernée, 53500</span>
-                  </div>
-                  <div className="hs-salon-meta-item">
-                    <Clock size={14} strokeWidth={1.8} />
-                    <span>Horaires à venir</span>
-                  </div>
-                </div>
-
-                <div className="hs-salon-actions">
-                  <a
-                    href="https://www.google.com/search?q=Sp+barbershop+ernee"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="hs-salon-btn-route"
-                  >
-                    ITINÉRAIRE →
-                  </a>
-                </div>
-              </div>
-
-              <div className="hs-salon-right">
-                <iframe
-                  title="SP Barbershop Ernée — 53500"
-                  src="https://maps.google.com/maps?q=SP+Barbershop+Ern%C3%A9e+53500&output=embed&z=14"
-                  className="hs-salon-map"
-                  loading="lazy"
-                  allowFullScreen
-                  referrerPolicy="no-referrer-when-downgrade"
-                  aria-label="Carte Google Maps — SP Barbershop Ernée"
-                />
-              </div>
-            </div>
-
-            <PhotoGrid prefix="ernee" label="SP Barbershop Ernée" />
-          </div>
+          ))}
 
         </div>
       </section>

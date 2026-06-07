@@ -4,6 +4,7 @@ import { AddToCartButton } from '@/components/AddToCartButton'
 import { formatPrice } from '@/lib/utils'
 import { Scissors, Droplets, User, Zap, Sparkles, Truck, Gift, RotateCcw } from 'lucide-react'
 import { HomeSalonSection, DEFAULT_SALON_CONFIG, type SalonConfig } from '@/components/home/HomeSalonSection'
+import { DEFAULT_SALONS, type Salon } from '@/lib/salons'
 import { supabase } from '@/lib/supabase'
 
 async function getSalonConfig(): Promise<SalonConfig> {
@@ -12,6 +13,14 @@ async function getSalonConfig(): Promise<SalonConfig> {
     if (data) return data as SalonConfig
   } catch {}
   return DEFAULT_SALON_CONFIG
+}
+
+async function getSalons(): Promise<Salon[]> {
+  try {
+    const { data } = await supabase.from('salons').select('*').eq('actif', true).order('slug')
+    if (data && data.length > 0) return data as Salon[]
+  } catch {}
+  return DEFAULT_SALONS
 }
 import { schemaOrganizationLocal, schemaBreadcrumb } from '@/lib/schema'
 
@@ -86,6 +95,7 @@ export default async function HomePage() {
   const featured = PRODUCTS.filter((p) => p.id !== '5' && p.id !== '2' && p.id !== '1').slice(0, 6)
 
   const salonConfig      = await getSalonConfig()
+  const salons           = await getSalons()
   const orgSchema        = schemaOrganizationLocal()
   const breadcrumbSchema = schemaBreadcrumb([{ name: 'Accueil', url: 'https://spbarber.fr' }])
 
@@ -375,7 +385,7 @@ export default async function HomePage() {
       </div>
 
       {/* ── SALON ── */}
-      <HomeSalonSection config={salonConfig} />
+      <HomeSalonSection config={salonConfig} salons={salons} />
 
       {/* ── AVIS ── */}
       <section className="h-reviews">
