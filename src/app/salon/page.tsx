@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { MapPin, Clock, Phone, Scissors, Star, ArrowRight } from 'lucide-react'
 import { SalonCarousel } from '@/components/salon/SalonCarousel'
+import { SalonAvisGrid } from '@/components/salon/SalonAvisGrid'
 import { supabase } from '@/lib/supabase'
 import { DEFAULT_SALONS, type Salon } from '@/lib/salons'
 
@@ -225,6 +226,15 @@ export default async function SalonPage() {
           </div>
         </section>
 
+        {/* ── AVIS FOUGÈRES ── */}
+        {(fougeres.avis_google ?? []).length > 0 && (
+          <SalonAvisGrid
+            avis={fougeres.avis_google ?? []}
+            salonNom={fougeres.nom ?? 'SP Barber Shop'}
+            googleMapsUrl={fougeres.lien_google_maps ?? undefined}
+          />
+        )}
+
         {/* ── DEUXIÈME SALON — ERNÉE ── */}
         <section className="salon-ernee-sec">
           <div className="salon-ernee-inner">
@@ -307,6 +317,15 @@ export default async function SalonPage() {
             )}
           </div>
         </section>
+
+        {/* ── AVIS ERNÉE ── */}
+        {(ernee.avis_google ?? []).length > 0 && (
+          <SalonAvisGrid
+            avis={ernee.avis_google ?? []}
+            salonNom={ernee.nom ?? 'SP Barbershop Ernée'}
+            googleMapsUrl={ernee.lien_google_maps ?? undefined}
+          />
+        )}
 
         {/* ── PRESTATIONS ── */}
         <section className="salon-services">

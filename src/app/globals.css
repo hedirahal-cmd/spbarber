@@ -4081,3 +4081,163 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
   .confm-title { font-size: 38px; }
   .confm-items, .confm-ship { padding: 16px 16px; }
 }
+
+/* ═══ SALON AVIS GRID ═══ */
+.sag-section {
+  background: var(--b);
+  padding: 60px 0 56px;
+}
+.sag-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 28px;
+}
+.sag-head {
+  text-align: center;
+  margin-bottom: 40px;
+}
+.sag-eyebrow {
+  font-family: var(--fb);
+  font-size: 11px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 10px;
+}
+.sag-title {
+  font-family: var(--fd);
+  font-size: 32px;
+  letter-spacing: 4px;
+  color: var(--w);
+  text-transform: uppercase;
+}
+.sag-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin-bottom: 32px;
+}
+.sag-card {
+  background: #141414;
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 8px;
+  padding: 22px 20px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  transition: border-color 0.2s;
+}
+.sag-card:hover { border-color: rgba(184,144,58,0.3); }
+.sag-card-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.sag-av {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  flex-shrink: 0;
+}
+.sag-card-meta { flex: 1; min-width: 0; }
+.sag-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--w);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sag-stars {
+  font-size: 13px;
+  color: var(--gold);
+  letter-spacing: 1px;
+  margin-top: 2px;
+}
+.sag-g-logo {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  font-weight: 700;
+  color: #4285F4;
+  flex-shrink: 0;
+  font-family: Georgia, serif;
+}
+.sag-text {
+  font-size: 14px;
+  line-height: 1.65;
+  color: rgba(248,246,243,0.85);
+  flex: 1;
+}
+.sag-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+.sag-date {
+  font-size: 11px;
+  color: var(--gt);
+  letter-spacing: 0.5px;
+}
+.sag-badge {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  color: #27ae60;
+  background: rgba(39,174,96,0.12);
+  border: 1px solid rgba(39,174,96,0.25);
+  padding: 3px 8px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+.sag-more-wrap {
+  text-align: center;
+  margin-top: 8px;
+}
+.sag-more-btn {
+  background: transparent;
+  border: 1px solid rgba(184,144,58,0.5);
+  color: var(--gold);
+  padding: 11px 28px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+  border-radius: 3px;
+  transition: background 0.2s, border-color 0.2s;
+}
+.sag-more-btn:hover { background: rgba(184,144,58,0.1); border-color: var(--gold); }
+.sag-all-link {
+  font-size: 13px;
+  color: var(--gt);
+  letter-spacing: 1px;
+  text-decoration: none;
+  display: inline-block;
+  margin-top: 16px;
+  transition: color 0.2s;
+}
+.sag-all-link:hover { color: var(--w); }
+@media (max-width: 900px) {
+  .sag-grid { grid-template-columns: repeat(2, 1fr); }
+  .sag-title { font-size: 26px; }
+}
+@media (max-width: 560px) {
+  .sag-section { padding: 44px 0 40px; }
+  .sag-grid { grid-template-columns: 1fr; gap: 14px; }
+  .sag-inner { padding: 0 16px; }
+}
