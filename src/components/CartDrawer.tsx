@@ -29,7 +29,7 @@ export function CartDrawer() {
   const { items, isOpen, closeCart, removeItem, updateQuantity, addItem, total, itemCount } = useCart()
 
   const [loading, setLoading]             = useState(false)
-  const [suggOpen, setSuggOpen]           = useState(false)
+  const [suggOpen, setSuggOpen]           = useState(true)
   const [couponOpen, setCouponOpen]       = useState(false)
   const [couponCode, setCouponCode]       = useState('')
   const [couponApplied, setCouponApplied] = useState(false)
@@ -275,7 +275,7 @@ export function CartDrawer() {
                   onClick={() => setSuggOpen(v => !v)}
                   aria-expanded={suggOpen}
                 >
-                  <span>Voir les suggestions</span>
+                  <span>Compl&eacute;ter ma routine</span>
                   {suggOpen ? <ChevronUp size={13} strokeWidth={2} /> : <ChevronDown size={13} strokeWidth={2} />}
                 </button>
 
