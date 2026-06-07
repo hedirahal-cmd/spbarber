@@ -259,7 +259,7 @@ export function ProductDetail({ product }: { product: Product }) {
               <div key={rp.id} className="sac-card">
                 <Link href={`/products/${rp.slug}`} className="sac-card-link">
                   <div className="sac-img">
-                    <CategoryIcon category={rp.category} size={32} />
+                    <CategoryIcon category={rp.category} size={40} />
                   </div>
                   <div className="sac-info">
                     <div className="sac-cat">{CATEGORY_LABELS[rp.category] ?? rp.category}</div>
@@ -269,7 +269,7 @@ export function ProductDetail({ product }: { product: Product }) {
                   </div>
                 </Link>
                 {!rp.is_dropshipping && (
-                  <AddToCartButton product={rp} className="sac-atc" label="+ Ajouter au panier" />
+                  <AddToCartButton product={rp} className="sac-atc" label="Ajouter au panier" />
                 )}
               </div>
             ))}

@@ -172,49 +172,61 @@ export default function HomePage() {
         </div>
         <div className="best2-grid">
           {/* Pack Barbe — Meilleure vente */}
-          <Link href={`/products/${packBarbe.slug}`} className="best2-card">
+          <div className="best2-card">
             <span className="best2-badge-mv">Meilleure vente</span>
-            <div className="best2-img">
-              <span className="best2-icon"><CategoryIcon category={packBarbe.category} size={72} /></span>
+            <Link href={`/products/${packBarbe.slug}`} className="best2-card-inner">
+              <div className="best2-img">
+                <span className="best2-icon"><CategoryIcon category={packBarbe.category} size={72} /></span>
+              </div>
+              <div className="best2-info">
+                <div className="best2-cat">Pack complet · Barbe</div>
+                <div className="best2-name">{packBarbe.benefit}</div>
+                <div className="best2-benef">{packBarbe.name}</div>
+                <span className="best2-price">{formatPrice(packBarbe.price)}</span>
+              </div>
+            </Link>
+            <div className="best2-atc-wrap">
+              <AddToCartButton product={packBarbe} className="best2-btn" label="Ajouter au panier" />
             </div>
-            <div className="best2-info">
-              <div className="best2-cat">Pack complet · Barbe</div>
-              <div className="best2-name">{packBarbe.benefit}</div>
-              <div className="best2-benef">{packBarbe.name}</div>
-              <span className="best2-price">{formatPrice(packBarbe.price)}</span>
-              <span className="best2-btn">Voir le pack →</span>
-            </div>
-          </Link>
+          </div>
 
           {/* Cire Cheveux — Bestseller coiffage */}
-          <Link href={`/products/${cireCheveux.slug}`} className="best2-card">
+          <div className="best2-card">
             <span className="best2-badge-bs">Bestseller</span>
-            <div className="best2-img">
-              <span className="best2-icon"><CategoryIcon category={cireCheveux.category} size={72} /></span>
+            <Link href={`/products/${cireCheveux.slug}`} className="best2-card-inner">
+              <div className="best2-img">
+                <span className="best2-icon"><CategoryIcon category={cireCheveux.category} size={72} /></span>
+              </div>
+              <div className="best2-info">
+                <div className="best2-cat">Coiffant · Tenue forte</div>
+                <div className="best2-name">{cireCheveux.benefit}</div>
+                <div className="best2-benef">{cireCheveux.name}</div>
+                <span className="best2-price">{formatPrice(cireCheveux.price)}</span>
+              </div>
+            </Link>
+            <div className="best2-atc-wrap">
+              <AddToCartButton product={cireCheveux} className="best2-btn" label="Ajouter au panier" />
             </div>
-            <div className="best2-info">
-              <div className="best2-cat">Coiffant · Tenue forte</div>
-              <div className="best2-name">{cireCheveux.benefit}</div>
-              <div className="best2-benef">{cireCheveux.name}</div>
-              <span className="best2-price">{formatPrice(cireCheveux.price)}</span>
-              <span className="best2-btn">Découvrir →</span>
-            </div>
-          </Link>
+          </div>
 
           {/* Shampooing Noir — Forte marge */}
-          <Link href={`/products/${shampNoir.slug}`} className="best2-card">
-            <span className="best2-badge-mv">Coup de cœur</span>
-            <div className="best2-img">
-              <span className="best2-icon"><CategoryIcon category={shampNoir.category} size={72} /></span>
+          <div className="best2-card">
+            <span className="best2-badge-mv">Coup de coeur</span>
+            <Link href={`/products/${shampNoir.slug}`} className="best2-card-inner">
+              <div className="best2-img">
+                <span className="best2-icon"><CategoryIcon category={shampNoir.category} size={72} /></span>
+              </div>
+              <div className="best2-info">
+                <div className="best2-cat">Soin colorant</div>
+                <div className="best2-name">{shampNoir.benefit}</div>
+                <div className="best2-benef">{shampNoir.name}</div>
+                <span className="best2-price">{formatPrice(shampNoir.price)}</span>
+              </div>
+            </Link>
+            <div className="best2-atc-wrap">
+              <AddToCartButton product={shampNoir} className="best2-btn" label="Ajouter au panier" />
             </div>
-            <div className="best2-info">
-              <div className="best2-cat">Soin colorant</div>
-              <div className="best2-name">{shampNoir.benefit}</div>
-              <div className="best2-benef">{shampNoir.name}</div>
-              <span className="best2-price">{formatPrice(shampNoir.price)}</span>
-              <span className="best2-btn">Découvrir →</span>
-            </div>
-          </Link>
+          </div>
         </div>
       </section>
 
