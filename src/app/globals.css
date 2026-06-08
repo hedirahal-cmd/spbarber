@@ -1702,24 +1702,27 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
 
 /* cart close button — defined above in base styles */
 
-/* ─ Barbiers section ─ */
-.barbers-sec { background: var(--g); padding: 60px 48px; border-top: 1px solid var(--gm); border-bottom: 1px solid var(--gm); }
+/* ─ Barbiers section — homepage fond noir ─ */
+.barbers-sec { background: #0c0c0c; padding: 60px 48px; border-top: 1px solid #1a1a1a; border-bottom: 1px solid #1a1a1a; }
 .barbers-sec .sec-head { padding: 0 0 36px; }
-.barbers-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; background: var(--gm); }
-.barber-card { background: var(--w); padding: 26px 22px; display: flex; flex-direction: column; gap: 14px; }
+.barbers-sec .sec-ey { color: rgba(248,246,243,.35); }
+.barbers-sec .sec-title { color: var(--w); }
+.barbers-sec .barbers-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; background: #333; }
+.barbers-sec .barber-card { background: #1a1a1a; border: none; border-radius: 0; padding: 26px 22px; display: flex; flex-direction: column; gap: 14px; transition: background 0.2s; }
+.barbers-sec .barber-card:hover { background: #202020; box-shadow: none; transform: none; }
 .barber-hd { display: flex; align-items: center; gap: 12px; }
 .barber-av { width: 46px; height: 46px; border-radius: 50%; background: var(--b); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
-.barber-name-txt { font-family: var(--fd); font-size: 18px; letter-spacing: 2px; line-height: 1; margin-bottom: 2px; }
+.barbers-sec .barber-name-txt { font-family: var(--fd); font-size: 18px; letter-spacing: 2px; line-height: 1; margin-bottom: 2px; color: var(--w); }
 .barber-role-txt { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--gold); font-weight: 600; }
 .barber-stars-txt { color: var(--gold); font-size: 10px; letter-spacing: 2px; }
-.barber-quote-txt { font-family: var(--fs); font-size: 14px; font-style: italic; color: var(--gt); line-height: 1.7; font-weight: 300; }
-.barber-fav-txt { font-size: 11px; color: var(--b); font-weight: 500; padding-top: 12px; border-top: 1px solid var(--gm); }
-.barber-fav-txt strong { font-weight: 700; }
+.barbers-sec .barber-quote-txt { font-family: var(--fs); font-size: 14px; font-style: italic; color: rgba(248,246,243,.58); line-height: 1.7; font-weight: 300; }
+.barbers-sec .barber-fav-link { border-bottom-color: rgba(184,144,58,.25); }
+.barbers-sec .barber-fav-link:hover { color: var(--goldl); border-color: var(--goldl); }
 
 /* ─ Responsive additions ─ */
 @media (max-width: 960px) {
   .prob-grid { grid-template-columns: repeat(2, 1fr); margin: 0 20px 48px; }
-  .barbers-grid { grid-template-columns: 1fr 1fr; }
+  .barbers-sec .barbers-grid { grid-template-columns: 1fr 1fr; }
   .barbers-sec { padding: 48px 24px; }
   .sac-sec { padding: 40px 0 0; }
   .sac-hd { padding: 0 24px; }
@@ -1730,11 +1733,12 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
 }
 @media (max-width: 600px) {
   .prob-grid { grid-template-columns: 1fr 1fr; margin: 0 16px 36px; }
-  .barbers-grid { grid-template-columns: 1fr; }
+  .barbers-sec .barbers-grid { grid-template-columns: 1fr; }
 }
 @media (max-width: 480px) {
   .fi-trust-list { grid-template-columns: 1fr; }
   .barbers-sec { padding: 32px 16px; }
+  .barbers-sec .barbers-grid { grid-template-columns: 1fr; }
   .hero-trust-checks { gap: 10px; }
 }
 
@@ -4206,18 +4210,14 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
   color: #4a4a4a;
   flex: 1;
 }
-.barber-stats {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  padding: 14px 0;
-  border-top: 1px solid var(--gm);
-  border-bottom: 1px solid var(--gm);
+.barber-exp-line {
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--gold);
+  font-weight: 700;
+  font-family: var(--fb);
 }
-.barber-stat { display: flex; flex-direction: column; align-items: center; gap: 2px; }
-.barber-stat-val { font-family: var(--fd); font-size: 24px; letter-spacing: 2px; color: var(--b); line-height: 1; }
-.barber-stat-lbl { font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--gt); }
-.barber-stat-sep { width: 1px; height: 32px; background: var(--gm); }
 .barber-produit {
   display: flex;
   align-items: center;

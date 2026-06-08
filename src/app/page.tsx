@@ -8,6 +8,7 @@ import { Scissors, Droplets, User, Zap, Sparkles, Truck, Gift, RotateCcw } from 
 import { HomeSalonSection, DEFAULT_SALON_CONFIG, type SalonConfig } from '@/components/home/HomeSalonSection'
 import { DEFAULT_SALONS, type Salon } from '@/lib/salons'
 import { supabase } from '@/lib/supabase'
+import { DEFAULT_BARBERS, type Barber } from '@/lib/barbers'
 
 async function getSalonConfig(): Promise<SalonConfig> {
   try {
@@ -49,6 +50,18 @@ async function getReviews(): Promise<ReviewDisplay[]> {
     }))
   } catch {}
   return []
+}
+
+async function getBarbers(): Promise<Barber[]> {
+  try {
+    const { data } = await supabase
+      .from('barbers')
+      .select('id,slug,nom,initiales,couleur_avatar,salon_slug,ville,specialite,description,annees_experience,produit_favori_slug,produit_favori_nom,actif,ordre')
+      .eq('actif', true)
+      .order('ordre')
+    if (data && data.length > 0) return data as Barber[]
+  } catch {}
+  return DEFAULT_BARBERS
 }
 
 async function getProductOverrides(): Promise<Record<string, ProdOverride>> {
@@ -96,45 +109,11 @@ const REVIEWS = [
   { text: `"J'utilise l'huile de barbe tous les matins. Ma barbe est beaucoup plus douce et brillante."`, name: 'Youssef A.', initials: 'YA', color: '#3a7a8a', product: 'Huile de Barbe', date: 'Mar 2025' },
 ]
 
-const BARBIERS = [
-  {
-    name: 'Samy P.',
-    initials: 'SP',
-    color: '#1a3a5a',
-    shop: 'Barber Shop Élite',
-    city: 'Fougères',
-    exp: '8 ans',
-    quote: `"La Cire Premium est mon indispensable. Tenue impeccable du matin au soir — je l'utilise sur tous mes clients depuis des années."`,
-    favProduct: 'Cire Cheveux Premium',
-    favSlug: 'cire-cheveux-premium',
-  },
-  {
-    name: 'Karim M.',
-    initials: 'KM',
-    color: '#3a1a5a',
-    shop: 'Barber King',
-    city: 'Rennes',
-    exp: '12 ans',
-    quote: `"Le Pack Barbe, c'est exactement ce que je recommande à mes clients qui veulent entretenir leur barbe à la maison comme en salon."`,
-    favProduct: 'Pack Barbe Complet',
-    favSlug: 'pack-barbe-complet',
-  },
-  {
-    name: 'David L.',
-    initials: 'DL',
-    color: '#1a5a3a',
-    shop: 'Le Gentleman Barber',
-    city: 'Paris',
-    exp: '6 ans',
-    quote: `"Le Shampooing Noir est parfait pour raviver la couleur entre deux coupes. Aucun client ne revient sans vouloir en racheter."`,
-    favProduct: 'Shampooing Noir Colorant',
-    favSlug: 'shampooing-noir-colorant',
-  },
-]
 
 export default async function HomePage() {
   const salonConfig      = await getSalonConfig()
   const salons           = await getSalons()
+  const barbers          = await getBarbers()
   const reviewsDb        = await getReviews()
   const reviews          = reviewsDb.length > 0 ? reviewsDb : REVIEWS
   const overrides        = await getProductOverrides()
@@ -403,21 +382,23 @@ export default async function HomePage() {
           </div>
         </div>
         <div className="barbers-grid">
-          {BARBIERS.map((b, i) => (
-            <div key={i} className="barber-card">
+          {barbers.map((b) => (
+            <div key={b.slug} className="barber-card">
               <div className="barber-hd">
-                <div className="barber-av" style={{ background: b.color }}>{b.initials}</div>
+                <div className="barber-av" style={{ background: b.couleur_avatar }}>{b.initiales}</div>
                 <div>
-                  <div className="barber-name-txt">{b.name}</div>
-                  <div className="barber-role-txt">{b.shop} · {b.city}</div>
-                  <div className="barber-exp-badge">{b.exp} d&apos;expérience</div>
+                  <div className="barber-name-txt">{b.nom}</div>
+                  <div className="barber-role-txt">{b.ville ?? b.salon_slug ?? ''}</div>
+                  {b.annees_experience && <div className="barber-exp-badge">{b.annees_experience} ans d&apos;expérience</div>}
                 </div>
               </div>
               <div className="barber-stars-txt">★★★★★</div>
-              <p className="barber-quote-txt">{b.quote}</p>
-              <Link href={`/products/${b.favSlug}`} className="barber-fav-link">
-                Produit favori : <strong>{b.favProduct}</strong> →
-              </Link>
+              {b.description && <p className="barber-quote-txt">{b.description}</p>}
+              {b.produit_favori_slug && b.produit_favori_nom && (
+                <Link href={`/products/${b.produit_favori_slug}`} className="barber-fav-link">
+                  Produit favori : <strong>{b.produit_favori_nom}</strong> →
+                </Link>
+              )}
             </div>
           ))}
         </div>

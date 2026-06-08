@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { PRODUCTS } from '@/lib/products'
 
-type NavSection = 'produits' | 'commandes' | 'legal' | 'avis' | 'salons'
+type NavSection = 'produits' | 'commandes' | 'legal' | 'avis' | 'salons' | 'barbers'
 
 const ORDER_STATUSES = ['pending', 'paid', 'shipped', 'delivered', 'cancelled']
 const LEGAL_SLUGS = [
@@ -91,7 +91,7 @@ function Sidebar({ active, setActive, logout }: { active: NavSection; setActive:
   const sections = [
     { label: 'CATALOGUE', items: [{ id: 'produits' as NavSection, label: 'Produits' }] },
     { label: 'VENTES', items: [{ id: 'commandes' as NavSection, label: 'Commandes' }] },
-    { label: 'SALONS', items: [{ id: 'salons' as NavSection, label: 'Salons' }] },
+    { label: 'SALONS', items: [{ id: 'salons' as NavSection, label: 'Salons' }, { id: 'barbers' as NavSection, label: 'Barbers' }] },
     { label: 'CONTENU', items: [{ id: 'legal' as NavSection, label: 'Textes légaux' }, { id: 'avis' as NavSection, label: 'Avis clients' }] },
   ]
   return (
@@ -1092,6 +1092,326 @@ function TabCommandes() {
   )
 }
 
+// ─── Tab Barbers ────────────────────────────────────────────────
+type BarberRow = {
+  id: string; slug: string; nom: string; initiales: string; couleur_avatar: string
+  salon_slug: string; ville: string; specialite: string; description: string
+  annees_experience: number | null; produit_favori_slug: string; produit_favori_nom: string
+  actif: boolean; ordre: number
+}
+
+const EMPTY_BARBER: BarberRow = {
+  id: '', slug: '', nom: '', initiales: '', couleur_avatar: '#1a3a5a',
+  salon_slug: 'fougeres', ville: 'Fougères', specialite: '', description: '',
+  annees_experience: null, produit_favori_slug: '', produit_favori_nom: '',
+  actif: true, ordre: 0,
+}
+
+const BARBER_PRODUCTS = [
+  { slug: 'cire-cheveux-premium', nom: 'Cire Cheveux Premium' },
+  { slug: 'pack-barbe-complet', nom: 'Pack Barbe Complet' },
+  { slug: 'shampooing-noir-colorant', nom: 'Shampooing Noir Colorant' },
+  { slug: 'creme-curl', nom: 'Crème Curl' },
+  { slug: 'huile-de-barbe', nom: 'Huile de Barbe' },
+  { slug: 'tondeuse-pro', nom: 'Tondeuse Pro' },
+]
+
+function slugify(s: string): string {
+  return s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+}
+
+function TabBarbers() {
+  const [barbers, setBarbers] = useState<BarberRow[]>([])
+  const [loading, setLoading] = useState(true)
+  const [editing, setEditing] = useState<BarberRow | null>(null)
+  const [isNew, setIsNew] = useState(false)
+  const [form, setForm] = useState<BarberRow>(EMPTY_BARBER)
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
+  const [deleting, setDeleting] = useState<string | null>(null)
+  const [err, setErr] = useState('')
+
+  const load = useCallback(async () => {
+    setLoading(true)
+    const res = await fetch('/api/admin/barbers')
+    if (res.ok) setBarbers(await res.json())
+    setLoading(false)
+  }, [])
+  useEffect(() => { load() }, [load])
+
+  function startNew() {
+    const maxOrdre = barbers.reduce((m, b) => Math.max(m, b.ordre), 0)
+    setForm({ ...EMPTY_BARBER, ordre: maxOrdre + 1 })
+    setEditing(null)
+    setIsNew(true)
+    setSaved(false)
+    setErr('')
+  }
+
+  function startEdit(b: BarberRow) {
+    setForm({ ...b })
+    setEditing(b)
+    setIsNew(false)
+    setSaved(false)
+    setErr('')
+  }
+
+  function closePanel() { setEditing(null); setIsNew(false) }
+
+  function setF<K extends keyof BarberRow>(k: K, v: BarberRow[K]) {
+    setForm(f => ({ ...f, [k]: v }))
+    setSaved(false)
+  }
+
+  async function save() {
+    setSaving(true); setErr('')
+    const slug = form.slug.trim() || slugify(form.nom)
+    const payload = { ...form, slug }
+    if (isNew) {
+      const res = await fetch('/api/admin/barbers', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+      setSaving(false)
+      if (res.ok) { setSaved(true); await load(); const d = await res.clone().json(); setEditing(d); setIsNew(false) }
+      else { const d = await res.json().catch(() => ({})); setErr(d.error ?? 'Erreur') }
+    } else {
+      const res = await fetch('/api/admin/barbers', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+      setSaving(false)
+      if (res.ok) { setSaved(true); await load() }
+      else { const d = await res.json().catch(() => ({})); setErr(d.error ?? 'Erreur') }
+    }
+  }
+
+  async function del(id: string) {
+    if (!confirm('Supprimer ce barber ?')) return
+    setDeleting(id)
+    await fetch('/api/admin/barbers', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) })
+    setDeleting(null)
+    if (editing?.id === id) closePanel()
+    await load()
+  }
+
+  async function moveOrder(idx: number, dir: -1 | 1) {
+    const other = barbers[idx + dir]
+    const curr = barbers[idx]
+    if (!other) return
+    await Promise.all([
+      fetch('/api/admin/barbers', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: curr.id, ordre: other.ordre }) }),
+      fetch('/api/admin/barbers', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: other.id, ordre: curr.ordre }) }),
+    ])
+    await load()
+  }
+
+  return (
+    <div style={{ display: 'flex', gap: 0, height: '100%' }}>
+      {/* Liste */}
+      <div style={{ flex: 1, overflowY: 'auto' }}>
+        <div style={{ padding: '20px 24px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <h1 style={{ fontSize: 20, fontWeight: 600, color: S.text, margin: 0 }}>Barbers</h1>
+            <p style={{ fontSize: 13, color: S.muted, margin: '2px 0 0' }}>{barbers.length} barber{barbers.length !== 1 ? 's' : ''} — chargement {loading ? 'en cours…' : 'terminé'}</p>
+          </div>
+          <button onClick={startNew} style={S.btnPrimary}>+ Ajouter un barber</button>
+        </div>
+
+        <div style={{ padding: '0 24px 24px' }}>
+          {loading ? (
+            <div style={{ padding: '40px 0', textAlign: 'center', color: S.muted }}>Chargement…</div>
+          ) : !barbers.length ? (
+            <div style={{ ...S.card_, padding: '40px 24px', textAlign: 'center' }}>
+              <div style={{ fontSize: 13, color: S.muted }}>Aucun barber. Cliquez sur &quot;+ Ajouter un barber&quot;.</div>
+            </div>
+          ) : (
+            <div style={{ ...S.card_, overflow: 'hidden' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
+                <thead>
+                  <tr style={{ borderBottom: `1px solid ${S.border}` }}>
+                    {['', 'Nom', 'Ville / Salon', 'Spécialité', 'Exp.', 'Statut', 'Ordre', ''].map((h, i) => (
+                      <th key={i} style={{ padding: '12px 16px', textAlign: 'left', fontSize: 12, fontWeight: 600, color: S.muted }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {barbers.map((b, idx) => {
+                    const isActive = (editing?.id === b.id) || (isNew && !b.id)
+                    return (
+                      <tr key={b.id} style={{ borderBottom: `1px solid ${S.border}`, background: isActive ? '#fdf8f0' : 'transparent' }}
+                        onMouseEnter={e => { if (!isActive) (e.currentTarget as HTMLElement).style.background = S.bg }}
+                        onMouseLeave={e => { if (!isActive) (e.currentTarget as HTMLElement).style.background = 'transparent' }}>
+                        <td style={{ padding: '12px 8px 12px 16px' }}>
+                          <div style={{ width: 36, height: 36, borderRadius: '50%', background: b.couleur_avatar, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: '#fff', fontFamily: 'var(--fd)', letterSpacing: 1 }}>
+                            {b.initiales || '?'}
+                          </div>
+                        </td>
+                        <td style={{ padding: '12px 16px', cursor: 'pointer' }} onClick={() => startEdit(b)}>
+                          <div style={{ fontWeight: 500, color: S.text }}>{b.nom}</div>
+                          <div style={{ fontSize: 12, color: S.muted, marginTop: 2 }}>{b.slug}</div>
+                        </td>
+                        <td style={{ padding: '12px 16px', color: S.muted, fontSize: 13, cursor: 'pointer' }} onClick={() => startEdit(b)}>
+                          {b.ville || b.salon_slug || '—'}
+                        </td>
+                        <td style={{ padding: '12px 16px', color: S.muted, fontSize: 13, cursor: 'pointer' }} onClick={() => startEdit(b)}>
+                          {b.specialite || '—'}
+                        </td>
+                        <td style={{ padding: '12px 16px', color: S.muted, fontSize: 13 }}>
+                          {b.annees_experience ? `${b.annees_experience} ans` : '—'}
+                        </td>
+                        <td style={{ padding: '12px 16px' }}>
+                          <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 20, background: b.actif ? '#f0fdf4' : '#f4f4f5', color: b.actif ? '#15803d' : '#71717a' }}>
+                            {b.actif ? 'Actif' : 'Inactif'}
+                          </span>
+                        </td>
+                        <td style={{ padding: '12px 16px' }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                            <button disabled={idx === 0} onClick={() => moveOrder(idx, -1)} style={{ ...S.btnSecondary, padding: '2px 8px', fontSize: 11, opacity: idx === 0 ? 0.3 : 1 }}>↑</button>
+                            <button disabled={idx === barbers.length - 1} onClick={() => moveOrder(idx, 1)} style={{ ...S.btnSecondary, padding: '2px 8px', fontSize: 11, opacity: idx === barbers.length - 1 ? 0.3 : 1 }}>↓</button>
+                          </div>
+                        </td>
+                        <td style={{ padding: '12px 16px' }}>
+                          <div style={{ display: 'flex', gap: 6 }}>
+                            <button onClick={() => startEdit(b)} style={{ ...S.btnSecondary, padding: '5px 10px', fontSize: 12 }}>Modifier</button>
+                            <button onClick={() => del(b.id)} disabled={deleting === b.id} style={{ ...S.btnSecondary, padding: '5px 10px', fontSize: 12, color: '#b91c1c', borderColor: '#fca5a5' }}>
+                              {deleting === b.id ? '…' : 'Supprimer'}
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Panel d'édition */}
+      {(editing || isNew) && (
+        <div style={{ width: 420, background: S.card, borderLeft: `1px solid ${S.border}`, display: 'flex', flexDirection: 'column', height: '100%', overflowY: 'auto', flexShrink: 0 }}>
+          <div style={{ padding: '16px 20px', borderBottom: `1px solid ${S.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
+            <div>
+              <div style={{ fontSize: 15, fontWeight: 600, color: S.text }}>{isNew ? 'Nouveau barber' : form.nom}</div>
+              <div style={{ fontSize: 12, color: S.muted, marginTop: 2 }}>{isNew ? 'Créer une fiche barber' : `Slug : ${form.slug}`}</div>
+            </div>
+            <button onClick={closePanel} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, color: S.muted, padding: 4 }}>×</button>
+          </div>
+
+          <div style={{ padding: 20, flex: 1, display: 'flex', flexDirection: 'column', gap: 14 }}>
+            {saved && <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 6, padding: '10px 14px', fontSize: 13, color: '#15803d', fontWeight: 500 }}>✓ Sauvegardé</div>}
+            {err && <div style={{ background: '#fef2f2', border: '1px solid #fca5a5', borderRadius: 6, padding: '10px 14px', fontSize: 13, color: '#b91c1c' }}>{err}</div>}
+
+            {/* Avatar preview */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 0', borderBottom: `1px solid ${S.border}` }}>
+              <div style={{ width: 52, height: 52, borderRadius: '50%', background: form.couleur_avatar, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, fontWeight: 700, color: '#fff', fontFamily: 'var(--fd)', letterSpacing: 1, flexShrink: 0 }}>
+                {form.initiales || '?'}
+              </div>
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: S.text }}>{form.nom || 'Nom du barber'}</div>
+                <div style={{ fontSize: 11, color: S.muted }}>{form.ville || '—'} · {form.specialite || '—'}</div>
+              </div>
+            </div>
+
+            {/* Nom + initiales */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 80px', gap: 10 }}>
+              <div>
+                <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: S.text, marginBottom: 5 }}>Nom</label>
+                <input value={form.nom} onChange={e => setF('nom', e.target.value)} placeholder="Samy P." style={S.input} />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: S.text, marginBottom: 5 }}>Initiales</label>
+                <input value={form.initiales} onChange={e => setF('initiales', e.target.value.toUpperCase().slice(0, 2))} maxLength={2} placeholder="SP" style={S.input} />
+              </div>
+            </div>
+
+            {/* Slug */}
+            <div>
+              <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: S.text, marginBottom: 5 }}>Slug (URL)</label>
+              <input value={form.slug} onChange={e => setF('slug', e.target.value)} placeholder="auto-généré depuis le nom" style={S.input} />
+              <div style={{ fontSize: 11, color: S.muted, marginTop: 4 }}>Laisser vide → auto-généré depuis le nom</div>
+            </div>
+
+            {/* Couleur avatar */}
+            <div>
+              <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: S.text, marginBottom: 5 }}>Couleur avatar</label>
+              <input type="color" value={form.couleur_avatar} onChange={e => setF('couleur_avatar', e.target.value)} style={{ ...S.input, padding: '4px 6px', height: 36, cursor: 'pointer' }} />
+            </div>
+
+            {/* Ville + salon_slug */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+              <div>
+                <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: S.text, marginBottom: 5 }}>Ville</label>
+                <input value={form.ville} onChange={e => setF('ville', e.target.value)} placeholder="Fougères" style={S.input} />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: S.text, marginBottom: 5 }}>Salon (slug)</label>
+                <select value={form.salon_slug} onChange={e => setF('salon_slug', e.target.value)} style={S.input}>
+                  <option value="fougeres">Fougères</option>
+                  <option value="ernee">Ernée</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Spécialité */}
+            <div>
+              <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: S.text, marginBottom: 5 }}>Spécialité</label>
+              <input value={form.specialite} onChange={e => setF('specialite', e.target.value)} placeholder="Dégradé Fade & Skin Fade" style={S.input} />
+            </div>
+
+            {/* Description / citation */}
+            <div>
+              <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: S.text, marginBottom: 5 }}>Citation / description</label>
+              <textarea rows={3} value={form.description} onChange={e => setF('description', e.target.value)} placeholder={`"Mon produit favori…"`} style={{ ...S.input, resize: 'vertical' }} />
+              <div style={{ fontSize: 11, color: S.muted, marginTop: 4 }}>Affiché en italique sur la homepage et la page /barbers</div>
+            </div>
+
+            {/* Années d'expérience */}
+            <div>
+              <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: S.text, marginBottom: 5 }}>Années d&apos;expérience</label>
+              <input type="number" min={0} max={50} value={form.annees_experience ?? ''} onChange={e => setF('annees_experience', e.target.value ? Number(e.target.value) : null)} placeholder="8" style={S.input} />
+            </div>
+
+            {/* Produit favori */}
+            <div>
+              <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: S.text, marginBottom: 5 }}>Produit favori</label>
+              <select
+                value={form.produit_favori_slug}
+                onChange={e => {
+                  const p = BARBER_PRODUCTS.find(x => x.slug === e.target.value)
+                  setF('produit_favori_slug', e.target.value)
+                  if (p) setF('produit_favori_nom', p.nom)
+                }}
+                style={S.input}
+              >
+                <option value="">— Aucun —</option>
+                {BARBER_PRODUCTS.map(p => <option key={p.slug} value={p.slug}>{p.nom}</option>)}
+              </select>
+            </div>
+
+            {/* Ordre */}
+            <div style={{ display: 'grid', gridTemplateColumns: '80px 1fr', gap: 10, alignItems: 'end' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: S.text, marginBottom: 5 }}>Ordre</label>
+                <input type="number" min={0} value={form.ordre} onChange={e => setF('ordre', Number(e.target.value))} style={S.input} />
+              </div>
+              <div>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: S.text, cursor: 'pointer', paddingBottom: 2 }}>
+                  <input type="checkbox" checked={form.actif} onChange={e => setF('actif', e.target.checked)} />
+                  Actif (visible sur le site)
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div style={{ padding: '16px 20px', borderTop: `1px solid ${S.border}`, display: 'flex', gap: 8, flexShrink: 0 }}>
+            <button onClick={save} disabled={saving || !form.nom.trim()} style={{ ...S.btnPrimary, flex: 1, opacity: !form.nom.trim() ? 0.5 : 1 }}>
+              {saving ? 'Sauvegarde…' : isNew ? 'Créer' : 'Sauvegarder'}
+            </button>
+            <button onClick={closePanel} style={S.btnSecondary}>Annuler</button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ─── Tab Legal ─────────────────────────────────────────────────
 function TabLegal() {
   const [pages, setPages] = useState<Record<string, { title: string; content: string }>>({})
@@ -1315,6 +1635,7 @@ export default function AdminPage() {
           {nav === 'legal' && <TabLegal />}
           {nav === 'avis' && <TabAvis />}
           {nav === 'salons' && <TabSalons />}
+          {nav === 'barbers' && <TabBarbers />}
         </div>
       </div>
     </div>
