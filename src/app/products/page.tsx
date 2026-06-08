@@ -52,9 +52,12 @@ type ProdOv = { id: string; name?: string | null; price?: number | null; descrip
 export default async function ProductsPage() {
   let overrides: Record<string, ProdOv> = {}
   try {
-    const { data } = await supabaseAdmin.from('product_overrides').select('id,name,price,description,stock,benefit')
+    const { data, error } = await supabaseAdmin.from('product_overrides').select('id,name,price,description,stock,benefit')
+    console.log('[products-page] overrides count:', data?.length ?? 0, '| error:', error?.message ?? null)
     if (data) (data as ProdOv[]).forEach(r => { overrides[r.id] = r })
-  } catch {}
+  } catch (e) {
+    console.error('[products-page] catch:', e instanceof Error ? e.message : String(e))
+  }
 
   function applyOv(p: (typeof PRODUCTS)[0]) {
     const o = overrides[p.id]

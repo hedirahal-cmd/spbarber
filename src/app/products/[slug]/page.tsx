@@ -6,6 +6,7 @@ import { schemaProduct, schemaBreadcrumb } from '@/lib/schema'
 import { supabaseAdmin } from '@/lib/supabase'
 
 export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -65,7 +66,8 @@ export default async function ProductPage({ params }: Props) {
   let product = rawProduct!
 
   try {
-    const { data } = await supabaseAdmin.from('product_overrides').select('name,price,description,stock,benefit').eq('id', product.id).maybeSingle()
+    const { data, error } = await supabaseAdmin.from('product_overrides').select('name,price,description,stock,benefit').eq('id', product.id).maybeSingle()
+    console.log('[product-page] id:', product.id, 'slug:', slug, '| override:', JSON.stringify(data), '| error:', error?.message ?? null)
     if (data) product = {
       ...product,
       ...(data.name != null ? { name: String(data.name) } : {}),
@@ -74,7 +76,9 @@ export default async function ProductPage({ params }: Props) {
       ...(data.stock != null ? { stock: Number(data.stock) } : {}),
       ...(data.benefit != null ? { benefit: String(data.benefit) } : {}),
     }
-  } catch {}
+  } catch (e) {
+    console.error('[product-page] catch:', e instanceof Error ? e.message : String(e))
+  }
 
   if (product.is_dropshipping && product.dsers_url) {
     redirect(product.dsers_url)
