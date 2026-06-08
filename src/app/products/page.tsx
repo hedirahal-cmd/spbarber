@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { PRODUCTS } from '@/lib/products'
-import { supabase } from '@/lib/supabase'
+import { supabaseAdmin } from '@/lib/supabase'
 import { formatPrice } from '@/lib/utils'
 
 export const revalidate = 60
@@ -52,7 +52,7 @@ type ProdOv = { id: string; name?: string | null; price?: number | null; descrip
 export default async function ProductsPage() {
   let overrides: Record<string, ProdOv> = {}
   try {
-    const { data } = await supabase.from('product_overrides').select('id,name,price,description,stock,benefit')
+    const { data } = await supabaseAdmin.from('product_overrides').select('id,name,price,description,stock,benefit')
     if (data) (data as ProdOv[]).forEach(r => { overrides[r.id] = r })
   } catch {}
 

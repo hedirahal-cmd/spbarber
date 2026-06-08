@@ -66,7 +66,7 @@ async function getBarbers(): Promise<Barber[]> {
 
 async function getProductOverrides(): Promise<Record<string, ProdOverride>> {
   try {
-    const { data } = await supabase.from('product_overrides').select('id,name,price,description,stock,benefit')
+    const { data } = await supabaseAdmin.from('product_overrides').select('id,name,price,description,stock,benefit')
     if (!data) return {}
     const map: Record<string, ProdOverride> = {}
     ;(data as ProdOverride[]).forEach(r => { map[r.id] = r })

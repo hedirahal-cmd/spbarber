@@ -3,7 +3,7 @@ import { notFound, redirect } from 'next/navigation'
 import { PRODUCTS } from '@/lib/products'
 import { ProductDetail } from '@/components/product/ProductDetail'
 import { schemaProduct, schemaBreadcrumb } from '@/lib/schema'
-import { supabase } from '@/lib/supabase'
+import { supabaseAdmin } from '@/lib/supabase'
 
 export const revalidate = 60
 
@@ -65,7 +65,7 @@ export default async function ProductPage({ params }: Props) {
   let product = rawProduct!
 
   try {
-    const { data } = await supabase.from('product_overrides').select('name,price,description,stock,benefit').eq('id', product.id).single()
+    const { data } = await supabaseAdmin.from('product_overrides').select('name,price,description,stock,benefit').eq('id', product.id).maybeSingle()
     if (data) product = {
       ...product,
       ...(data.name != null ? { name: String(data.name) } : {}),
