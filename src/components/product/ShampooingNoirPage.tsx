@@ -13,7 +13,8 @@ import {
   Droplets, Scissors, Zap, Waves, AlignJustify, Package, Wind,
 } from 'lucide-react'
 
-const PRODUCT = PRODUCTS.find((p) => p.id === '2')!
+type Product = (typeof PRODUCTS)[0]
+
 const REVIEWS = { count: 87, rating: '4,8' }
 const SOCIAL_COUNT = 51
 const FREE_SHIP = 4900
@@ -42,7 +43,7 @@ function getTomorrowLabel() {
   return d.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })
 }
 
-export function ShampooingNoirPage() {
+export function ShampooingNoirPage({ product }: { product: Product }) {
   const [added, setAdded] = useState(false)
   const [stickyVisible, setStickyVisible] = useState(false)
   const atcRef = useRef<HTMLButtonElement>(null)
@@ -54,8 +55,8 @@ export function ShampooingNoirPage() {
   const pct = Math.min(100, (cartTotal / FREE_SHIP) * 100)
   const tomorrow = getTomorrowLabel()
 
-  const relatedProducts = PRODUCT.related
-    ? PRODUCTS.filter((p) => PRODUCT.related!.includes(p.id))
+  const relatedProducts = product.related
+    ? PRODUCTS.filter((p) => product.related!.includes(p.id))
     : []
 
   useEffect(() => {
@@ -70,7 +71,7 @@ export function ShampooingNoirPage() {
   }, [])
 
   function handleAddToCart() {
-    addItem(PRODUCT, undefined)
+    addItem(product, undefined)
     openCart()
     setAdded(true)
     setTimeout(() => setAdded(false), 1400)
@@ -124,12 +125,12 @@ export function ShampooingNoirPage() {
           </div>
 
           <div className="sn-price-block">
-            <div className="sn-price">{formatPrice(PRODUCT.price)}</div>
+            <div className="sn-price">{formatPrice(product.price)}</div>
             <div className="sn-price-note">Prix TTC · Livraison offerte dès 49€</div>
           </div>
 
           <div className="sn-check-list">
-            {(PRODUCT.trust ?? []).map((item, i) => (
+            {(product.trust ?? []).map((item, i) => (
               <div key={i} className="sn-check">
                 <CheckCircle2 size={14} strokeWidth={2} />
                 {item}
@@ -181,7 +182,7 @@ export function ShampooingNoirPage() {
 
         <div className="sn-pd-right">
           <div className="sn-desc-ttl">Description</div>
-          <p className="sn-desc-txt">{PRODUCT.description}</p>
+          <p className="sn-desc-txt">{product.description}</p>
 
           <div className="sn-bens">
             <div className="sn-ben">
@@ -280,7 +281,7 @@ export function ShampooingNoirPage() {
         <div className="fi-sticky-atc">
           <div className="fi-sticky-info">
             <span className="fi-sticky-name">Shampooing Noir Colorant</span>
-            <span className="fi-sticky-price">{formatPrice(PRODUCT.price)}</span>
+            <span className="fi-sticky-price">{formatPrice(product.price)}</span>
           </div>
           <button className="fi-sticky-btn" onClick={handleAddToCart}>
             <ShoppingCart size={14} strokeWidth={2} />
