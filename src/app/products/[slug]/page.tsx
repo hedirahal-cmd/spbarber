@@ -5,7 +5,7 @@ import { ProductDetail } from '@/components/product/ProductDetail'
 import { schemaProduct, schemaBreadcrumb } from '@/lib/schema'
 import { supabaseAdmin } from '@/lib/supabase'
 
-export const revalidate = 60
+export const dynamic = 'force-dynamic'
 
 interface Props {
   params: Promise<{ slug: string }>

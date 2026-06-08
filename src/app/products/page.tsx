@@ -4,7 +4,7 @@ import { PRODUCTS } from '@/lib/products'
 import { supabaseAdmin } from '@/lib/supabase'
 import { formatPrice } from '@/lib/utils'
 
-export const revalidate = 60
+export const dynamic = 'force-dynamic'
 import { AddToCartButton } from '@/components/AddToCartButton'
 import { Scissors, Droplets, User, Zap, Sparkles } from 'lucide-react'
 
