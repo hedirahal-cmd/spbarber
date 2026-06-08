@@ -17,7 +17,7 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   if (!await authed()) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  const body = await req.json()
+  const { id: _id, ...body } = await req.json()
   const { data, error } = await supabase.from('barbers').insert([body]).select().maybeSingle()
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   if (!data) return NextResponse.json({ error: 'Barber introuvable après insertion' }, { status: 404 })
