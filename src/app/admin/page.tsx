@@ -159,6 +159,7 @@ function TabProduits() {
   const [form, setForm] = useState<Record<string, string>>({})
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [saveErr, setSaveErr] = useState('')
 
   useEffect(() => {
     fetch('/api/admin/products').then(r => r.json()).then((rows: Array<Record<string, unknown>>) => {
@@ -181,19 +182,29 @@ function TabProduits() {
     })
     setEditing(id)
     setSaved(false)
+    setSaveErr('')
   }
 
   async function save() {
     if (!editing) return
     setSaving(true)
-    const res = await fetch('/api/admin/products', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: editing, ...form }) })
-    setSaving(false)
-    if (res.ok) {
-      setSaved(true)
-      const rows: Array<Record<string, unknown>> = await fetch('/api/admin/products').then(r => r.json())
-      const map: Record<string, Record<string, unknown>> = {}
-      if (Array.isArray(rows)) rows.forEach(r => { map[r.id as string] = r })
-      setOverrides(map)
+    setSaveErr('')
+    try {
+      const res = await fetch('/api/admin/products', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: editing, ...form }) })
+      if (res.ok) {
+        setSaved(true)
+        const rows: Array<Record<string, unknown>> = await fetch('/api/admin/products').then(r => r.json())
+        const map: Record<string, Record<string, unknown>> = {}
+        if (Array.isArray(rows)) rows.forEach(r => { map[r.id as string] = r })
+        setOverrides(map)
+      } else {
+        const body = await res.json().catch(() => ({}))
+        setSaveErr(body.error ?? `Erreur ${res.status}`)
+      }
+    } catch (e) {
+      setSaveErr(e instanceof Error ? e.message : 'Erreur réseau')
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -283,7 +294,8 @@ function TabProduits() {
 
           <div style={{ padding: 20, flex: 1, overflowY: 'auto' }}>
             {saved && <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 6, padding: '10px 14px', marginBottom: 16, fontSize: 13, color: '#15803d', fontWeight: 500 }}>Modifications sauvegardées</div>}
-            {ov && !saved && <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 6, padding: '10px 14px', marginBottom: 16, fontSize: 12, color: '#92400e' }}>Ce produit a des modifications actives dans Supabase.</div>}
+            {saveErr && <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 6, padding: '10px 14px', marginBottom: 16, fontSize: 13, color: '#b91c1c', fontWeight: 500 }}>Erreur : {saveErr}</div>}
+            {ov && !saved && !saveErr && <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 6, padding: '10px 14px', marginBottom: 16, fontSize: 12, color: '#92400e' }}>Ce produit a des modifications actives dans Supabase.</div>}
 
             {/* Photo */}
             <div style={{ marginBottom: 20 }}>
@@ -302,7 +314,8 @@ function TabProduits() {
 
             {/* Description */}
             <div style={{ marginBottom: 16 }}>
-              <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: S.text, marginBottom: 6 }}>Description</label>
+              <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: S.text, marginBottom: 4 }}>Description</label>
+              <div style={{ fontSize: 12, color: S.muted, marginBottom: 6 }}>Visible dans la section «&nbsp;Description&nbsp;» en bas de la fiche produit</div>
               <textarea rows={4} value={form.description ?? ''} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} style={{ ...S.input, resize: 'vertical' }} />
             </div>
 
