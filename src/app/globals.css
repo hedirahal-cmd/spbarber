@@ -1712,7 +1712,7 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
 .barbers-sec .barber-card { background: #1a1a1a; border: none; border-radius: 0; padding: 26px 22px; display: flex; flex-direction: column; gap: 14px; transition: background 0.2s; }
 .barbers-sec .barber-card:hover { background: #202020; box-shadow: none; transform: none; }
 .barber-hd { display: flex; align-items: center; gap: 12px; }
-.barber-av { width: 46px; height: 46px; border-radius: 50%; background: var(--b); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+.barber-av { width: 46px; height: 46px; border-radius: 50%; background: var(--b); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; overflow: hidden; }
 .barbers-sec .barber-name-txt { font-family: var(--fd); font-size: 18px; letter-spacing: 2px; line-height: 1; margin-bottom: 2px; color: var(--w); }
 .barber-role-txt { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--gold); font-weight: 600; }
 .barber-stars-txt { color: var(--gold); font-size: 10px; letter-spacing: 2px; }
@@ -4171,6 +4171,17 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
+}
+.barber-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.35s ease;
+}
+.barber-card:hover .barber-photo img {
+  transform: scale(1.05);
 }
 .barber-initials {
   font-family: var(--fd);

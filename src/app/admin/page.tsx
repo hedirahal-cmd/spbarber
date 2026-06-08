@@ -1097,14 +1097,14 @@ type BarberRow = {
   id: string; slug: string; nom: string; initiales: string; couleur_avatar: string
   salon_slug: string; ville: string; specialite: string; description: string
   annees_experience: number | null; produit_favori_slug: string; produit_favori_nom: string
-  actif: boolean; ordre: number
+  photo_url: string; actif: boolean; ordre: number
 }
 
 const EMPTY_BARBER: BarberRow = {
   id: '', slug: '', nom: '', initiales: '', couleur_avatar: '#1a3a5a',
   salon_slug: 'fougeres', ville: 'Fougères', specialite: '', description: '',
   annees_experience: null, produit_favori_slug: '', produit_favori_nom: '',
-  actif: true, ordre: 0,
+  photo_url: '', actif: true, ordre: 0,
 }
 
 const BARBER_PRODUCTS = [
@@ -1130,6 +1130,7 @@ function TabBarbers() {
   const [savedMsg, setSavedMsg] = useState('')
   const [deleting, setDeleting] = useState<string | null>(null)
   const [err, setErr] = useState('')
+  const [uploadingPhoto, setUploadingPhoto] = useState(false)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -1205,6 +1206,22 @@ function TabBarbers() {
     setDeleting(null)
     if (editing?.id === id) closePanel()
     await load()
+  }
+
+  async function handlePhotoUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploadingPhoto(true)
+    setF('photo_url', URL.createObjectURL(file))
+    const fd = new FormData()
+    fd.append('file', file)
+    fd.append('slug', form.slug || slugify(form.nom) || `barber-${Date.now()}`)
+    try {
+      const res = await fetch('/api/admin/barbers/upload', { method: 'POST', body: fd })
+      if (res.ok) { const { url } = await res.json(); setF('photo_url', url) }
+      else { setF('photo_url', ''); setErr('Erreur upload photo') }
+    } catch { setF('photo_url', ''); setErr('Erreur upload photo') }
+    finally { setUploadingPhoto(false); e.target.value = '' }
   }
 
   async function moveOrder(idx: number, dir: -1 | 1) {
@@ -1316,10 +1333,13 @@ function TabBarbers() {
             {savedMsg && <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 6, padding: '10px 14px', fontSize: 13, color: '#15803d', fontWeight: 500 }}>{savedMsg}</div>}
             {err && <div style={{ background: '#fef2f2', border: '1px solid #fca5a5', borderRadius: 6, padding: '10px 14px', fontSize: 13, color: '#b91c1c' }}>{err}</div>}
 
-            {/* Avatar preview */}
+            {/* Avatar / photo preview */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 0', borderBottom: `1px solid ${S.border}` }}>
-              <div style={{ width: 52, height: 52, borderRadius: '50%', background: form.couleur_avatar, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, fontWeight: 700, color: '#fff', fontFamily: 'var(--fd)', letterSpacing: 1, flexShrink: 0 }}>
-                {form.initiales || '?'}
+              <div style={{ width: 52, height: 52, borderRadius: '50%', background: form.couleur_avatar, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, fontWeight: 700, color: '#fff', fontFamily: 'var(--fd)', letterSpacing: 1, flexShrink: 0, overflow: 'hidden' }}>
+                {form.photo_url
+                  ? <img src={form.photo_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  : (form.initiales || '?')
+                }
               </div>
               <div>
                 <div style={{ fontSize: 13, fontWeight: 600, color: S.text }}>{form.nom || 'Nom du barber'}</div>
@@ -1346,10 +1366,36 @@ function TabBarbers() {
               <div style={{ fontSize: 11, color: S.muted, marginTop: 4 }}>Laisser vide → auto-généré depuis le nom</div>
             </div>
 
-            {/* Couleur avatar */}
+            {/* Photo + couleur avatar */}
             <div>
-              <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: S.text, marginBottom: 5 }}>Couleur avatar</label>
-              <input type="color" value={form.couleur_avatar} onChange={e => setF('couleur_avatar', e.target.value)} style={{ ...S.input, padding: '4px 6px', height: 36, cursor: 'pointer' }} />
+              <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: S.text, marginBottom: 8 }}>Photo</label>
+              <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start' }}>
+                <div
+                  style={{ width: 80, height: 80, borderRadius: 8, overflow: 'hidden', flexShrink: 0, background: form.couleur_avatar, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', border: `2px dashed ${S.border}` }}
+                  onClick={() => (document.getElementById('barber-photo-input') as HTMLInputElement)?.click()}
+                >
+                  {form.photo_url
+                    ? <img src={form.photo_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    : <span style={{ fontSize: 24, fontWeight: 700, color: '#fff', fontFamily: 'var(--fd)', letterSpacing: 1 }}>{form.initiales || '?'}</span>
+                  }
+                </div>
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <input id="barber-photo-input" type="file" accept=".jpg,.jpeg,.png,.webp" style={{ display: 'none' }} onChange={handlePhotoUpload} />
+                  <button type="button" disabled={uploadingPhoto} onClick={() => (document.getElementById('barber-photo-input') as HTMLInputElement)?.click()} style={{ ...S.btnSecondary, fontSize: 12, padding: '6px 12px' }}>
+                    {uploadingPhoto ? 'Upload…' : 'Changer la photo'}
+                  </button>
+                  {form.photo_url && (
+                    <button type="button" onClick={() => setF('photo_url', '')} style={{ ...S.btnSecondary, fontSize: 12, padding: '6px 12px', color: '#b91c1c', borderColor: '#fca5a5' }}>
+                      Supprimer la photo
+                    </button>
+                  )}
+                  <div style={{ fontSize: 11, color: S.muted }}>JPG, PNG ou WebP</div>
+                </div>
+              </div>
+              <div style={{ marginTop: 10 }}>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 500, color: S.text, marginBottom: 5 }}>Couleur avatar (si pas de photo)</label>
+                <input type="color" value={form.couleur_avatar} onChange={e => setF('couleur_avatar', e.target.value)} style={{ ...S.input, padding: '4px 6px', height: 36, cursor: 'pointer' }} />
+              </div>
             </div>
 
             {/* Ville + salon_slug */}

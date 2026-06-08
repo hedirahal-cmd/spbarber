@@ -7,7 +7,7 @@ import { formatPrice } from '@/lib/utils'
 import { Scissors, Droplets, User, Zap, Sparkles, Truck, Gift, RotateCcw } from 'lucide-react'
 import { HomeSalonSection, DEFAULT_SALON_CONFIG, type SalonConfig } from '@/components/home/HomeSalonSection'
 import { DEFAULT_SALONS, type Salon } from '@/lib/salons'
-import { supabase } from '@/lib/supabase'
+import { supabase, supabaseAdmin } from '@/lib/supabase'
 import { DEFAULT_BARBERS, type Barber } from '@/lib/barbers'
 
 async function getSalonConfig(): Promise<SalonConfig> {
@@ -54,9 +54,9 @@ async function getReviews(): Promise<ReviewDisplay[]> {
 
 async function getBarbers(): Promise<Barber[]> {
   try {
-    const { data } = await supabase
+    const { data } = await supabaseAdmin
       .from('barbers')
-      .select('id,slug,nom,initiales,couleur_avatar,salon_slug,ville,specialite,description,annees_experience,produit_favori_slug,produit_favori_nom,actif,ordre')
+      .select('*')
       .eq('actif', true)
       .order('ordre')
     if (data && data.length > 0) return data as Barber[]
@@ -385,7 +385,12 @@ export default async function HomePage() {
           {barbers.map((b) => (
             <div key={b.slug} className="barber-card">
               <div className="barber-hd">
-                <div className="barber-av" style={{ background: b.couleur_avatar }}>{b.initiales}</div>
+                <div className="barber-av" style={{ background: b.couleur_avatar }}>
+                  {b.photo_url
+                    ? <img src={b.photo_url} alt={b.nom} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    : b.initiales
+                  }
+                </div>
                 <div>
                   <div className="barber-name-txt">{b.nom}</div>
                   <div className="barber-role-txt">{b.ville ?? b.salon_slug ?? ''}</div>

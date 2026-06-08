@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { supabase } from '@/lib/supabase'
+import { supabaseAdmin } from '@/lib/supabase'
 import { DEFAULT_BARBERS, type Barber } from '@/lib/barbers'
 
 export const revalidate = 60
@@ -13,9 +13,9 @@ export const metadata: Metadata = {
 
 async function getBarbers(): Promise<Barber[]> {
   try {
-    const { data } = await supabase
+    const { data } = await supabaseAdmin
       .from('barbers')
-      .select('id,slug,nom,initiales,couleur_avatar,salon_slug,ville,specialite,description,annees_experience,produit_favori_slug,produit_favori_nom,actif,ordre')
+      .select('*')
       .eq('actif', true)
       .order('ordre')
     if (data && data.length > 0) return data as Barber[]
@@ -53,9 +53,12 @@ export default async function BarbersPage() {
             {barbers.map((b) => (
               <article key={b.slug} className="barber-card">
 
-                {/* Photo placeholder */}
+                {/* Photo ou initiales */}
                 <div className="barber-photo" style={{ background: b.couleur_avatar }}>
-                  <div className="barber-initials">{b.initiales}</div>
+                  {b.photo_url
+                    ? <img src={b.photo_url} alt={b.nom} />
+                    : <div className="barber-initials">{b.initiales}</div>
+                  }
                 </div>
 
                 <div className="barber-body">
