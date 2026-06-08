@@ -1,7 +1,8 @@
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 import Link from 'next/link'
 import { PRODUCTS } from '@/lib/products'
-
-export const dynamic = 'force-dynamic'
 import { AddToCartButton } from '@/components/AddToCartButton'
 import { formatPrice } from '@/lib/utils'
 import { Scissors, Droplets, User, Zap, Sparkles, Truck, Gift, RotateCcw } from 'lucide-react'

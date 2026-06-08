@@ -1,12 +1,12 @@
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 import type { Metadata } from 'next'
 import { notFound, redirect } from 'next/navigation'
 import { PRODUCTS } from '@/lib/products'
 import { ProductDetail } from '@/components/product/ProductDetail'
 import { schemaProduct, schemaBreadcrumb } from '@/lib/schema'
 import { supabaseAdmin } from '@/lib/supabase'
-
-export const dynamic = 'force-dynamic'
-export const revalidate = 0
 
 interface Props {
   params: Promise<{ slug: string }>

@@ -1,10 +1,11 @@
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { PRODUCTS } from '@/lib/products'
 import { supabaseAdmin } from '@/lib/supabase'
 import { formatPrice } from '@/lib/utils'
-
-export const dynamic = 'force-dynamic'
 import { AddToCartButton } from '@/components/AddToCartButton'
 import { Scissors, Droplets, User, Zap, Sparkles } from 'lucide-react'
 
