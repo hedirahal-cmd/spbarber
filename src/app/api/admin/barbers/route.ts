@@ -18,8 +18,9 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   if (!await authed()) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const body = await req.json()
-  const { data, error } = await supabase.from('barbers').insert([body]).select().single()
+  const { data, error } = await supabase.from('barbers').insert([body]).select().maybeSingle()
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (!data) return NextResponse.json({ error: 'Barber introuvable après insertion' }, { status: 404 })
   return NextResponse.json(data)
 }
 
@@ -27,8 +28,9 @@ export async function PUT(req: NextRequest) {
   if (!await authed()) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const { id, ...rest } = await req.json()
   if (!id) return NextResponse.json({ error: 'id requis' }, { status: 400 })
-  const { data, error } = await supabase.from('barbers').update(rest).eq('id', id).select().single()
+  const { data, error } = await supabase.from('barbers').update(rest).eq('id', id).select().maybeSingle()
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (!data) return NextResponse.json({ error: 'Barber introuvable' }, { status: 404 })
   return NextResponse.json(data)
 }
 
