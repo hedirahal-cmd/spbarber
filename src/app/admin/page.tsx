@@ -1111,9 +1111,9 @@ const BARBER_PRODUCTS = [
   { slug: 'cire-cheveux-premium', nom: 'Cire Cheveux Premium' },
   { slug: 'pack-barbe-complet', nom: 'Pack Barbe Complet' },
   { slug: 'shampooing-noir-colorant', nom: 'Shampooing Noir Colorant' },
-  { slug: 'creme-curl', nom: 'Crème Curl' },
-  { slug: 'huile-de-barbe', nom: 'Huile de Barbe' },
-  { slug: 'tondeuse-pro', nom: 'Tondeuse Pro' },
+  { slug: 'creme-curl-control', nom: 'Crème Curl Control' },
+  { slug: 'peigne-texture-expert', nom: 'Peigne Texture Expert' },
+  { slug: 'tondeuse-fade-pro', nom: 'Tondeuse Fade Pro' },
 ]
 
 function slugify(s: string): string {
@@ -1127,7 +1127,7 @@ function TabBarbers() {
   const [isNew, setIsNew] = useState(false)
   const [form, setForm] = useState<BarberRow>(EMPTY_BARBER)
   const [saving, setSaving] = useState(false)
-  const [saved, setSaved] = useState(false)
+  const [savedMsg, setSavedMsg] = useState('')
   const [deleting, setDeleting] = useState<string | null>(null)
   const [err, setErr] = useState('')
 
@@ -1144,7 +1144,7 @@ function TabBarbers() {
     setForm({ ...EMPTY_BARBER, ordre: maxOrdre + 1 })
     setEditing(null)
     setIsNew(true)
-    setSaved(false)
+    setSavedMsg('')
     setErr('')
   }
 
@@ -1152,31 +1152,49 @@ function TabBarbers() {
     setForm({ ...b })
     setEditing(b)
     setIsNew(false)
-    setSaved(false)
+    setSavedMsg('')
     setErr('')
   }
 
-  function closePanel() { setEditing(null); setIsNew(false) }
+  function closePanel() { setEditing(null); setIsNew(false); setSavedMsg(''); setErr('') }
 
   function setF<K extends keyof BarberRow>(k: K, v: BarberRow[K]) {
     setForm(f => ({ ...f, [k]: v }))
-    setSaved(false)
+    setSavedMsg('')
   }
 
   async function save() {
     setSaving(true); setErr('')
-    const slug = form.slug.trim() || slugify(form.nom)
+    let slug = form.slug.trim() || slugify(form.nom)
+    if (isNew) {
+      const existingSlugs = barbers.map(b => b.slug)
+      if (existingSlugs.includes(slug)) {
+        let counter = 2
+        while (existingSlugs.includes(`${slug}-${counter}`)) counter++
+        slug = `${slug}-${counter}`
+      }
+    }
     const payload = { ...form, slug }
     if (isNew) {
       const res = await fetch('/api/admin/barbers', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
       setSaving(false)
-      if (res.ok) { setSaved(true); await load(); const d = await res.clone().json(); setEditing(d); setIsNew(false) }
-      else { const d = await res.json().catch(() => ({})); setErr(d.error ?? 'Erreur') }
+      if (res.ok) {
+        const d = await res.json()
+        setForm(d)
+        setEditing(d)
+        setIsNew(false)
+        setSavedMsg('✓ Barber créé avec succès')
+        await load()
+      } else { const d = await res.json().catch(() => ({})); setErr(d.error ?? 'Erreur') }
     } else {
       const res = await fetch('/api/admin/barbers', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
       setSaving(false)
-      if (res.ok) { setSaved(true); await load() }
-      else { const d = await res.json().catch(() => ({})); setErr(d.error ?? 'Erreur') }
+      if (res.ok) {
+        const d = await res.json()
+        setForm(d)
+        setSavedMsg('✓ Modifications sauvegardées')
+        await load()
+      } else { const d = await res.json().catch(() => ({})); setErr(d.error ?? 'Erreur') }
     }
   }
 
@@ -1295,7 +1313,7 @@ function TabBarbers() {
           </div>
 
           <div style={{ padding: 20, flex: 1, display: 'flex', flexDirection: 'column', gap: 14 }}>
-            {saved && <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 6, padding: '10px 14px', fontSize: 13, color: '#15803d', fontWeight: 500 }}>✓ Sauvegardé</div>}
+            {savedMsg && <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 6, padding: '10px 14px', fontSize: 13, color: '#15803d', fontWeight: 500 }}>{savedMsg}</div>}
             {err && <div style={{ background: '#fef2f2', border: '1px solid #fca5a5', borderRadius: 6, padding: '10px 14px', fontSize: 13, color: '#b91c1c' }}>{err}</div>}
 
             {/* Avatar preview */}
@@ -1317,7 +1335,7 @@ function TabBarbers() {
               </div>
               <div>
                 <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: S.text, marginBottom: 5 }}>Initiales</label>
-                <input value={form.initiales} onChange={e => setF('initiales', e.target.value.toUpperCase().slice(0, 2))} maxLength={2} placeholder="SP" style={S.input} />
+                <input value={form.initiales} onChange={e => setF('initiales', e.target.value.toUpperCase().slice(0, 3))} maxLength={3} placeholder="SP" style={S.input} />
               </div>
             </div>
 
