@@ -28,7 +28,7 @@ function getColissimoPrice(poidsTotal: number): number {
 
 export async function POST(req: NextRequest) {
   try {
-    const { items, coupon, email }: { items: CartItem[]; coupon?: string; email?: string } = await req.json()
+    const { items, coupon, email, session_id }: { items: CartItem[]; coupon?: string; email?: string; session_id?: string } = await req.json()
 
     const subtotal = items.reduce(
       (sum, item) => sum + (item.variant?.price ?? item.product.price) * item.quantity,
@@ -69,7 +69,10 @@ export async function POST(req: NextRequest) {
       mode: 'payment',
       customer_creation: 'if_required',
       line_items,
-      metadata: { items: JSON.stringify(compactItems).slice(0, 500) },
+      metadata: {
+        items: JSON.stringify(compactItems).slice(0, 500),
+        ...(session_id ? { session_id } : {}),
+      },
       ...(coupon ? { discounts: [{ coupon }] } : {}),
       ...(email ? { customer_email: email } : {}),
       success_url: `${base}/commande-confirmee?session_id={CHECKOUT_SESSION_ID}`,

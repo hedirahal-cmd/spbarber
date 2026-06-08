@@ -8,6 +8,7 @@ import { useState, useEffect, useRef } from 'react'
 import { PaymentLogos } from './PaymentLogos'
 import { formatPrice } from '@/lib/utils'
 import { PRODUCTS } from '@/lib/products'
+import { getSessionId } from '@/lib/session'
 
 const FREE_SHIP = 4900
 const FREE_GIFT = 7000
@@ -123,6 +124,7 @@ export function CartDrawer() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           items,
+          session_id: getSessionId(),
           ...(couponApplied && couponCode.trim() ? { coupon: couponCode.trim().toUpperCase() } : {}),
         }),
       })

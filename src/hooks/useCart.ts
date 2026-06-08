@@ -1,6 +1,22 @@
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
+import { persist, createJSONStorage } from 'zustand/middleware'
 import { CartItem, Product, ProductVariant } from '@/types'
+import { getSessionId } from '@/lib/session'
+
+const sessionCartStorage = createJSONStorage(() => ({
+  getItem: (name: string) => {
+    if (typeof window === 'undefined') return null
+    return localStorage.getItem(`${name}_${getSessionId()}`)
+  },
+  setItem: (name: string, value: string) => {
+    if (typeof window === 'undefined') return
+    localStorage.setItem(`${name}_${getSessionId()}`, value)
+  },
+  removeItem: (name: string) => {
+    if (typeof window === 'undefined') return
+    localStorage.removeItem(`${name}_${getSessionId()}`)
+  },
+}))
 
 interface CartStore {
   items: CartItem[]
@@ -75,7 +91,8 @@ export const useCart = create<CartStore>()(
       itemCount: () => get().items.reduce((sum, item) => sum + item.quantity, 0),
     }),
     {
-      name: 'spbarber-cart',
+      name: 'cart',
+      storage: sessionCartStorage,
       partialize: (state) => ({ items: state.items }),
     }
   )

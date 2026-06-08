@@ -1,6 +1,7 @@
 'use client'
 import { useCart } from '@/hooks/useCart'
 import { useState } from 'react'
+import { getSessionId } from '@/lib/session'
 import Link from 'next/link'
 import {
   Lock, Truck, RotateCcw, ArrowLeft,
@@ -50,6 +51,7 @@ export default function CheckoutPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           items,
+          session_id: getSessionId(),
           ...(email.trim() ? { email: email.trim() } : {}),
           ...(couponApplied && couponCode.trim()
             ? { coupon: couponCode.trim().toUpperCase() }

@@ -4,6 +4,7 @@ import './globals.css'
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
 import { CartDrawer } from '@/components/CartDrawer'
+import { SessionInit } from '@/components/SessionInit'
 
 /* ── Fonts via next/font (pas de requête externe, display=swap automatique) ── */
 const bebasNeue = Bebas_Neue({
@@ -99,6 +100,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <main>{children}</main>
         <Footer />
         <CartDrawer />
+        <SessionInit />
       </body>
     </html>
   )

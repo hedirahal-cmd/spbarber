@@ -3,6 +3,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useCart } from '@/hooks/useCart'
 import { formatPrice } from '@/lib/utils'
+import { getSessionId } from '@/lib/session'
 import { Trash2, Plus, Minus, Lock } from 'lucide-react'
 
 export default function CartPage() {
@@ -18,7 +19,7 @@ export default function CartPage() {
       const res = await fetch('/api/stripe/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ items }),
+        body: JSON.stringify({ items, session_id: getSessionId() }),
       })
       const data = await res.json()
       if (data.url) {
