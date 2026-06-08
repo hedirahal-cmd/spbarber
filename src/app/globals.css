@@ -58,13 +58,13 @@ button { font-family: var(--fb); }
 .site-nav-left {
   display: flex;
   align-items: center;
-  gap: 36px;
+  gap: 24px;
   flex: 1;
 }
 .site-nav-links-desktop {
   display: flex;
   align-items: center;
-  gap: 36px;
+  gap: 28px;
 }
 .site-nav-links-desktop a,
 .site-nav-links-desktop a:visited {
@@ -110,6 +110,7 @@ button { font-family: var(--fb); }
   align-items: center;
   flex: 1;
   justify-content: flex-end;
+  gap: 20px;
 }
 .site-nav-cart {
   position: relative;

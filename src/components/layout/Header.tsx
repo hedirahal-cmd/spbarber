@@ -5,12 +5,6 @@ import { useState } from 'react'
 import { usePathname } from 'next/navigation'
 import { useCart } from '@/hooks/useCart'
 
-const NAV_LINKS = [
-  { label: 'Produits', href: '/products' },
-  { label: 'Barbers', href: '/barbers' },
-  { label: 'Conseils', href: '/conseils' },
-]
-
 export function Header() {
   const [menuOpen, setMenuOpen] = useState(false)
   const openCart = useCart((s) => s.openCart)
@@ -27,6 +21,16 @@ export function Header() {
     }
   }
 
+  function handleBestSellersClick(e: React.MouseEvent) {
+    e.preventDefault()
+    setMenuOpen(false)
+    if (pathname === '/') {
+      document.getElementById('produits')?.scrollIntoView({ behavior: 'smooth' })
+    } else {
+      window.location.href = '/#produits'
+    }
+  }
+
   return (
     <>
       <div className="ann">
@@ -36,7 +40,7 @@ export function Header() {
       <nav className="site-nav">
         <div className="site-nav-inner">
 
-          {/* Gauche : hamburger (mobile) + liens nav (desktop) */}
+          {/* Gauche : hamburger (mobile) + 4 liens produits/salons (desktop) */}
           <div className="site-nav-left">
             <button
               className="hamburger"
@@ -46,10 +50,10 @@ export function Header() {
               {menuOpen ? <X size={22} /> : <Menu size={22} />}
             </button>
             <div className="site-nav-links-desktop">
+              <a href="/#produits" onClick={handleBestSellersClick}>Best Sellers</a>
+              <Link href="/products/pack-barbe-complet">Packs</Link>
+              <Link href="/products">Tous les produits</Link>
               <a href="/#salons" onClick={handleSalonsClick}>Nos salons</a>
-              {NAV_LINKS.map(({ label, href }) => (
-                <Link key={label} href={href}>{label}</Link>
-              ))}
             </div>
           </div>
 
@@ -58,8 +62,12 @@ export function Header() {
             SP<span style={{ color: 'var(--gold)' }}>.</span>BARBER
           </Link>
 
-          {/* Droite : Panier uniquement */}
+          {/* Droite : 2 liens secondaires + panier */}
           <div className="site-nav-right">
+            <div className="site-nav-links-desktop">
+              <Link href="/conseils">Conseils</Link>
+              <Link href="/barbers">L&apos;équipe</Link>
+            </div>
             <button
               className="site-nav-cart"
               onClick={openCart}
@@ -72,15 +80,15 @@ export function Header() {
 
         </div>
 
-        {/* Menu mobile */}
+        {/* Menu mobile — tous les liens dans l'ordre gauche → droite */}
         {menuOpen && (
           <div className="mobile-menu">
+            <a href="/#produits" onClick={handleBestSellersClick}>Best Sellers</a>
+            <Link href="/products/pack-barbe-complet" onClick={() => setMenuOpen(false)}>Packs</Link>
+            <Link href="/products" onClick={() => setMenuOpen(false)}>Tous les produits</Link>
             <a href="/#salons" onClick={handleSalonsClick}>Nos salons</a>
-            {NAV_LINKS.map(({ label, href }) => (
-              <Link key={label} href={href} onClick={() => setMenuOpen(false)}>
-                {label}
-              </Link>
-            ))}
+            <Link href="/conseils" onClick={() => setMenuOpen(false)}>Conseils</Link>
+            <Link href="/barbers" onClick={() => setMenuOpen(false)}>L&apos;équipe</Link>
           </div>
         )}
       </nav>
