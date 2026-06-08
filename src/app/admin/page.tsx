@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { PRODUCTS } from '@/lib/products'
 
-type NavSection = 'produits' | 'commandes' | 'legal' | 'avis' | 'salons' | 'barbers'
+type NavSection = 'produits' | 'commandes' | 'legal' | 'avis' | 'salons' | 'barbers' | 'temoignages-pros'
 
 const ORDER_STATUSES = ['pending', 'paid', 'shipped', 'delivered', 'cancelled']
 const LEGAL_SLUGS = [
@@ -91,7 +91,7 @@ function Sidebar({ active, setActive, logout }: { active: NavSection; setActive:
   const sections = [
     { label: 'CATALOGUE', items: [{ id: 'produits' as NavSection, label: 'Produits' }] },
     { label: 'VENTES', items: [{ id: 'commandes' as NavSection, label: 'Commandes' }] },
-    { label: 'SALONS', items: [{ id: 'salons' as NavSection, label: 'Salons' }, { id: 'barbers' as NavSection, label: 'Barbers' }] },
+    { label: 'SALONS', items: [{ id: 'salons' as NavSection, label: 'Salons' }, { id: 'barbers' as NavSection, label: 'Barbers' }, { id: 'temoignages-pros' as NavSection, label: 'Témoignages pros' }] },
     { label: 'CONTENU', items: [{ id: 'legal' as NavSection, label: 'Textes légaux' }, { id: 'avis' as NavSection, label: 'Avis clients' }] },
   ]
   return (
@@ -1665,6 +1665,351 @@ function TabAvis() {
   )
 }
 
+// ─── Tab Témoignages Pros ───────────────────────────────────────
+type TemoProRow = {
+  id: string; nom: string; initiales: string; couleur_avatar: string
+  photo_url: string; salon: string; ville: string; annees_experience: number | null
+  citation: string; produit_favori_slug: string; produit_favori_nom: string
+  actif: boolean; ordre: number
+}
+
+const EMPTY_TEMOPRO: TemoProRow = {
+  id: '', nom: '', initiales: '', couleur_avatar: '#1a3a5c',
+  photo_url: '', salon: '', ville: '', annees_experience: null,
+  citation: '', produit_favori_slug: '', produit_favori_nom: '',
+  actif: true, ordre: 0,
+}
+
+function TabTemoignagesPros() {
+  const [temos, setTemos] = useState<TemoProRow[]>([])
+  const [loading, setLoading] = useState(true)
+  const [editing, setEditing] = useState<TemoProRow | null>(null)
+  const [isNew, setIsNew] = useState(false)
+  const [form, setForm] = useState<TemoProRow>(EMPTY_TEMOPRO)
+  const [saving, setSaving] = useState(false)
+  const [savedMsg, setSavedMsg] = useState('')
+  const [deleting, setDeleting] = useState<string | null>(null)
+  const [err, setErr] = useState('')
+  const [uploadingPhoto, setUploadingPhoto] = useState(false)
+
+  const load = useCallback(async () => {
+    setLoading(true)
+    const res = await fetch('/api/admin/temoignages-pros')
+    if (res.ok) setTemos(await res.json())
+    setLoading(false)
+  }, [])
+  useEffect(() => { load() }, [load])
+
+  function startNew() {
+    const maxOrdre = temos.reduce((m, t) => Math.max(m, t.ordre), 0)
+    setForm({ ...EMPTY_TEMOPRO, ordre: maxOrdre + 1 })
+    setEditing(null)
+    setIsNew(true)
+    setSavedMsg('')
+    setErr('')
+  }
+
+  function startEdit(t: TemoProRow) {
+    setForm({ ...t })
+    setEditing(t)
+    setIsNew(false)
+    setSavedMsg('')
+    setErr('')
+  }
+
+  function closePanel() { setEditing(null); setIsNew(false); setSavedMsg(''); setErr('') }
+
+  function setF<K extends keyof TemoProRow>(k: K, v: TemoProRow[K]) {
+    setForm(f => ({ ...f, [k]: v }))
+    setSavedMsg('')
+  }
+
+  async function save() {
+    setSaving(true); setErr('')
+    if (isNew) {
+      const res = await fetch('/api/admin/temoignages-pros', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) })
+      setSaving(false)
+      if (res.ok) {
+        const d = await res.json()
+        setForm(d)
+        setEditing(d)
+        setIsNew(false)
+        setSavedMsg('✓ Témoignage créé avec succès')
+        await load()
+      } else { const d = await res.json().catch(() => ({})); setErr(d.error ?? 'Erreur') }
+    } else {
+      const res = await fetch('/api/admin/temoignages-pros', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) })
+      setSaving(false)
+      if (res.ok) {
+        const d = await res.json()
+        setForm(d)
+        setSavedMsg('✓ Modifications sauvegardées')
+        await load()
+      } else { const d = await res.json().catch(() => ({})); setErr(d.error ?? 'Erreur') }
+    }
+  }
+
+  async function del(id: string) {
+    if (!confirm('Supprimer ce témoignage ?')) return
+    setDeleting(id)
+    await fetch('/api/admin/temoignages-pros', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) })
+    setDeleting(null)
+    if (editing?.id === id) closePanel()
+    await load()
+  }
+
+  async function handlePhotoUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploadingPhoto(true)
+    setF('photo_url', URL.createObjectURL(file))
+    const fd = new FormData()
+    fd.append('file', file)
+    fd.append('slug', `temopro-${slugify(form.nom) || Date.now()}`)
+    try {
+      const res = await fetch('/api/admin/barbers/upload', { method: 'POST', body: fd })
+      if (res.ok) { const { url } = await res.json(); setF('photo_url', url) }
+      else { setF('photo_url', ''); setErr('Erreur upload photo') }
+    } catch { setF('photo_url', ''); setErr('Erreur upload photo') }
+    finally { setUploadingPhoto(false); e.target.value = '' }
+  }
+
+  async function moveOrder(idx: number, dir: -1 | 1) {
+    const other = temos[idx + dir]
+    const curr = temos[idx]
+    if (!other) return
+    await Promise.all([
+      fetch('/api/admin/temoignages-pros', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: curr.id, ordre: other.ordre }) }),
+      fetch('/api/admin/temoignages-pros', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: other.id, ordre: curr.ordre }) }),
+    ])
+    await load()
+  }
+
+  return (
+    <div style={{ display: 'flex', gap: 0, height: '100%' }}>
+      {/* Liste */}
+      <div style={{ flex: 1, overflowY: 'auto' }}>
+        <div style={{ padding: '20px 24px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <h1 style={{ fontSize: 20, fontWeight: 600, color: S.text, margin: 0 }}>Témoignages pros</h1>
+            <p style={{ fontSize: 13, color: S.muted, margin: '2px 0 0' }}>{temos.length} témoignage{temos.length !== 1 ? 's' : ''} — section homepage &quot;Recommandé par vos barbiers&quot;</p>
+          </div>
+          <button onClick={startNew} style={S.btnPrimary}>+ Ajouter</button>
+        </div>
+
+        <div style={{ padding: '0 24px 24px' }}>
+          {loading ? (
+            <div style={{ padding: '40px 0', textAlign: 'center', color: S.muted }}>Chargement…</div>
+          ) : !temos.length ? (
+            <div style={{ ...S.card_, padding: '40px 24px', textAlign: 'center' }}>
+              <div style={{ fontSize: 13, color: S.muted }}>Aucun témoignage. Cliquez sur &quot;+ Ajouter&quot;.</div>
+            </div>
+          ) : (
+            <div style={{ ...S.card_, overflow: 'hidden' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
+                <thead>
+                  <tr style={{ borderBottom: `1px solid ${S.border}` }}>
+                    {['', 'Nom', 'Salon / Ville', 'Citation', 'Exp.', 'Statut', 'Ordre', ''].map((h, i) => (
+                      <th key={i} style={{ padding: '12px 16px', textAlign: 'left', fontSize: 12, fontWeight: 600, color: S.muted }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {temos.map((t, idx) => {
+                    const isActive = editing?.id === t.id
+                    return (
+                      <tr key={t.id} style={{ borderBottom: `1px solid ${S.border}`, background: isActive ? '#fdf8f0' : 'transparent' }}
+                        onMouseEnter={e => { if (!isActive) (e.currentTarget as HTMLElement).style.background = S.bg }}
+                        onMouseLeave={e => { if (!isActive) (e.currentTarget as HTMLElement).style.background = 'transparent' }}>
+                        <td style={{ padding: '12px 8px 12px 16px' }}>
+                          <div style={{ width: 36, height: 36, borderRadius: '50%', background: t.couleur_avatar, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: '#fff', overflow: 'hidden' }}>
+                            {t.photo_url ? <img src={t.photo_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : (t.initiales || '?')}
+                          </div>
+                        </td>
+                        <td style={{ padding: '12px 16px', cursor: 'pointer' }} onClick={() => startEdit(t)}>
+                          <div style={{ fontWeight: 500, color: S.text }}>{t.nom}</div>
+                          <div style={{ fontSize: 12, color: S.muted, marginTop: 2 }}>{t.produit_favori_nom || '—'}</div>
+                        </td>
+                        <td style={{ padding: '12px 16px', color: S.muted, fontSize: 13, cursor: 'pointer' }} onClick={() => startEdit(t)}>
+                          {t.salon || t.ville || '—'}
+                        </td>
+                        <td style={{ padding: '12px 16px', color: S.muted, fontSize: 13, maxWidth: 200, cursor: 'pointer' }} onClick={() => startEdit(t)}>
+                          <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.citation || '—'}</div>
+                        </td>
+                        <td style={{ padding: '12px 16px', color: S.muted, fontSize: 13 }}>
+                          {t.annees_experience ? `${t.annees_experience} ans` : '—'}
+                        </td>
+                        <td style={{ padding: '12px 16px' }}>
+                          <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 20, background: t.actif ? '#f0fdf4' : '#f4f4f5', color: t.actif ? '#15803d' : '#71717a' }}>
+                            {t.actif ? 'Actif' : 'Inactif'}
+                          </span>
+                        </td>
+                        <td style={{ padding: '12px 16px' }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                            <button disabled={idx === 0} onClick={() => moveOrder(idx, -1)} style={{ ...S.btnSecondary, padding: '2px 8px', fontSize: 11, opacity: idx === 0 ? 0.3 : 1 }}>↑</button>
+                            <button disabled={idx === temos.length - 1} onClick={() => moveOrder(idx, 1)} style={{ ...S.btnSecondary, padding: '2px 8px', fontSize: 11, opacity: idx === temos.length - 1 ? 0.3 : 1 }}>↓</button>
+                          </div>
+                        </td>
+                        <td style={{ padding: '12px 16px' }}>
+                          <div style={{ display: 'flex', gap: 6 }}>
+                            <button onClick={() => startEdit(t)} style={{ ...S.btnSecondary, padding: '5px 10px', fontSize: 12 }}>Modifier</button>
+                            <button onClick={() => del(t.id)} disabled={deleting === t.id} style={{ ...S.btnSecondary, padding: '5px 10px', fontSize: 12, color: '#b91c1c', borderColor: '#fca5a5' }}>
+                              {deleting === t.id ? '…' : 'Supprimer'}
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Panel d'édition */}
+      {(editing || isNew) && (
+        <div style={{ width: 420, background: S.card, borderLeft: `1px solid ${S.border}`, display: 'flex', flexDirection: 'column', height: '100%', overflowY: 'auto', flexShrink: 0 }}>
+          <div style={{ padding: '16px 20px', borderBottom: `1px solid ${S.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
+            <div>
+              <div style={{ fontSize: 15, fontWeight: 600, color: S.text }}>{isNew ? 'Nouveau témoignage' : form.nom}</div>
+              <div style={{ fontSize: 12, color: S.muted, marginTop: 2 }}>{isNew ? 'Section homepage barbiers' : `${form.salon || form.ville || '—'}`}</div>
+            </div>
+            <button onClick={closePanel} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, color: S.muted, padding: 4 }}>×</button>
+          </div>
+
+          <div style={{ padding: 20, flex: 1, display: 'flex', flexDirection: 'column', gap: 14 }}>
+            {savedMsg && <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 6, padding: '10px 14px', fontSize: 13, color: '#15803d', fontWeight: 500 }}>{savedMsg}</div>}
+            {err && <div style={{ background: '#fef2f2', border: '1px solid #fca5a5', borderRadius: 6, padding: '10px 14px', fontSize: 13, color: '#b91c1c' }}>{err}</div>}
+
+            {/* Avatar / photo preview */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 0', borderBottom: `1px solid ${S.border}` }}>
+              <div style={{ width: 52, height: 52, borderRadius: '50%', background: form.couleur_avatar, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, fontWeight: 700, color: '#fff', fontFamily: 'var(--fd)', letterSpacing: 1, flexShrink: 0, overflow: 'hidden' }}>
+                {form.photo_url
+                  ? <img src={form.photo_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  : (form.initiales || '?')
+                }
+              </div>
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: S.text }}>{form.nom || 'Nom du barbier'}</div>
+                <div style={{ fontSize: 11, color: S.muted }}>{form.ville || '—'} · {form.salon || '—'}</div>
+              </div>
+            </div>
+
+            {/* Nom + initiales */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 80px', gap: 10 }}>
+              <div>
+                <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: S.text, marginBottom: 5 }}>Nom</label>
+                <input value={form.nom} onChange={e => setF('nom', e.target.value)} placeholder="Karim M." style={S.input} />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: S.text, marginBottom: 5 }}>Initiales</label>
+                <input value={form.initiales} onChange={e => setF('initiales', e.target.value.toUpperCase().slice(0, 3))} maxLength={3} placeholder="KM" style={S.input} />
+              </div>
+            </div>
+
+            {/* Photo + couleur avatar */}
+            <div>
+              <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: S.text, marginBottom: 8 }}>Photo</label>
+              <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start' }}>
+                <div
+                  style={{ width: 80, height: 80, borderRadius: 8, overflow: 'hidden', flexShrink: 0, background: form.couleur_avatar, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', border: `2px dashed ${S.border}` }}
+                  onClick={() => (document.getElementById('temopro-photo-input') as HTMLInputElement)?.click()}
+                >
+                  {form.photo_url
+                    ? <img src={form.photo_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    : <span style={{ fontSize: 24, fontWeight: 700, color: '#fff', fontFamily: 'var(--fd)', letterSpacing: 1 }}>{form.initiales || '?'}</span>
+                  }
+                </div>
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <input id="temopro-photo-input" type="file" accept=".jpg,.jpeg,.png,.webp" style={{ display: 'none' }} onChange={handlePhotoUpload} />
+                  <button type="button" disabled={uploadingPhoto} onClick={() => (document.getElementById('temopro-photo-input') as HTMLInputElement)?.click()} style={{ ...S.btnSecondary, fontSize: 12, padding: '6px 12px' }}>
+                    {uploadingPhoto ? 'Upload…' : 'Changer la photo'}
+                  </button>
+                  {form.photo_url && (
+                    <button type="button" onClick={() => setF('photo_url', '')} style={{ ...S.btnSecondary, fontSize: 12, padding: '6px 12px', color: '#b91c1c', borderColor: '#fca5a5' }}>
+                      Supprimer la photo
+                    </button>
+                  )}
+                  <div style={{ fontSize: 11, color: S.muted }}>JPG, PNG ou WebP</div>
+                </div>
+              </div>
+              <div style={{ marginTop: 10 }}>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 500, color: S.text, marginBottom: 5 }}>Couleur avatar (si pas de photo)</label>
+                <input type="color" value={form.couleur_avatar} onChange={e => setF('couleur_avatar', e.target.value)} style={{ ...S.input, padding: '4px 6px', height: 36, cursor: 'pointer' }} />
+              </div>
+            </div>
+
+            {/* Ville + salon */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+              <div>
+                <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: S.text, marginBottom: 5 }}>Ville</label>
+                <input value={form.ville} onChange={e => setF('ville', e.target.value)} placeholder="Fougères" style={S.input} />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: S.text, marginBottom: 5 }}>Salon</label>
+                <input value={form.salon} onChange={e => setF('salon', e.target.value)} placeholder="Barber King" style={S.input} />
+              </div>
+            </div>
+
+            {/* Citation */}
+            <div>
+              <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: S.text, marginBottom: 5 }}>Citation</label>
+              <textarea rows={3} value={form.citation} onChange={e => setF('citation', e.target.value)} placeholder={`"Mon produit favori…"`} style={{ ...S.input, resize: 'vertical' }} />
+              <div style={{ fontSize: 11, color: S.muted, marginTop: 4 }}>Affiché sur la section homepage &quot;Recommandé par vos barbiers&quot;</div>
+            </div>
+
+            {/* Années d'expérience */}
+            <div>
+              <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: S.text, marginBottom: 5 }}>Années d&apos;expérience</label>
+              <input type="number" min={0} max={50} value={form.annees_experience ?? ''} onChange={e => setF('annees_experience', e.target.value ? Number(e.target.value) : null)} placeholder="8" style={S.input} />
+            </div>
+
+            {/* Produit favori */}
+            <div>
+              <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: S.text, marginBottom: 5 }}>Produit favori</label>
+              <select
+                value={form.produit_favori_slug}
+                onChange={e => {
+                  const p = BARBER_PRODUCTS.find(x => x.slug === e.target.value)
+                  setF('produit_favori_slug', e.target.value)
+                  if (p) setF('produit_favori_nom', p.nom)
+                }}
+                style={S.input}
+              >
+                <option value="">— Aucun —</option>
+                {BARBER_PRODUCTS.map(p => <option key={p.slug} value={p.slug}>{p.nom}</option>)}
+              </select>
+            </div>
+
+            {/* Ordre + Actif */}
+            <div style={{ display: 'grid', gridTemplateColumns: '80px 1fr', gap: 10, alignItems: 'end' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: S.text, marginBottom: 5 }}>Ordre</label>
+                <input type="number" min={0} value={form.ordre} onChange={e => setF('ordre', Number(e.target.value))} style={S.input} />
+              </div>
+              <div>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: S.text, cursor: 'pointer', paddingBottom: 2 }}>
+                  <input type="checkbox" checked={form.actif} onChange={e => setF('actif', e.target.checked)} />
+                  Actif (visible sur le site)
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div style={{ padding: '16px 20px', borderTop: `1px solid ${S.border}`, display: 'flex', gap: 8, flexShrink: 0 }}>
+            <button onClick={save} disabled={saving || !form.nom.trim()} style={{ ...S.btnPrimary, flex: 1, opacity: !form.nom.trim() ? 0.5 : 1 }}>
+              {saving ? 'Sauvegarde…' : isNew ? 'Créer' : 'Sauvegarder'}
+            </button>
+            <button onClick={closePanel} style={S.btnSecondary}>Annuler</button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ─── Page principale ───────────────────────────────────────────
 export default function AdminPage() {
   const [auth, setAuth] = useState<boolean | null>(null)
@@ -1700,6 +2045,7 @@ export default function AdminPage() {
           {nav === 'avis' && <TabAvis />}
           {nav === 'salons' && <TabSalons />}
           {nav === 'barbers' && <TabBarbers />}
+          {nav === 'temoignages-pros' && <TabTemoignagesPros />}
         </div>
       </div>
     </div>

@@ -8,7 +8,6 @@ import { Scissors, Droplets, User, Zap, Sparkles, Truck, Gift, RotateCcw } from 
 import { HomeSalonSection, DEFAULT_SALON_CONFIG, type SalonConfig } from '@/components/home/HomeSalonSection'
 import { DEFAULT_SALONS, type Salon } from '@/lib/salons'
 import { supabase, supabaseAdmin } from '@/lib/supabase'
-import { DEFAULT_BARBERS, type Barber } from '@/lib/barbers'
 
 async function getSalonConfig(): Promise<SalonConfig> {
   try {
@@ -52,16 +51,29 @@ async function getReviews(): Promise<ReviewDisplay[]> {
   return []
 }
 
-async function getBarbers(): Promise<Barber[]> {
+type TemoPro = {
+  id: string; nom: string; initiales: string; couleur_avatar: string
+  photo_url: string | null; salon: string | null; ville: string | null
+  annees_experience: number | null; citation: string | null
+  produit_favori_slug: string | null; produit_favori_nom: string | null
+}
+
+const DEFAULT_TEMOS_PROS: TemoPro[] = [
+  { id: '1', nom: 'Samy P.', initiales: 'SP', couleur_avatar: '#1a3a5c', photo_url: null, salon: 'SP Barber Shop', ville: 'Fougères', annees_experience: 8, citation: 'La Cire Premium est mon indispensable. Tenue impeccable du matin au soir — je l\'utilise sur tous mes clients depuis des années.', produit_favori_slug: 'cire-cheveux-premium', produit_favori_nom: 'Cire Cheveux Premium' },
+  { id: '2', nom: 'Karim M.', initiales: 'KM', couleur_avatar: '#4a1a6b', photo_url: null, salon: 'Barber King', ville: 'Fougères', annees_experience: 5, citation: 'Le Pack Barbe, c\'est exactement ce que je recommande à mes clients qui veulent entretenir leur barbe à la maison comme en salon.', produit_favori_slug: 'pack-barbe-complet', produit_favori_nom: 'Pack Barbe Complet' },
+  { id: '3', nom: 'David L.', initiales: 'DL', couleur_avatar: '#1a5c3a', photo_url: null, salon: 'SP Barbershop', ville: 'Ernée', annees_experience: 4, citation: 'Le Shampooing Noir est parfait pour raviver la couleur entre deux coupes. Aucun client ne revient sans vouloir en racheter.', produit_favori_slug: 'shampooing-noir-colorant', produit_favori_nom: 'Shampooing Noir Colorant' },
+]
+
+async function getTemoignagesPros(): Promise<TemoPro[]> {
   try {
     const { data } = await supabaseAdmin
-      .from('barbers')
+      .from('temoignages_pros')
       .select('*')
       .eq('actif', true)
       .order('ordre')
-    if (data && data.length > 0) return data as Barber[]
+    if (data && data.length > 0) return data as TemoPro[]
   } catch {}
-  return DEFAULT_BARBERS
+  return DEFAULT_TEMOS_PROS
 }
 
 async function getProductOverrides(): Promise<Record<string, ProdOverride>> {
@@ -113,7 +125,7 @@ const REVIEWS = [
 export default async function HomePage() {
   const salonConfig      = await getSalonConfig()
   const salons           = await getSalons()
-  const barbers          = await getBarbers()
+  const temos            = await getTemoignagesPros()
   const reviewsDb        = await getReviews()
   const reviews          = reviewsDb.length > 0 ? reviewsDb : REVIEWS
   const overrides        = await getProductOverrides()
@@ -382,26 +394,26 @@ export default async function HomePage() {
           </div>
         </div>
         <div className="barbers-grid">
-          {barbers.map((b) => (
-            <div key={b.slug} className="barber-card">
+          {temos.map((t) => (
+            <div key={t.id} className="barber-card">
               <div className="barber-hd">
-                <div className="barber-av" style={{ background: b.couleur_avatar }}>
-                  {b.photo_url
-                    ? <img src={b.photo_url} alt={b.nom} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    : b.initiales
+                <div className="barber-av" style={{ background: t.couleur_avatar }}>
+                  {t.photo_url
+                    ? <img src={t.photo_url} alt={t.nom} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    : t.initiales
                   }
                 </div>
                 <div>
-                  <div className="barber-name-txt">{b.nom}</div>
-                  <div className="barber-role-txt">{b.ville ?? b.salon_slug ?? ''}</div>
-                  {b.annees_experience && <div className="barber-exp-badge">{b.annees_experience} ans d&apos;expérience</div>}
+                  <div className="barber-name-txt">{t.nom}</div>
+                  <div className="barber-role-txt">{t.ville ?? t.salon ?? ''}</div>
+                  {t.annees_experience && <div className="barber-exp-badge">{t.annees_experience} ans d&apos;expérience</div>}
                 </div>
               </div>
               <div className="barber-stars-txt">★★★★★</div>
-              {b.description && <p className="barber-quote-txt">{b.description}</p>}
-              {b.produit_favori_slug && b.produit_favori_nom && (
-                <Link href={`/products/${b.produit_favori_slug}`} className="barber-fav-link">
-                  Produit favori : <strong>{b.produit_favori_nom}</strong> →
+              {t.citation && <p className="barber-quote-txt">{t.citation}</p>}
+              {t.produit_favori_slug && t.produit_favori_nom && (
+                <Link href={`/products/${t.produit_favori_slug}`} className="barber-fav-link">
+                  Produit favori : <strong>{t.produit_favori_nom}</strong> →
                 </Link>
               )}
             </div>
