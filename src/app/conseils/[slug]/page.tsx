@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Clock, User, ArrowRight } from 'lucide-react'
-import { schemaBreadcrumb } from '@/lib/schema'
+import { schemaBreadcrumb, jsonLd } from '@/lib/schema'
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -349,11 +349,11 @@ export default async function ArticlePage({ params }: Props) {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }}
+        dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumb) }}
       />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }}
+        dangerouslySetInnerHTML={{ __html: jsonLd(articleSchema) }}
       />
 
       <div className="article-page">

@@ -4,7 +4,7 @@ export const revalidate = 0
 import type { Metadata } from 'next'
 import { PRODUCTS } from '@/lib/products'
 import { ShampooingNoirPage } from '@/components/product/ShampooingNoirPage'
-import { schemaProduct, schemaBreadcrumb } from '@/lib/schema'
+import { schemaProduct, schemaBreadcrumb, jsonLd } from '@/lib/schema'
 import { supabaseAdmin } from '@/lib/supabase'
 
 const BASE_PRODUCT = PRODUCTS.find((p) => p.id === '2')!
@@ -74,11 +74,11 @@ export default async function ShampooingNoirRoute() {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}
+        dangerouslySetInnerHTML={{ __html: jsonLd(productSchema) }}
       />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+        dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbSchema) }}
       />
       <ShampooingNoirPage product={product} />
     </>

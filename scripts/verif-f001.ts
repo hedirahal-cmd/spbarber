@@ -124,10 +124,14 @@ async function main() {
   console.log('\n=======================================')
   console.log('  ' + ok + ' OK, ' + ko + ' ECHEC')
   console.log('=======================================')
-  // On sort DANS le callback de fermeture : quitter pendant qu un handle est en
-  // cours de fermeture fait echouer une assertion libuv sous Windows, et le banc
-  // sortait alors en 127 tout en annoncant 0 echec (reproduit 2 fois sur 3).
-  serveur.close(() => process.exit(ko === 0 ? 0 : 1))
+  // On NE FORCE PAS la sortie : appeler process.exit() pendant qu un handle se
+  // ferme fait echouer une assertion libuv sous Windows, et le banc sortait alors
+  // en 127 tout en annoncant 0 echec. Sortir depuis le callback de fermeture
+  // reduisait le defaut sans le supprimer (encore reproduit 1 fois sur 3 sous
+  // charge). On ferme le serveur, on pose le code, et on laisse la boucle
+  // d evenements se vider d elle-meme : plus rien ne peut courir.
+  serveur.close()
+  process.exitCode = ko === 0 ? 0 : 1
 }
 
 main().catch((e) => { console.error(e); process.exit(1) })

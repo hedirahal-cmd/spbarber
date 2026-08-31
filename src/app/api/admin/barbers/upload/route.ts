@@ -1,13 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
 import { supabaseAdmin } from '@/lib/supabase'
-
-async function authed(): Promise<boolean> {
-  return (await cookies()).get('spbarber_admin')?.value === 'authenticated'
-}
+import { estAdmin } from '@/lib/admin-auth'
 
 export async function POST(req: NextRequest) {
-  if (!await authed()) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!await estAdmin()) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const formData = await req.formData()
   const file = formData.get('file') as File | null

@@ -2,6 +2,28 @@ import { Product } from '@/types'
 
 const BASE = 'https://spbarber.fr'
 
+/**
+ * Serialise un bloc de donnees structurees pour insertion dans un <script>.
+ *
+ * A UTILISER PARTOUT a la place de JSON.stringify dans un dangerouslySetInnerHTML :
+ * JSON.stringify n'echappe PAS la sequence de fermeture de balise, donc une valeur
+ * venant de la base -- le nom ou la description d'un produit, editables depuis
+ * l'administration -- pouvait fermer le script et en ouvrir un autre : une XSS
+ * stockee servie a tout visiteur de la fiche.
+ *
+ * Les echappements ci-dessous restent du JSON valide : < se relit en "<".
+ * Les donnees structurees lues par les moteurs sont donc inchangees.
+ *
+ * On n'echappe PAS U+2028/U+2029 : ces separateurs cassent l'analyse JavaScript,
+ * mais un bloc type="application/ld+json" n'est jamais execute comme du script.
+ */
+export function jsonLd(donnees: unknown): string {
+  return JSON.stringify(donnees)
+    .replace(/</g, '\\u003c')
+    .replace(/>/g, '\\u003e')
+    .replace(/&/g, '\\u0026')
+}
+
 const ORGANIZATION = {
   '@type': 'Organization',
   '@id': `${BASE}/#organization`,

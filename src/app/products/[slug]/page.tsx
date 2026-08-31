@@ -5,7 +5,7 @@ import type { Metadata } from 'next'
 import { notFound, redirect } from 'next/navigation'
 import { PRODUCTS } from '@/lib/products'
 import { ProductDetail } from '@/components/product/ProductDetail'
-import { schemaProduct, schemaBreadcrumb } from '@/lib/schema'
+import { schemaProduct, schemaBreadcrumb, jsonLd } from '@/lib/schema'
 import { supabaseAdmin } from '@/lib/supabase'
 
 interface Props {
@@ -95,11 +95,11 @@ export default async function ProductPage({ params }: Props) {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}
+        dangerouslySetInnerHTML={{ __html: jsonLd(productSchema) }}
       />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+        dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbSchema) }}
       />
       <ProductDetail product={product} />
     </>

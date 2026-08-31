@@ -25,7 +25,7 @@ async function getSalons(): Promise<Salon[]> {
   } catch {}
   return DEFAULT_SALONS
 }
-import { schemaOrganizationLocal, schemaBreadcrumb } from '@/lib/schema'
+import { schemaOrganizationLocal, schemaBreadcrumb, jsonLd } from '@/lib/schema'
 
 type ReviewDisplay = { text: string; name: string; initials: string; color: string; product: string; date: string }
 type ProdOverride = { id: string; name?: string | null; price?: number | null; description?: string | null; stock?: number | null; benefit?: string | null }
@@ -142,11 +142,11 @@ export default async function HomePage() {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(orgSchema) }}
+        dangerouslySetInnerHTML={{ __html: jsonLd(orgSchema) }}
       />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+        dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbSchema) }}
       />
       {/* ── HERO — centré vertical ── */}
       <section className="hero">

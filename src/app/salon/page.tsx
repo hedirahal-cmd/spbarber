@@ -5,6 +5,7 @@ import { SalonCarousel } from '@/components/salon/SalonCarousel'
 import { SalonAvisGrid } from '@/components/salon/SalonAvisGrid'
 import { supabase } from '@/lib/supabase'
 import { DEFAULT_SALONS, type Salon } from '@/lib/salons'
+import { jsonLd } from '@/lib/schema'
 
 export const revalidate = 60
 
@@ -98,7 +99,7 @@ export default async function SalonPage() {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(LOCAL_SCHEMA) }}
+        dangerouslySetInnerHTML={{ __html: jsonLd(LOCAL_SCHEMA) }}
       />
 
       <div className="salon-page">

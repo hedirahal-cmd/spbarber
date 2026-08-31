@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { schemaFAQ } from '@/lib/schema'
+import { schemaFAQ, jsonLd } from '@/lib/schema'
 
 export const metadata: Metadata = {
   title: 'FAQ — Questions Fréquentes SP Barber | Livraison, Retours, Produits',
@@ -95,7 +95,7 @@ export default function FAQPage() {
     <>
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+      dangerouslySetInnerHTML={{ __html: jsonLd(faqSchema) }}
     />
     <div className="legal-page">
       <div className="legal-inner">

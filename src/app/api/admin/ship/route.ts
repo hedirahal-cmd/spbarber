@@ -1,12 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
 import { supabaseAdmin as supabase } from '@/lib/supabase'
 import { Resend } from 'resend'
-
-async function isAdmin() {
-  const store = await cookies()
-  return store.get('spbarber_admin')?.value === 'authenticated'
-}
+import { estAdmin } from '@/lib/admin-auth'
 
 function shipEmailHtml(email: string, tracking: string): string {
   const trackingUrl = `https://www.laposte.fr/outils/track-a-parcel?code=${tracking}`
@@ -68,7 +63,7 @@ function shipEmailHtml(email: string, tracking: string): string {
 }
 
 export async function POST(req: NextRequest) {
-  if (!(await isAdmin())) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!(await estAdmin())) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { id, tracking_number } = await req.json()
   if (!id || !tracking_number?.trim()) {
