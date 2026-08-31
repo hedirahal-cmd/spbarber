@@ -124,8 +124,10 @@ async function main() {
   console.log('\n=======================================')
   console.log('  ' + ok + ' OK, ' + ko + ' ECHEC')
   console.log('=======================================')
-  serveur.close()
-  process.exit(ko === 0 ? 0 : 1)
+  // On sort DANS le callback de fermeture : quitter pendant qu un handle est en
+  // cours de fermeture fait echouer une assertion libuv sous Windows, et le banc
+  // sortait alors en 127 tout en annoncant 0 echec (reproduit 2 fois sur 3).
+  serveur.close(() => process.exit(ko === 0 ? 0 : 1))
 }
 
 main().catch((e) => { console.error(e); process.exit(1) })

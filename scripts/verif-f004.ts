@@ -237,8 +237,10 @@ async function main() {
   console.log('  ' + ok + ' OK, ' + ko + ' ECHEC')
   console.log('=======================================')
   arreter()
-  faux.close()
-  process.exit(ko === 0 ? 0 : 1)
+  // Sortie DANS le callback de fermeture : quitter pendant qu un handle se ferme
+  // fait echouer une assertion libuv sous Windows, et le banc sortirait en 127
+  // tout en annoncant 0 echec.
+  faux.close(() => process.exit(ko === 0 ? 0 : 1))
 }
 
 main().catch((e) => {
