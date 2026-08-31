@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
-import { CartItem } from '@/types'
+import { CartValidationError, resolveCartItems } from '@/lib/pricing'
 
 function getBaseUrl(): string {
   if (process.env.VERCEL_PROJECT_PRODUCTION_URL) return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
@@ -28,15 +28,21 @@ function getColissimoPrice(poidsTotal: number): number {
 
 export async function POST(req: NextRequest) {
   try {
-    const { items, coupon, email, session_id }: { items: CartItem[]; coupon?: string; email?: string; session_id?: string } = await req.json()
+    const { items, coupon, email, session_id }: { items?: unknown; coupon?: string; email?: string; session_id?: string } = await req.json()
 
-    const subtotal = items.reduce(
-      (sum, item) => sum + (item.variant?.price ?? item.product.price) * item.quantity,
+    // Le panier arrive du localStorage du visiteur : il est modifiable de bout
+    // en bout. On le reprend donc entierement cote serveur -- prix, libelles,
+    // images et slug (donc le poids) sortent de product_overrides + PRODUCTS,
+    // jamais du corps de la requete.
+    const resolved = await resolveCartItems(items)
+
+    const subtotal = resolved.reduce(
+      (sum, item) => sum + item.unitAmount * item.quantity,
       0,
     )
     const isFreeShip = subtotal >= 4900
 
-    const poidsTotal = items.reduce((sum, item) => {
+    const poidsTotal = resolved.reduce((sum, item) => {
       const poids = POIDS_PRODUIT[item.product.slug] ?? 200
       return sum + poids * item.quantity
     }, 0)
@@ -44,25 +50,29 @@ export async function POST(req: NextRequest) {
     const prixStandard = isFreeShip ? 0 : getColissimoPrice(poidsTotal)
     const prixRetrait = isFreeShip ? 0 : Math.max(0, prixStandard - 100)
 
-    const line_items = items.map((item) => ({
+    const libelle = (item: (typeof resolved)[number]) =>
+      item.variant ? `${item.product.name} — ${item.variant.name}` : item.product.name
+
+    const line_items = resolved.map((item) => ({
       price_data: {
         currency: 'eur',
         product_data: {
-          name: item.variant ? `${item.product.name} — ${item.variant.name}` : item.product.name,
+          name: libelle(item),
           images: item.product.images.filter((img) => img.startsWith('http')),
         },
-        unit_amount: item.variant?.price ?? item.product.price,
+        unit_amount: item.unitAmount,
       },
       quantity: item.quantity,
     }))
 
     const base = getBaseUrl()
 
-    const compactItems = items.map((item) => ({
+    // Meme origine que unit_amount ci-dessus : item.unitAmount, une seule lecture.
+    const compactItems = resolved.map((item) => ({
       id: item.product.id,
-      name: item.variant ? `${item.product.name} — ${item.variant.name}` : item.product.name,
+      name: libelle(item),
       qty: item.quantity,
-      price: item.variant?.price ?? item.product.price,
+      price: item.unitAmount,
     }))
 
     const session = await stripe.checkout.sessions.create({
@@ -111,6 +121,10 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ url: session.url })
   } catch (error) {
+    if (error instanceof CartValidationError) {
+      console.error('[Stripe checkout] panier refuse:', error.message)
+      return NextResponse.json({ error: error.message }, { status: error.status })
+    }
     const msg = error instanceof Error ? error.message : String(error)
     console.error('[Stripe checkout]', msg)
     const se = error as { code?: string }
