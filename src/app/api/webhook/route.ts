@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { createClient } from '@supabase/supabase-js'
 import { Resend } from 'resend'
-import { stripe } from '@/lib/stripe'
+import { MODE_STRIPE, stripe } from '@/lib/stripe'
 
 export const runtime = 'nodejs'
 
@@ -91,16 +91,36 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Missing signature' }, { status: 400 })
   }
 
+  // Un secret absent et une signature invalide sont deux pannes OPPOSEES, que
+  // l ancienne version confondait en 400. Or 400 dit a Stripe 'ne retente pas' :
+  // apres une bascule en live sans avoir pose le nouveau secret, chaque paiement
+  // aurait ete encaisse sans qu aucune commande ne soit enregistree, sans reprise
+  // et sans alerte -- l insertion n etant jamais atteinte.
+  const secretWebhook = process.env.STRIPE_WEBHOOK_SECRET
+  if (!secretWebhook) {
+    console.error(
+      '[webhook] STRIPE_WEBHOOK_SECRET absente : signature invérifiable. On repond 500',
+      'pour que Stripe retente, plutot que 400 qui lui ferait abandonner l evenement.',
+    )
+    return NextResponse.json({ error: 'Webhook non configure' }, { status: 500 })
+  }
+
   let event: Stripe.Event
   try {
-    event = stripe.webhooks.constructEvent(
-      body,
-      sig,
-      process.env.STRIPE_WEBHOOK_SECRET!
-    )
+    event = stripe.webhooks.constructEvent(body, sig, secretWebhook)
   } catch (err) {
     console.error('Webhook signature failed:', err)
     return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
+  }
+
+  // Un evenement live recu par une cle de test (ou l inverse) signale un cablage
+  // croise entre le tableau de bord Stripe et les variables Vercel.
+  const modeEvenement = event.livemode ? 'live' : 'test'
+  if (modeEvenement !== MODE_STRIPE) {
+    console.error(
+      '[webhook] INCOHERENCE DE MODE : evenement ' + modeEvenement +
+        ' recu alors que la cle Stripe est en mode ' + MODE_STRIPE + '.',
+    )
   }
 
   if (event.type === 'checkout.session.completed') {

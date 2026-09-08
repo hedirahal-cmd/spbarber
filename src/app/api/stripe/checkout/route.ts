@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { stripe } from '@/lib/stripe'
+import { problemeConfigurationStripe, stripe } from '@/lib/stripe'
 import { CartValidationError, resolveCartItems } from '@/lib/pricing'
 
 function getBaseUrl(): string {
@@ -28,6 +28,15 @@ function getColissimoPrice(poidsTotal: number): number {
 
 export async function POST(req: NextRequest) {
   try {
+    // Garde-fou de configuration : une cle absente, un prefixe inconnu, ou une
+    // cle live non explicitement autorisee font refuser le paiement plutot que
+    // de laisser le doute s installer sur ce qui est reellement encaisse.
+    const probleme = problemeConfigurationStripe()
+    if (probleme) {
+      console.error('[Stripe checkout] paiement refuse :', probleme)
+      return NextResponse.json({ error: 'Le paiement est momentanement indisponible.' }, { status: 503 })
+    }
+
     const { items, coupon, email, session_id }: { items?: unknown; coupon?: string; email?: string; session_id?: string } = await req.json()
 
     // Le panier arrive du localStorage du visiteur : il est modifiable de bout
