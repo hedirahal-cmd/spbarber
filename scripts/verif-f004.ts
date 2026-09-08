@@ -21,7 +21,7 @@
  */
 import http from 'node:http'
 import type { AddressInfo } from 'node:net'
-import { spawn } from 'node:child_process'
+import { demarrerServeur } from './banc-serveur'
 import Stripe from 'stripe'
 
 const SECRET_WEBHOOK = 'whsec_banc_local_f004'
@@ -118,51 +118,15 @@ async function main() {
     RESEND_API_KEY: '',
   }
 
-  // Un next dev residuel sur ce port servirait les requetes avec l ancienne
-  // configuration, et le banc mesurerait un serveur qui n est pas le sien.
-  const portLibre = await new Promise<boolean>((r) => {
-    const sonde = http.createServer()
-    sonde.once('error', () => r(false))
-    sonde.once('listening', () => sonde.close(() => r(true)))
-    sonde.listen(PORT_NEXT, '127.0.0.1')
-  })
-  if (!portLibre) {
-    console.log('  ARRET : le port ' + PORT_NEXT + ' est deja occupe.')
-    console.log('  Un serveur residuel repondrait a la place du notre. Libere-le puis relance.')
+  const demarrage = await demarrerServeur({ port: PORT_NEXT, env })
+  if (!demarrage.ok) {
+    console.log('  ARRET : ' + demarrage.motif)
+    demarrage.arreter()
     faux.close()
-    process.exit(1)
+    process.exitCode = 1
+    return
   }
-
-  console.log('  demarrage de next dev sur le port ' + PORT_NEXT + ' ...')
-  // On lance le binaire Next directement, sans passer par npx ni par un shell :
-  // le pid obtenu est alors celui du serveur, et non celui d un intermediaire
-  // qu on tuerait en laissant le serveur vivant derriere (constate).
-  const serveur = spawn(process.execPath, ['node_modules/next/dist/bin/next', 'dev', '-p', String(PORT_NEXT)], {
-    env,
-    stdio: 'ignore',
-  })
-
-  let arrete = false
-  const arreter = () => {
-    if (arrete) return
-    arrete = true
-    if (process.platform === 'win32' && serveur.pid) {
-      spawn('taskkill', ['/pid', String(serveur.pid), '/T', '/F'], { stdio: 'ignore' })
-    } else {
-      serveur.kill('SIGTERM')
-    }
-  }
-  process.on('exit', arreter)
-
-  for (let i = 0; i < 120; i++) {
-    try {
-      const r = await fetch('http://127.0.0.1:' + PORT_NEXT + '/')
-      if (r.ok) break
-    } catch {
-      /* pas encore pret */
-    }
-    await new Promise((r) => setTimeout(r, 1000))
-  }
+  const arreter = demarrage.arreter
 
   // ---- PRE-VERIFICATION : Supabase est-il REELLEMENT detourne ? ----
   console.log('\n--- 0. Pre-verification : le trafic Supabase va-t-il au faux serveur ? ---')
@@ -240,7 +204,7 @@ async function main() {
   // Pas de process.exit : forcer la sortie pendant qu un handle se ferme fait
   // echouer une assertion libuv sous Windows. On libere tout et on laisse la
   // boucle d evenements se vider d elle-meme.
-  serveur.unref()
+
   faux.close()
   process.exitCode = ko === 0 ? 0 : 1
 }

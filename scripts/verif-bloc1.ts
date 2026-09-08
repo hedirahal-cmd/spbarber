@@ -17,7 +17,7 @@
  */
 import http from 'node:http'
 import type { AddressInfo } from 'node:net'
-import { spawn } from 'node:child_process'
+import { demarrerServeur } from './banc-serveur'
 import { createHmac } from 'node:crypto'
 import { jsonLd } from '../src/lib/schema'
 
@@ -93,18 +93,6 @@ async function main() {
   const portFaux = (faux.address() as AddressInfo).port
   console.log('\n  faux PostgREST sur 127.0.0.1:' + portFaux)
 
-  const portLibre = await new Promise<boolean>((r) => {
-    const sonde = http.createServer()
-    sonde.once('error', () => r(false))
-    sonde.once('listening', () => sonde.close(() => r(true)))
-    sonde.listen(PORT_NEXT, '127.0.0.1')
-  })
-  if (!portLibre) {
-    console.log('  ARRET : le port ' + PORT_NEXT + ' est deja occupe. Libere-le puis relance.')
-    faux.close()
-    process.exit(1)
-  }
-
   const env = {
     ...process.env,
     NEXT_PUBLIC_SUPABASE_URL: 'http://127.0.0.1:' + portFaux,
@@ -116,33 +104,15 @@ async function main() {
     ADMIN_PASSWORD: MOT_DE_PASSE,
   }
 
-  console.log('  demarrage de next dev sur le port ' + PORT_NEXT + ' ...')
-  const serveur = spawn(process.execPath, ['node_modules/next/dist/bin/next', 'dev', '-p', String(PORT_NEXT)], {
-    env,
-    stdio: 'ignore',
-  })
-
-  let arrete = false
-  const arreter = () => {
-    if (arrete) return
-    arrete = true
-    if (process.platform === 'win32' && serveur.pid) {
-      spawn('taskkill', ['/pid', String(serveur.pid), '/T', '/F'], { stdio: 'ignore' })
-    } else {
-      serveur.kill('SIGTERM')
-    }
+  const demarrage = await demarrerServeur({ port: PORT_NEXT, env })
+  if (!demarrage.ok) {
+    console.log('  ARRET : ' + demarrage.motif)
+    demarrage.arreter()
+    faux.close()
+    process.exitCode = 1
+    return
   }
-  process.on('exit', arreter)
-
-  for (let i = 0; i < 120; i++) {
-    try {
-      const r = await fetch(base() + '/')
-      if (r.ok) break
-    } catch {
-      /* pas encore pret */
-    }
-    await new Promise((r) => setTimeout(r, 1000))
-  }
+  const arreter = demarrage.arreter
 
   console.log('\n--- 0. Pre-verification : Supabase est-il detourne ? ---')
   recu.length = 0
@@ -223,7 +193,6 @@ async function main() {
   // Pas de process.exit : forcer la sortie pendant qu un handle se ferme fait
   // echouer une assertion libuv sous Windows. On libere tout et on laisse la
   // boucle d evenements se vider d elle-meme.
-  serveur.unref()
   faux.close()
   process.exitCode = ko === 0 ? 0 : 1
 }
