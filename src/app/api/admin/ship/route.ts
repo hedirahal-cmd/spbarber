@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin as supabase } from '@/lib/supabase'
 import { Resend } from 'resend'
 import { estAdmin } from '@/lib/admin-auth'
+import { EXPEDITEUR_EMAIL } from '@/lib/email'
 
 function shipEmailHtml(email: string, tracking: string): string {
   const trackingUrl = `https://www.laposte.fr/outils/track-a-parcel?code=${tracking}`
@@ -88,7 +89,7 @@ export async function POST(req: NextRequest) {
     try {
       const resend = new Resend(apiKey)
       await resend.emails.send({
-        from: 'SP Barber <noreply@spbarber.fr>',
+        from: EXPEDITEUR_EMAIL,
         to: [order.email],
         subject: `Votre commande SP Barber est expédiée — ${tracking_number.trim()}`,
         html: shipEmailHtml(order.email, tracking_number.trim()),

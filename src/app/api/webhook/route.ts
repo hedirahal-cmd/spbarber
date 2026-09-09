@@ -4,6 +4,7 @@ import Stripe from 'stripe'
 import { createClient } from '@supabase/supabase-js'
 import { Resend } from 'resend'
 import { MODE_STRIPE, stripe } from '@/lib/stripe'
+import { EXPEDITEUR_EMAIL } from '@/lib/email'
 
 export const runtime = 'nodejs'
 
@@ -72,7 +73,7 @@ async function alerterEchec(
   try {
     const resend = new Resend(apiKey)
     await resend.emails.send({
-      from: 'SP Barber <noreply@spbarber.fr>',
+      from: EXPEDITEUR_EMAIL,
       to: [destinataire],
       subject: 'URGENT — paiement encaisse sans commande enregistree',
       html,
