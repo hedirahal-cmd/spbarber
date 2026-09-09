@@ -136,7 +136,9 @@ export function CartDrawer() {
       } else {
         clearTimeout(safetyTimer.current)
         if (data.couponError) { setCouponError(data.couponError); setCouponApplied(false) }
-        else setCheckoutError('Une erreur est survenue, réessayez.')
+        // Le serveur donne un message exploitable (ex. stock insuffisant) --
+        // l'afficher plutot que de le jeter derriere un texte generique.
+        else setCheckoutError(data.error || 'Une erreur est survenue, réessayez.')
         setLoading(false)
       }
     } catch {
@@ -233,6 +235,8 @@ export function CartDrawer() {
                         <button
                           className="cdr-qty-btn"
                           onClick={() => updateQuantity(item.product.id, item.quantity + 1, item.variant?.id)}
+                          disabled={!item.product.is_dropshipping && item.quantity >= item.product.stock}
+                          style={!item.product.is_dropshipping && item.quantity >= item.product.stock ? { opacity: 0.4, cursor: 'not-allowed' } : undefined}
                           aria-label="Augmenter la quantité"
                         >
                           <Plus size={11} strokeWidth={2.5} />

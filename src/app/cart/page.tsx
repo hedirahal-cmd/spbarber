@@ -25,7 +25,9 @@ export default function CartPage() {
       if (data.url) {
         window.location.href = data.url
       } else {
-        setCheckoutError('Une erreur est survenue, réessayez.')
+        // Le serveur donne un message exploitable (ex. stock insuffisant) --
+        // l'afficher plutot que de le jeter derriere un texte generique.
+        setCheckoutError(data.error || 'Une erreur est survenue, réessayez.')
         setLoading(false)
       }
     } catch {
@@ -72,7 +74,17 @@ export default function CartPage() {
                     <Minus size={11} />
                   </button>
                   <span style={{ minWidth: 20, textAlign: 'center', fontSize: 13, color: 'var(--b)' }}>{item.quantity}</span>
-                  <button onClick={() => updateQuantity(item.product.id, item.quantity + 1, item.variant?.id)} style={{ width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--gm)', background: 'none', cursor: 'pointer', color: 'var(--b)' }}>
+                  <button
+                    onClick={() => updateQuantity(item.product.id, item.quantity + 1, item.variant?.id)}
+                    disabled={!item.product.is_dropshipping && item.quantity >= item.product.stock}
+                    style={{
+                      width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      border: '1px solid var(--gm)', background: 'none', color: 'var(--b)',
+                      ...(!item.product.is_dropshipping && item.quantity >= item.product.stock
+                        ? { opacity: 0.4, cursor: 'not-allowed' }
+                        : { cursor: 'pointer' }),
+                    }}
+                  >
                     <Plus size={11} />
                   </button>
                 </div>

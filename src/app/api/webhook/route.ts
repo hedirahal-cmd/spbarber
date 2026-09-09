@@ -5,6 +5,7 @@ import { createClient } from '@supabase/supabase-js'
 import { Resend } from 'resend'
 import { MODE_STRIPE, stripe } from '@/lib/stripe'
 import { EXPEDITEUR_EMAIL } from '@/lib/email'
+import { PRODUCTS } from '@/lib/products'
 
 export const runtime = 'nodejs'
 
@@ -28,43 +29,31 @@ function idPaiement(session: Stripe.Checkout.Session): string | null {
 }
 
 /**
- * Previent qu'un paiement a ete encaisse sans que la commande soit enregistree.
+ * Envoi d'une alerte operationnelle par e-mail, mecanique partagee par les deux
+ * cas ci-dessous.
  *
- * Ne leve jamais et ne bloque jamais la reponse : une alerte qui casse la route
+ * Ne leve jamais et ne bloque jamais l'appelant : une alerte qui casse la route
  * serait pire que pas d'alerte. Si la configuration manque, elle le DIT dans le
  * journal plutot que de se taire -- le silence est precisement le defaut que
  * cette fonction existe pour supprimer.
  */
-async function alerterEchec(
-  session: Stripe.Checkout.Session,
-  error: { code?: string; message: string },
+async function envoyerAlerteOperationnelle(
+  sujet: string,
+  intro: string,
+  lignes: [string, string][],
+  motifJournal: string,
 ): Promise<void> {
   const destinataire = process.env.ALERT_EMAIL
   const apiKey = process.env.RESEND_API_KEY
 
   if (!destinataire || !apiKey) {
-    console.error(
-      '[webhook] ALERTE NON ENVOYEE (ALERT_EMAIL ou RESEND_API_KEY absent) —',
-      'paiement encaisse sans commande enregistree, session',
-      session.id,
-    )
+    console.error('[webhook] ALERTE NON ENVOYEE (ALERT_EMAIL ou RESEND_API_KEY absent) —', motifJournal)
     return
   }
 
-  const lignes: [string, string][] = [
-    ['Session', session.id],
-    ['Payment intent', idPaiement(session) ?? '(aucun)'],
-    ['Montant', ((session.amount_total ?? 0) / 100).toFixed(2) + ' EUR'],
-    ['Client', session.customer_details?.email ?? '(inconnu)'],
-    ['Erreur', (error.code ? error.code + ' — ' : '') + error.message],
-    ['Horodatage', new Date().toISOString()],
-  ]
-
   const html =
-    '<h2>Paiement encaisse sans commande enregistree</h2>' +
-    '<p>Le webhook Stripe a recu un paiement mais l&rsquo;enregistrement en base a echoue. ' +
-    'Stripe va retenter automatiquement. Si toutes les tentatives echouent, la commande ' +
-    'devra etre saisie a la main.</p><table cellpadding="6">' +
+    '<h2>' + echapper(sujet) + '</h2>' +
+    '<p>' + intro + '</p><table cellpadding="6">' +
     lignes
       .map(([cle, valeur]) => '<tr><td><b>' + echapper(cle) + '</b></td><td>' + echapper(valeur) + '</td></tr>')
       .join('') +
@@ -72,15 +61,61 @@ async function alerterEchec(
 
   try {
     const resend = new Resend(apiKey)
-    await resend.emails.send({
-      from: EXPEDITEUR_EMAIL,
-      to: [destinataire],
-      subject: 'URGENT — paiement encaisse sans commande enregistree',
-      html,
-    })
+    await resend.emails.send({ from: EXPEDITEUR_EMAIL, to: [destinataire], subject: sujet, html })
   } catch (e) {
     console.error('[webhook] envoi de l alerte impossible:', e instanceof Error ? e.message : String(e))
   }
+}
+
+/** Previent qu'un paiement a ete encaisse sans que la commande soit enregistree. */
+async function alerterEchecInsertion(
+  session: Stripe.Checkout.Session,
+  error: { code?: string; message: string },
+): Promise<void> {
+  await envoyerAlerteOperationnelle(
+    'URGENT — paiement encaisse sans commande enregistree',
+    'Le webhook Stripe a recu un paiement mais l&rsquo;enregistrement en base a echoue. ' +
+      'Stripe va retenter automatiquement. Si toutes les tentatives echouent, la commande ' +
+      'devra etre saisie a la main.',
+    [
+      ['Session', session.id],
+      ['Payment intent', idPaiement(session) ?? '(aucun)'],
+      ['Montant', ((session.amount_total ?? 0) / 100).toFixed(2) + ' EUR'],
+      ['Client', session.customer_details?.email ?? '(inconnu)'],
+      ['Erreur', (error.code ? error.code + ' — ' : '') + error.message],
+      ['Horodatage', new Date().toISOString()],
+    ],
+    'paiement encaisse sans commande enregistree, session ' + session.id,
+  )
+}
+
+/**
+ * Previent qu'un paiement a ete encaisse pour une quantite que le stock ne
+ * couvrait plus au moment du decrement -- typiquement deux clients qui achetent
+ * les derniers exemplaires a quelques secondes d'intervalle. La commande reste
+ * enregistree normalement (Stripe a deja encaisse, impossible de revenir
+ * dessus) : cette alerte sert a declencher une verification manuelle
+ * (reappro, contact fournisseur), pas a bloquer quoi que ce soit.
+ */
+async function alerterStockInsuffisant(
+  session: Stripe.Checkout.Session,
+  produitId: string,
+  quantite: number,
+): Promise<void> {
+  await envoyerAlerteOperationnelle(
+    'Stock insuffisant apres un paiement — verification manuelle requise',
+    'Un paiement a ete encaisse pour une quantite superieure au stock disponible au moment ' +
+      'du decrement. La commande est enregistree normalement (Stripe a deja encaisse) : ' +
+      'verifiez le reapprovisionnement ou contactez le client si necessaire.',
+    [
+      ['Session', session.id],
+      ['Produit', produitId],
+      ['Quantite commandee', String(quantite)],
+      ['Client', session.customer_details?.email ?? '(inconnu)'],
+      ['Horodatage', new Date().toISOString()],
+    ],
+    'stock insuffisant au decrement, produit ' + produitId + ', session ' + session.id,
+  )
 }
 
 export async function POST(req: Request) {
@@ -169,8 +204,48 @@ export async function POST(req: Request) {
       // reprise cote Stripe ; sans lui, le paiement est encaisse et la commande
       // perdue sans que personne ne l'apprenne.
       console.error('[webhook] echec insertion orders:', error.code, error.message)
-      await alerterEchec(session, error)
+      await alerterEchecInsertion(session, error)
       return NextResponse.json({ error: 'enregistrement impossible' }, { status: 500 })
+    }
+
+    // Decrement du stock -- on n'atteint ce point que sur un enregistrement
+    // FRAIS : les deux branches ci-dessus (doublon 23505, echec reel) sont
+    // deja revenues plus tot. Jamais deux fois pour le meme paiement.
+    for (const brut of parsedItems) {
+      const ligne = brut as { id?: unknown; variantId?: unknown; qty?: unknown }
+      const produitId = typeof ligne.id === 'string' ? ligne.id : null
+      const quantite = typeof ligne.qty === 'number' && Number.isInteger(ligne.qty) && ligne.qty > 0
+        ? ligne.qty
+        : null
+      if (!produitId || !quantite) continue
+
+      const base = PRODUCTS.find((p) => p.id === produitId)
+      if (!base) continue
+
+      // Dropshipping (aujourd'hui : la Tondeuse Fade Pro, seule a porter des
+      // variantes) est HORS de ce systeme -- le fournisseur gere son propre
+      // stock, decision actee separement de ce correctif.
+      if (base.is_dropshipping) continue
+
+      const { data: nouveauStock, error: erreurStock } = await supabaseAdmin.rpc('decrementer_stock', {
+        p_id: produitId,
+        p_quantite: quantite,
+        p_stock_par_defaut: base.stock,
+      })
+
+      if (erreurStock) {
+        // Incident d'infrastructure sur le decrement, pas un probleme de stock
+        // -- la commande reste valide, on le journalise pour investigation.
+        console.error('[webhook] decrement de stock impossible pour', produitId, ':', erreurStock.message)
+        continue
+      }
+      if (nouveauStock === null) {
+        console.warn(
+          '[webhook] stock insuffisant au decrement pour', produitId,
+          '(qte', quantite, ') -- commande conservee, alerte envoyee',
+        )
+        await alerterStockInsuffisant(session, produitId, quantite)
+      }
     }
   }
 

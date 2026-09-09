@@ -76,12 +76,19 @@ export async function POST(req: NextRequest) {
 
     const base = getBaseUrl()
 
-    // Meme origine que unit_amount ci-dessus : item.unitAmount, une seule lecture.
-    const compactItems = resolved.map((item) => ({
+    // Reduit au strict necessaire pour le webhook (id, variante, quantite) --
+    // PAS le nom ni le prix. Une valeur de metadonnee Stripe est plafonnee a 500
+    // caracteres (limite de la plateforme, pas un choix du code) : avec name+price
+    // en plus, un panier un peu charge tronquait ce JSON en plein milieu. C'etait
+    // cosmetique tant que ce champ ne servait qu'a un affichage jamais montre --
+    // ca ne l'est plus des lors que le webhook s'en sert pour decrementer du vrai
+    // stock. Le nom et le prix, quand il en faudra, se recalculent depuis
+    // PRODUCTS + product_overrides -- jamais une copie, meme principe qu'ailleurs
+    // dans ce fichier pour le prix facture.
+    const itemsStock = resolved.map((item) => ({
       id: item.product.id,
-      name: libelle(item),
+      ...(item.variant ? { variantId: item.variant.id } : {}),
       qty: item.quantity,
-      price: item.unitAmount,
     }))
 
     const session = await stripe.checkout.sessions.create({
@@ -89,7 +96,7 @@ export async function POST(req: NextRequest) {
       customer_creation: 'if_required',
       line_items,
       metadata: {
-        items: JSON.stringify(compactItems).slice(0, 500),
+        items: JSON.stringify(itemsStock),
         ...(session_id ? { session_id } : {}),
       },
       ...(coupon ? { discounts: [{ coupon }] } : {}),

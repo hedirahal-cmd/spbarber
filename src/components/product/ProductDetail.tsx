@@ -67,9 +67,18 @@ export function ProductDetail({ product }: { product: Product }) {
   const addItem = useCart((s) => s.addItem)
   const openCart = useCart((s) => s.openCart)
   const cartTotal = useCart((s) => s.total())
+  const cartItems = useCart((s) => s.items)
 
   const price = selectedVariant?.price ?? product.price
   const remaining = Math.max(0, FREE_SHIP - cartTotal)
+
+  // Confort d'affichage, pas la garantie : la vraie limite est revalidee cote
+  // serveur au checkout (pricing.ts). Dropshipping (la Tondeuse) est hors de
+  // ce systeme -- le fournisseur gere son propre stock.
+  const dejaAuPanier = cartItems.find(
+    (i) => i.product.id === product.id && i.variant?.id === selectedVariant?.id,
+  )?.quantity ?? 0
+  const stockEpuise = !product.is_dropshipping && dejaAuPanier >= product.stock
   const pct = Math.min(100, (cartTotal / FREE_SHIP) * 100)
   const reviews = PRODUCT_REVIEWS[product.id] ?? { count: 12, rating: '4,8' }
   const tomorrow = getTomorrowLabel()
@@ -87,6 +96,7 @@ export function ProductDetail({ product }: { product: Product }) {
   }, [])
 
   function handleAddToCart() {
+    if (stockEpuise) return
     addItem(product, selectedVariant)
     openCart()
     setAdded(true)
@@ -205,9 +215,14 @@ export function ProductDetail({ product }: { product: Product }) {
             ref={atcRef}
             className="fi-atc-btn"
             onClick={handleAddToCart}
-            style={added ? { background: 'var(--green)' } : undefined}
+            disabled={stockEpuise}
+            style={added ? { background: 'var(--green)' } : stockEpuise ? { opacity: 0.5, cursor: 'not-allowed' } : undefined}
           >
-            {added ? '✓ Ajouté au panier !' : <><ShoppingCart size={15} strokeWidth={2} style={{ marginRight: 6, verticalAlign: 'middle' }} />Ajouter au panier</>}
+            {added
+              ? '✓ Ajouté au panier !'
+              : stockEpuise
+                ? 'Rupture de stock'
+                : <><ShoppingCart size={15} strokeWidth={2} style={{ marginRight: 6, verticalAlign: 'middle' }} />Ajouter au panier</>}
           </button>
 
           {/* Mini progress */}
@@ -297,9 +312,14 @@ export function ProductDetail({ product }: { product: Product }) {
             <span className="fi-sticky-name">{product.name}</span>
             <span className="fi-sticky-price">{formatPrice(price)}</span>
           </div>
-          <button className="fi-sticky-btn" onClick={handleAddToCart}>
+          <button
+            className="fi-sticky-btn"
+            onClick={handleAddToCart}
+            disabled={stockEpuise}
+            style={stockEpuise ? { opacity: 0.5, cursor: 'not-allowed' } : undefined}
+          >
             <ShoppingCart size={14} strokeWidth={2} />
-            {added ? 'Ajouté !' : 'Ajouter au panier'}
+            {added ? 'Ajouté !' : stockEpuise ? 'Rupture de stock' : 'Ajouter au panier'}
           </button>
         </div>
       )}

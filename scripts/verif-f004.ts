@@ -111,8 +111,11 @@ async function main() {
     NEXT_PUBLIC_SUPABASE_URL: 'http://127.0.0.1:' + portFaux,
     NEXT_PUBLIC_SUPABASE_ANON_KEY: 'anon-factice',
     SUPABASE_SERVICE_ROLE_KEY: 'service-factice',
-    STRIPE_SECRET_KEY_TEST: 'sk_test_bidon',
-    STRIPE_SECRET_KEY: '',
+    // Vestige du schema d'avant le bloc 2 (STRIPE_SECRET_KEY_TEST n'existe plus
+    // cote code) -- sans consequence ici, ce banc n'appelle jamais /api/stripe/
+    // checkout, seulement /api/webhook qui ne contacte pas l'API Stripe. Corrige
+    // pour ne pas induire en erreur une future lecture.
+    STRIPE_SECRET_KEY: 'sk_test_bidon',
     STRIPE_WEBHOOK_SECRET: SECRET_WEBHOOK,
     ALERT_EMAIL: '',
     RESEND_API_KEY: '',
