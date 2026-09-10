@@ -32,7 +32,7 @@ const MOT_DE_PASSE = 'banc-bloc1-mot-de-passe'
  */
 const ROUTES_ADMIN: [string, string][] = [
   ['orders', 'GET'], ['products', 'GET'], ['reviews', 'GET'], ['salons', 'GET'],
-  ['salon', 'GET'], ['legal', 'GET'], ['barbers', 'GET'], ['temoignages-pros', 'GET'],
+  ['legal', 'GET'], ['barbers', 'GET'], ['temoignages-pros', 'GET'],
   ['ship', 'POST'], ['barbers/upload', 'POST'],
 ]
 

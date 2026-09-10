@@ -1,9 +1,10 @@
 import { MetadataRoute } from 'next'
 import { PRODUCTS } from '@/lib/products'
+import { supabase } from '@/lib/supabase'
 
 const BASE = 'https://spbarber.fr'
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticRoutes: MetadataRoute.Sitemap = [
     {
       url: BASE,
@@ -16,12 +17,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: new Date(),
       changeFrequency: 'weekly',
       priority: 0.9,
-    },
-    {
-      url: `${BASE}/salon`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.85,
     },
     {
       url: `${BASE}/conseils`,
@@ -101,5 +96,20 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.8,
     }))
 
-  return [...staticRoutes, ...productRoutes]
+  // /salon redirige desormais vers /salon/<slug> -- seules les pages
+  // canoniques par salon actif figurent dans le sitemap.
+  let salonRoutes: MetadataRoute.Sitemap = []
+  try {
+    const { data } = await supabase.from('salons').select('slug').eq('actif', true)
+    if (Array.isArray(data)) {
+      salonRoutes = data.map((s) => ({
+        url: `${BASE}/salon/${s.slug}`,
+        lastModified: new Date(),
+        changeFrequency: 'monthly' as const,
+        priority: 0.85,
+      }))
+    }
+  } catch {}
+
+  return [...staticRoutes, ...productRoutes, ...salonRoutes]
 }

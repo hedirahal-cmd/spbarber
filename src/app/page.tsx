@@ -6,17 +6,9 @@ import { PRODUCTS } from '@/lib/products'
 import { AddToCartButton } from '@/components/AddToCartButton'
 import { formatPrice } from '@/lib/utils'
 import { Scissors, Droplets, User, Zap, Sparkles, Truck, Gift, RotateCcw } from 'lucide-react'
-import { HomeSalonSection, DEFAULT_SALON_CONFIG, type SalonConfig } from '@/components/home/HomeSalonSection'
+import { HomeSalonSection } from '@/components/home/HomeSalonSection'
 import { DEFAULT_SALONS, type Salon } from '@/lib/salons'
 import { supabase, supabaseAdmin } from '@/lib/supabase'
-
-async function getSalonConfig(): Promise<SalonConfig> {
-  try {
-    const { data } = await supabase.from('salon_config').select('*').eq('id', 1).single()
-    if (data) return data as SalonConfig
-  } catch {}
-  return DEFAULT_SALON_CONFIG
-}
 
 async function getSalons(): Promise<Salon[]> {
   try {
@@ -132,7 +124,6 @@ const REVIEWS = [
 
 
 export default async function HomePage() {
-  const salonConfig      = await getSalonConfig()
   const salons           = await getSalons()
   const temos            = await getTemoignagesPros()
   const reviewsDb        = await getReviews()
@@ -455,7 +446,7 @@ export default async function HomePage() {
       </div>
 
       {/* ── SALON ── */}
-      <HomeSalonSection config={salonConfig} salons={salons} />
+      <HomeSalonSection salons={salons} />
 
       {/* ── AVIS ── */}
       <section className="h-reviews">

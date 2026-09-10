@@ -14,6 +14,11 @@ export interface Salon {
   ordre?: number | null
   photos?: string[] | null
   avis_google?: AvisGoogle[] | null
+  description?: string | null
+  seo_title?: string | null
+  seo_description?: string | null
+  latitude?: number | null
+  longitude?: number | null
 }
 
 export interface AvisGoogle {
@@ -21,6 +26,23 @@ export interface AvisGoogle {
   auteur: string
   date: string
   etoiles: number
+}
+
+/**
+ * Fonction utilitaire pure -- volontairement PAS dans un module 'use client' :
+ * un export non-composant d'un tel module devient une reference client cote
+ * bundler, et un Server Component qui l'appelle directement (sans le rendre en
+ * JSX) echoue au runtime. C'est un ecueil reel des Server Components, pas une
+ * bizarrerie de ce depot -- src/app/salon/[slug]/page.tsx (Server Component)
+ * en a besoin au meme titre que HomeSalonSection ('use client').
+ */
+export function buildEmbedUrl(salon: Salon): string {
+  const parts = salon.adresse
+    ? [salon.adresse, salon.code_postal, salon.ville]
+    : [salon.nom, salon.ville, salon.code_postal]
+  const q = parts.filter(Boolean).join(' ')
+  const z = salon.adresse ? 16 : 14
+  return `https://maps.google.com/maps?q=${encodeURIComponent(q)}&output=embed&z=${z}`
 }
 
 export const DEFAULT_SALONS: Salon[] = [

@@ -1,4 +1,5 @@
 import { Product } from '@/types'
+import { Salon } from '@/lib/salons'
 
 const BASE = 'https://spbarber.fr'
 
@@ -172,6 +173,49 @@ export function schemaProduct(product: Product) {
       bestRating: '5',
       worstRating: '1',
     },
+  }
+}
+
+/**
+ * Genere les donnees structurees LocalBusiness d'un salon a partir de ses seuls
+ * champs reels -- rien n'est invente quand une donnee manque : `geo` est absent
+ * sans latitude/longitude, `aggregateRating` absent sans note_google/nombre_avis,
+ * `openingHoursSpecification` toujours absent (horaires en texte libre, non
+ * structure -- decision actee au bloc Salons plutot que d'inventer des horaires).
+ */
+export function schemaSalon(salon: Salon) {
+  const hasRating = !!(salon.note_google && salon.nombre_avis)
+  const hasGeo = salon.latitude != null && salon.longitude != null
+  const image = salon.photos?.[0]?.startsWith('http') ? salon.photos[0] : `${BASE}/og-default.jpg`
+
+  return {
+    '@context': 'https://schema.org',
+    '@type': ['LocalBusiness', 'HairSalon', 'BarberShop'],
+    name: salon.nom ?? 'SP Barber',
+    description: salon.description ?? `Salon de coiffure barbier professionnel à ${salon.ville ?? ''}.`,
+    url: `${BASE}/salon/${salon.slug}`,
+    telephone: salon.telephone ?? '',
+    address: {
+      '@type': 'PostalAddress',
+      streetAddress: salon.adresse ?? '',
+      addressLocality: salon.ville ?? '',
+      postalCode: salon.code_postal ?? '',
+      addressCountry: 'FR',
+    },
+    ...(hasGeo ? { geo: { '@type': 'GeoCoordinates', latitude: salon.latitude, longitude: salon.longitude } } : {}),
+    priceRange: '€€',
+    ...(salon.lien_google_maps ? { hasMap: salon.lien_google_maps } : {}),
+    image,
+    sameAs: [],
+    ...(hasRating ? {
+      aggregateRating: {
+        '@type': 'AggregateRating',
+        ratingValue: salon.note_google,
+        reviewCount: salon.nombre_avis,
+        bestRating: '5',
+        worstRating: '1',
+      },
+    } : {}),
   }
 }
 

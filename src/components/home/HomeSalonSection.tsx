@@ -1,45 +1,13 @@
 'use client'
 import { Fragment } from 'react'
+import Link from 'next/link'
 import { MapPin, Clock, Phone } from 'lucide-react'
-import { type Salon, DEFAULT_SALONS } from '@/lib/salons'
+import { type Salon, DEFAULT_SALONS, buildEmbedUrl } from '@/lib/salons'
 import { SalonCarousel } from '@/components/salon/SalonCarousel'
 import { SalonAvisGrid } from '@/components/salon/SalonAvisGrid'
 
 export type { Salon }
 export { DEFAULT_SALONS }
-
-export interface GoogleReview {
-  text: string
-  name: string
-  initials: string
-  color: string
-  date: string
-}
-
-export interface SalonConfig {
-  phone: string
-  google_rating: string
-  google_reviews_count: number
-  google_reviews_url: string
-  google_reviews: GoogleReview[]
-}
-
-export const DEFAULT_SALON_CONFIG: SalonConfig = {
-  phone: '',
-  google_rating: '4,9',
-  google_reviews_count: 47,
-  google_reviews_url: 'https://www.google.com/maps/search/SP+Barber+Foug%C3%A8res',
-  google_reviews: [],
-}
-
-function buildEmbedUrl(salon: Salon): string {
-  const parts = salon.adresse
-    ? [salon.adresse, salon.code_postal, salon.ville]
-    : [salon.nom, salon.ville, salon.code_postal]
-  const q = parts.filter(Boolean).join(' ')
-  const z = salon.adresse ? 16 : 14
-  return `https://maps.google.com/maps?q=${encodeURIComponent(q)}&output=embed&z=${z}`
-}
 
 function SalonBlock({ salon }: { salon: Salon }) {
   const embedSrc = buildEmbedUrl(salon)
@@ -54,7 +22,9 @@ function SalonBlock({ salon }: { salon: Salon }) {
 
       <div className="hs-salon-top">
         <div className="hs-salon-left">
-          <h3 className="hs-salon-title">{salon.nom}</h3>
+          <Link href={`/salon/${salon.slug}`} className="hs-salon-title-link">
+            <h3 className="hs-salon-title">{salon.nom}</h3>
+          </Link>
 
           {hasRating && (
             <div className="hs-salon-stars">
@@ -99,6 +69,9 @@ function SalonBlock({ salon }: { salon: Salon }) {
                 ITINÉRAIRE →
               </a>
             )}
+            <Link href={`/salon/${salon.slug}`} className="hs-salon-btn-route">
+              EN SAVOIR PLUS →
+            </Link>
           </div>
         </div>
 
@@ -123,13 +96,21 @@ function SalonBlock({ salon }: { salon: Salon }) {
   )
 }
 
+function joinVilles(villes: string[]): string {
+  const noms = villes.filter(Boolean)
+  if (noms.length === 0) return ''
+  if (noms.length === 1) return noms[0]
+  return noms.slice(0, -1).join(', ') + ' et ' + noms[noms.length - 1]
+}
+
 export function HomeSalonSection({
   salons = DEFAULT_SALONS,
 }: {
-  config?: SalonConfig
   salons?: Salon[]
 }) {
   const activeSalons = salons.filter(s => s.actif)
+  const n = activeSalons.length
+  const villesLabel = joinVilles(activeSalons.map(s => s.ville ?? '').filter(Boolean))
 
   return (
     <>
@@ -137,9 +118,9 @@ export function HomeSalonSection({
       <section id="salons" className="hs-salon hs-salon-intro">
         <div className="hs-salon-inner">
           <div className="hs-salons-hd">
-            <div className="hs-salons-eyebrow">2 SALONS EN BRETAGNE &amp; MAYENNE</div>
+            <div className="hs-salons-eyebrow">{n} SALON{n > 1 ? 'S' : ''} SP BARBER</div>
             <h2 className="hs-salons-title">NOS SALONS</h2>
-            <p className="hs-salons-sub">Retrouvez-nous à Fougères et Ernée</p>
+            {villesLabel && <p className="hs-salons-sub">Retrouvez-nous à {villesLabel}</p>}
           </div>
         </div>
       </section>
