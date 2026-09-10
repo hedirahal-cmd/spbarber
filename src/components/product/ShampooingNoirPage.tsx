@@ -46,6 +46,7 @@ function getTomorrowLabel() {
 export function ShampooingNoirPage({ product }: { product: Product }) {
   const [added, setAdded] = useState(false)
   const [stickyVisible, setStickyVisible] = useState(false)
+  const [selectedPhoto, setSelectedPhoto] = useState(0)
   const atcRef = useRef<HTMLButtonElement>(null)
   const addItem = useCart((s) => s.addItem)
   const openCart = useCart((s) => s.openCart)
@@ -54,6 +55,9 @@ export function ShampooingNoirPage({ product }: { product: Product }) {
   const remaining = Math.max(0, FREE_SHIP - cartTotal)
   const pct = Math.min(100, (cartTotal / FREE_SHIP) * 100)
   const tomorrow = getTomorrowLabel()
+  // Meme test que ProductDetail/schema.ts/checkout : le catalogue statique
+  // pointe vers un chemin local qui n'existe pas encore sur disque.
+  const hasGallery = product.images[0]?.url.startsWith('http') ?? false
 
   const relatedProducts = product.related
     ? PRODUCTS.filter((p) => product.related!.includes(p.id))
@@ -85,11 +89,35 @@ export function ShampooingNoirPage({ product }: { product: Product }) {
 
         {/* Colonne gauche — scroll interne, photo + slider */}
         <div className="sn-hero-left">
-          {/* Photo produit placeholder */}
+          {/* Photo produit */}
           <div className="sn-hero-photo">
-            <Droplets size={56} strokeWidth={0.9} />
-            <span>Photo produit</span>
+            {hasGallery ? (
+              <img
+                src={product.images[selectedPhoto]?.url ?? product.images[0].url}
+                alt={product.images[selectedPhoto]?.alt || product.name}
+              />
+            ) : (
+              <>
+                <Droplets size={56} strokeWidth={0.9} />
+                <span>Photo produit</span>
+              </>
+            )}
           </div>
+          {hasGallery && product.images.length > 1 && (
+            <div className="fi-thumbs">
+              {product.images.map((img, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  className={idx === selectedPhoto ? 'fi-thumb fi-thumb-active' : 'fi-thumb'}
+                  onClick={() => setSelectedPhoto(idx)}
+                  aria-label={`Voir la photo ${idx + 1}`}
+                >
+                  <img src={img.url} alt="" />
+                </button>
+              ))}
+            </div>
+          )}
 
           {/* Slider avant/après — hauteur 280px max */}
           <BeforeAfterSlider bare className="sn-hero-slider" />
@@ -173,10 +201,18 @@ export function ShampooingNoirPage({ product }: { product: Product }) {
       <section className="sn-pd-sec">
         <div className="sn-pd-left">
           <div className="sn-ph">
-            <div className="sn-ph-icon">
-              <Droplets size={64} strokeWidth={0.9} color="var(--gt)" />
+            <div className="sn-ph-icon" style={hasGallery ? { overflow: 'hidden' } : undefined}>
+              {hasGallery ? (
+                <img
+                  src={product.images[0].url}
+                  alt={product.images[0].alt || product.name}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                />
+              ) : (
+                <Droplets size={64} strokeWidth={0.9} color="var(--gt)" />
+              )}
             </div>
-            <div className="sn-ph-lbl">Photo produit</div>
+            {!hasGallery && <div className="sn-ph-lbl">Photo produit</div>}
           </div>
         </div>
 

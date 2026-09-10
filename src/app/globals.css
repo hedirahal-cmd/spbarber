@@ -878,6 +878,7 @@ button { font-family: var(--fb); }
   transition: transform 0.5s;
 }
 .pc-icon { display: flex; align-items: center; justify-content: center; opacity: 0.28; }
+.pc-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .pc-tag {
   position: absolute;
   top: 12px;
@@ -1249,6 +1250,11 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
 }
 .fi-img-ph span { display: flex; align-items: center; justify-content: center; opacity: 0.25; }
 .fi-img-ph small { font-family: var(--fd); font-size: 12px; letter-spacing: 5px; color: var(--gt); text-transform: uppercase; }
+.fi-img-main img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.fi-thumbs { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+.fi-thumb { width: 60px; height: 60px; padding: 0; border: 1px solid var(--gm); background: none; cursor: pointer; overflow: hidden; opacity: 0.55; transition: opacity .2s, border-color .2s; }
+.fi-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.fi-thumb-active { opacity: 1; border-color: var(--gold); }
 .fi-tagg { position: absolute; top: 14px; left: 14px; background: var(--gold); color: var(--w); font-size: 8px; letter-spacing: 2px; text-transform: uppercase; font-weight: 700; padding: 4px 10px; }
 .fi-tag { position: absolute; top: 14px; left: 14px; background: var(--b); color: var(--w); font-size: 8px; letter-spacing: 2px; text-transform: uppercase; font-weight: 700; padding: 4px 10px; }
 .trust-row {
@@ -1787,6 +1793,7 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
 .best2-badge-mv { position: absolute; top: 14px; left: 14px; z-index: 2; background: var(--gold); color: var(--w); font-size: 8px; letter-spacing: 2px; text-transform: uppercase; font-weight: 700; padding: 5px 12px; }
 .best2-img { height: 240px; display: flex; align-items: center; justify-content: center; background: linear-gradient(150deg, #1c1816, #0c0c0c); overflow: hidden; }
 .best2-icon { display: flex; align-items: center; justify-content: center; opacity: 0.14; transition: opacity 0.3s, transform 0.4s; color: var(--w); }
+.best2-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .best2-info { padding: 26px 30px 16px; border-top: 1px solid rgba(255,255,255,.05); }
 .best2-cat { font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: var(--gold); font-weight: 600; margin-bottom: 10px; }
 .best2-name { font-family: var(--fs); font-size: 24px; font-weight: 300; color: var(--w); line-height: 1.2; margin-bottom: 8px; }
@@ -3154,12 +3161,14 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
   gap: 10px;
   color: var(--gt);
   font-size: 11px;
   font-family: var(--fb);
   letter-spacing: 0.5px;
 }
+.sn-hero-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
 .sn-hero-slider {
   width: 100%;

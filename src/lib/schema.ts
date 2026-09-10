@@ -112,9 +112,9 @@ export function schemaProduct(product: Product) {
     name: product.name,
     description: product.description,
     image:
-      product.images[0]?.startsWith('http')
-        ? product.images[0]
-        : `${BASE}${product.images[0] ?? '/og-default.jpg'}`,
+      product.images[0]?.url?.startsWith('http')
+        ? product.images[0].url
+        : `${BASE}${product.images[0]?.url ?? '/og-default.jpg'}`,
     url: `${BASE}/products/${product.slug}`,
     brand: {
       '@type': 'Brand',

@@ -67,7 +67,7 @@ export async function POST(req: NextRequest) {
         currency: 'eur',
         product_data: {
           name: libelle(item),
-          images: item.product.images.filter((img) => img.startsWith('http')),
+          images: item.product.images.filter((img) => img.url.startsWith('http')).map((img) => img.url),
         },
         unit_amount: item.unitAmount,
       },

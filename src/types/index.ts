@@ -1,10 +1,15 @@
+export interface ProductImage {
+  url: string
+  alt: string
+}
+
 export interface Product {
   id: string
   name: string
   slug: string
   description: string
   price: number
-  images: string[]
+  images: ProductImage[]
   category: string
   stock: number
   is_dropshipping: boolean

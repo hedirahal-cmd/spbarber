@@ -61,6 +61,7 @@ export function ProductDetail({ product }: { product: Product }) {
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | undefined>(
     product.variants?.[0]
   )
+  const [selectedPhoto, setSelectedPhoto] = useState(0)
   const [added, setAdded] = useState(false)
   const [stickyVisible, setStickyVisible] = useState(false)
   const atcRef = useRef<HTMLButtonElement>(null)
@@ -87,6 +88,16 @@ export function ProductDetail({ product }: { product: Product }) {
     ? PRODUCTS.filter((p) => product.related!.includes(p.id))
     : []
 
+  // Le catalogue statique pointe toujours vers un chemin local qui n'existe pas
+  // encore sur disque (aucune photo n'a ete deployee en dur) -- le meme test
+  // que Stripe/JSON-LD distingue donc ici une vraie photo uploadee (URL
+  // Supabase Storage, absolue) du placeholder statique.
+  const hasGallery = product.images[0]?.url.startsWith('http') ?? false
+
+  useEffect(() => {
+    setSelectedPhoto(0)
+  }, [product.id])
+
   useEffect(() => {
     const el = atcRef.current
     if (!el) return
@@ -109,13 +120,35 @@ export function ProductDetail({ product }: { product: Product }) {
         {/* Galerie */}
         <div className="fi-gallery">
           <div className="fi-img-main">
-            <div className="fi-img-ph">
-              <span><CategoryIcon category={product.category} size={64} /></span>
-              <small>Photo produit</small>
-            </div>
+            {hasGallery ? (
+              <img
+                src={product.images[selectedPhoto]?.url ?? product.images[0].url}
+                alt={product.images[selectedPhoto]?.alt || product.name}
+              />
+            ) : (
+              <div className="fi-img-ph">
+                <span><CategoryIcon category={product.category} size={64} /></span>
+                <small>Photo produit</small>
+              </div>
+            )}
             {product.id === '1' && <span className="fi-tagg">Bestseller</span>}
             {product.stock <= 10 && product.stock > 0 && <span className="fi-tag">Dernières unités</span>}
           </div>
+          {hasGallery && product.images.length > 1 && (
+            <div className="fi-thumbs">
+              {product.images.map((img, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  className={idx === selectedPhoto ? 'fi-thumb fi-thumb-active' : 'fi-thumb'}
+                  onClick={() => setSelectedPhoto(idx)}
+                  aria-label={`Voir la photo ${idx + 1}`}
+                >
+                  <img src={img.url} alt="" />
+                </button>
+              ))}
+            </div>
+          )}
           <div className="trust-row">
             <div className="trust-i">
               <Lock size={20} strokeWidth={1.5} />

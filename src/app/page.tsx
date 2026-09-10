@@ -28,7 +28,7 @@ async function getSalons(): Promise<Salon[]> {
 import { schemaOrganizationLocal, schemaBreadcrumb, jsonLd } from '@/lib/schema'
 
 type ReviewDisplay = { text: string; name: string; initials: string; color: string; product: string; date: string }
-type ProdOverride = { id: string; name?: string | null; price?: number | null; description?: string | null; stock?: number | null; benefit?: string | null }
+type ProdOverride = { id: string; name?: string | null; price?: number | null; description?: string | null; stock?: number | null; benefit?: string | null; images?: { url: string; alt: string }[] | null }
 
 const AVATAR_COLORS_REV = ['#3a5a8a', '#8a3a5a', '#3a8a5a', '#5a3a8a', '#8a6a3a', '#3a7a8a']
 function strHash(s: string): number {
@@ -79,7 +79,7 @@ async function getTemoignagesPros(): Promise<TemoPro[]> {
 
 async function getProductOverrides(): Promise<Record<string, ProdOverride>> {
   try {
-    const { data } = await supabaseAdmin.from('product_overrides').select('id,name,price,description,stock,benefit')
+    const { data } = await supabaseAdmin.from('product_overrides').select('id,name,price,description,stock,benefit,images')
     if (!data) return {}
     const map: Record<string, ProdOverride> = {}
     ;(data as ProdOverride[]).forEach(r => { map[r.id] = r })
@@ -91,7 +91,15 @@ async function getProductOverrides(): Promise<Record<string, ProdOverride>> {
 function applyOverride(p: (typeof PRODUCTS)[0], ov: Record<string, ProdOverride>) {
   const o = ov[p.id]
   if (!o) return p
-  return { ...p, name: o.name ?? p.name, price: o.price ?? p.price, description: o.description ?? p.description, stock: o.stock ?? p.stock, benefit: o.benefit ?? p.benefit }
+  return {
+    ...p,
+    name: o.name ?? p.name,
+    price: o.price ?? p.price,
+    description: o.description ?? p.description,
+    stock: o.stock ?? p.stock,
+    benefit: o.benefit ?? p.benefit,
+    images: (o.images && o.images.length > 0) ? o.images : p.images,
+  }
 }
 
 function CategoryIcon({ category, size = 64 }: { category: string; size?: number }) {
@@ -229,7 +237,11 @@ export default async function HomePage() {
             <span className="best2-badge-mv">Meilleure vente</span>
             <Link href={`/products/${packBarbe.slug}`} className="best2-card-inner">
               <div className="best2-img">
-                <span className="best2-icon"><CategoryIcon category={packBarbe.category} size={72} /></span>
+                {packBarbe.images[0]?.url.startsWith('http') ? (
+                  <img src={packBarbe.images[0].url} alt={packBarbe.images[0].alt || packBarbe.name} />
+                ) : (
+                  <span className="best2-icon"><CategoryIcon category={packBarbe.category} size={72} /></span>
+                )}
               </div>
               <div className="best2-info">
                 <div className="best2-cat">Pack complet · Barbe</div>
@@ -248,7 +260,11 @@ export default async function HomePage() {
             <span className="best2-badge-bs">Bestseller</span>
             <Link href={`/products/${cireCheveux.slug}`} className="best2-card-inner">
               <div className="best2-img">
-                <span className="best2-icon"><CategoryIcon category={cireCheveux.category} size={72} /></span>
+                {cireCheveux.images[0]?.url.startsWith('http') ? (
+                  <img src={cireCheveux.images[0].url} alt={cireCheveux.images[0].alt || cireCheveux.name} />
+                ) : (
+                  <span className="best2-icon"><CategoryIcon category={cireCheveux.category} size={72} /></span>
+                )}
               </div>
               <div className="best2-info">
                 <div className="best2-cat">Coiffant · Tenue forte</div>
@@ -267,7 +283,11 @@ export default async function HomePage() {
             <span className="best2-badge-mv">Coup de coeur</span>
             <Link href={`/products/${shampNoir.slug}`} className="best2-card-inner">
               <div className="best2-img">
-                <span className="best2-icon"><CategoryIcon category={shampNoir.category} size={72} /></span>
+                {shampNoir.images[0]?.url.startsWith('http') ? (
+                  <img src={shampNoir.images[0].url} alt={shampNoir.images[0].alt || shampNoir.name} />
+                ) : (
+                  <span className="best2-icon"><CategoryIcon category={shampNoir.category} size={72} /></span>
+                )}
               </div>
               <div className="best2-info">
                 <div className="best2-cat">Soin colorant</div>
@@ -315,9 +335,13 @@ export default async function HomePage() {
             <div key={product.id} className="prod-card">
               <Link href={`/products/${product.slug}`}>
                 <div className="pc-img">
-                  <div className="pc-ph">
-                    <span className="pc-icon"><CategoryIcon category={product.category} size={50} /></span>
-                  </div>
+                  {product.images[0]?.url.startsWith('http') ? (
+                    <img src={product.images[0].url} alt={product.images[0].alt || product.name} />
+                  ) : (
+                    <div className="pc-ph">
+                      <span className="pc-icon"><CategoryIcon category={product.category} size={50} /></span>
+                    </div>
+                  )}
                   {product.stock <= 10 && product.stock > 0 && (
                     <span className="pc-tag">Dernières unités</span>
                   )}

@@ -43,6 +43,7 @@ type OverrideRow = {
   description: string | null
   stock: number | null
   benefit: string | null
+  images: { url: string; alt: string }[] | null
 }
 
 /** Garde-fou de volume : une ligne de panier ne depasse pas ce nombre d'unites. */
@@ -67,7 +68,7 @@ async function lireOverrides(): Promise<Map<string, OverrideRow>> {
   try {
     const { data, error } = await supabaseAdmin
       .from('product_overrides')
-      .select('id,name,price,description,stock,benefit')
+      .select('id,name,price,description,stock,benefit,images')
 
     if (error) {
       console.error('[pricing] lecture product_overrides en erreur:', error.message)
@@ -172,6 +173,7 @@ function resoudreLigne(
     ...(ov?.description != null ? { description: String(ov.description) } : {}),
     ...(ov?.stock != null ? { stock: Number(ov.stock) } : {}),
     ...(ov?.benefit != null ? { benefit: String(ov.benefit) } : {}),
+    ...(Array.isArray(ov?.images) && ov.images.length > 0 ? { images: ov.images } : {}),
   }
 
   return { product, variant, quantity, unitAmount }

@@ -8,7 +8,7 @@ export const PRODUCTS: Product[] = [
     description:
       'La Cire Cheveux Premium SP Barber est formulée par des barbiers professionnels pour offrir une fixation forte et une brillance naturelle toute la journée. Sa texture légère se répartit uniformément sur les cheveux courts à mi-longs, sans laisser de résidus ni alourdir. Idéale pour un coiffage naturel façon salon, elle tient jusqu\'à 24h et se rince facilement au shampooing. Que vous souhaitiez un effet mat ou légèrement brillant, cette cire cheveux homme s\'adapte à tous les styles. Un incontournable de la routine capillaire masculine pour un résultat pro à la maison.',
     price: 2490,
-    images: ['/images/products/cire-cheveux.jpg'],
+    images: [{ url: '/images/products/cire-cheveux.jpg', alt: 'Pot de Cire Cheveux Premium SP Barber' }],
     category: 'coiffant',
     stock: 50,
     is_dropshipping: false,
@@ -27,7 +27,7 @@ export const PRODUCTS: Product[] = [
     description:
       'Le Shampooing Colorant Noir SP Barber est la solution naturelle pour masquer les cheveux blancs et raviver l\'intensité de votre couleur noire. Sans ammoniaque, sans peroxyde, sa formule douce respecte le cuir chevelu tout en déposant des pigments naturels à chaque lavage. Résultat visible dès la première utilisation, la couleur s\'intensifie progressivement pour un rendu naturel et homogène. Idéal pour les hommes qui souhaitent atténuer les reflets gris ou blancs sans passer par une coloration agressive. Compatible avec tous les types de cheveux noirs ou foncés.',
     price: 2890,
-    images: ['/images/products/shampooing-noir.jpg'],
+    images: [{ url: '/images/products/shampooing-noir.jpg', alt: 'Flacon de Shampooing Noir Colorant SP Barber' }],
     category: 'soin',
     stock: 40,
     is_dropshipping: false,
@@ -46,7 +46,7 @@ export const PRODUCTS: Product[] = [
     description:
       'La Crème Curl Control SP Barber est spécialement formulée pour les hommes aux cheveux bouclés, frisés ou ondulés. Elle définit et discipline les boucles avec légèreté, sans l\'effet cartonné des gels classiques. Sa formule hydratante maintient l\'élasticité des boucles toute la journée tout en nourrissant les cheveux en profondeur. Sans résidu, sans alourdissement, elle offre un coiffage naturel et soigné façon salon. Adaptée à tous les types de boucles, de légèrement ondulées aux frisures serrées, c\'est l\'alliée indispensable de la routine capillaire bouclée masculine.',
     price: 2690,
-    images: ['/images/products/creme-curl.jpg'],
+    images: [{ url: '/images/products/creme-curl.jpg', alt: 'Pot de Crème Curl Control SP Barber pour cheveux bouclés' }],
     category: 'coiffant',
     stock: 35,
     is_dropshipping: false,
@@ -65,7 +65,7 @@ export const PRODUCTS: Product[] = [
     description:
       'Le Peigne Texture Expert SP Barber est l\'outil professionnel incontournable pour sculpter, texturer et coiffer avec précision. Ses dents larges anti-casse sont conçues pour cheveux épais, texturés et bouclés : elles démêlent sans arracher et définissent le style avec précision. Utilisé par les barbiers professionnels, ce peigne homme offre une prise en main ergonomique et une durabilité supérieure aux accessoires classiques. Compatible avec tous types de coiffures masculines, il complète parfaitement votre routine avec la cire cheveux ou la crème curl pour un résultat pro à la maison.',
     price: 1490,
-    images: ['/images/products/peigne-texture.jpg'],
+    images: [{ url: '/images/products/peigne-texture.jpg', alt: 'Peigne Texture Expert SP Barber pour barbier professionnel' }],
     category: 'accessoire',
     stock: 80,
     is_dropshipping: false,
@@ -84,7 +84,7 @@ export const PRODUCTS: Product[] = [
     description:
       'Le Pack Barbe Complet SP Barber réunit tout ce qu\'il faut pour entretenir et sublimer sa barbe au quotidien. Ce kit barbe homme de 5 essentiels inclut huile de barbe nourrissante, baume de barbe coiffant, peigne barbe, ciseaux de précision et shampooing barbe. Formulés par des barbiers professionnels de Fougères, ces produits soin barbe homme offrent un résultat visible dès la première utilisation : barbe douce, hydratée, bien coiffée et parfaitement entretenue. Un cadeau idéal pour homme ou une mise à niveau complète de votre routine barbe. Valeur totale 85€, économisez 35€ avec ce pack exclusif.',
     price: 4990,
-    images: ['/images/products/pack-barbe.jpg'],
+    images: [{ url: '/images/products/pack-barbe.jpg', alt: "Pack Barbe Complet SP Barber avec 5 produits d'entretien" }],
     category: 'barbe',
     stock: 25,
     is_dropshipping: false,
@@ -103,7 +103,7 @@ export const PRODUCTS: Product[] = [
     description:
       'La Tondeuse Fade Pro SP Barber est l\'outil professionnel pour réaliser des dégradés fade parfaits à la maison. Ses lames en acier japonais inoxydable garantissent une coupe précise, nette et durable. Idéale pour les hommes qui souhaitent maîtriser la coupe dégradé, le skin fade ou le buzz cut sans passer par le salon de coiffure. Silencieuse, légère et rechargeable, elle convient à tous types de cheveux — droits, ondulés ou texturés. Le choix des barbiers professionnels pour un résultat fade haircut impeccable à la maison.',
     price: 7990,
-    images: ['/images/products/tondeuse-fade.jpg'],
+    images: [{ url: '/images/products/tondeuse-fade.jpg', alt: 'Tondeuse Fade Pro SP Barber, lames acier japonais' }],
     category: 'accessoire',
     stock: 999,
     is_dropshipping: true,
@@ -128,7 +128,7 @@ export const PRODUCTS: Product[] = [
     description:
       'La Poudre Texturante SP Barber apporte volume, grip et style mat instantanément aux cheveux fins ou sans tenue. Sa formule légère en poudre active les racines sans alourdir ni graisser. Facile à appliquer, elle crée une texture naturelle et un effet volume immédiat, idéal pour les coiffures structurées ou décoiffées-coiffées. Plébiscitée par les barbiers professionnels pour les cheveux fins, elle transforme chaque style en coiffure qui dure. Un indispensable de la routine capillaire masculine pour un look naturellement travaillé.',
     price: 2000,
-    images: ['/images/products/poudre-texturante.jpg'],
+    images: [{ url: '/images/products/poudre-texturante.jpg', alt: 'Pot de Poudre Texturante SP Barber pour volume des cheveux' }],
     category: 'coiffant',
     stock: 45,
     is_dropshipping: false,

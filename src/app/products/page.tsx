@@ -48,12 +48,12 @@ function getBadge(id: string) {
   return null
 }
 
-type ProdOv = { id: string; name?: string | null; price?: number | null; description?: string | null; stock?: number | null; benefit?: string | null }
+type ProdOv = { id: string; name?: string | null; price?: number | null; description?: string | null; stock?: number | null; benefit?: string | null; images?: { url: string; alt: string }[] | null }
 
 export default async function ProductsPage() {
   let overrides: Record<string, ProdOv> = {}
   try {
-    const { data, error } = await supabaseAdmin.from('product_overrides').select('id,name,price,description,stock,benefit')
+    const { data, error } = await supabaseAdmin.from('product_overrides').select('id,name,price,description,stock,benefit,images')
     console.log('[products-page] overrides count:', data?.length ?? 0, '| error:', error?.message ?? null)
     if (data) (data as ProdOv[]).forEach(r => { overrides[r.id] = r })
   } catch (e) {
@@ -63,7 +63,15 @@ export default async function ProductsPage() {
   function applyOv(p: (typeof PRODUCTS)[0]) {
     const o = overrides[p.id]
     if (!o) return p
-    return { ...p, name: o.name ?? p.name, price: o.price ?? p.price, description: o.description ?? p.description, stock: o.stock ?? p.stock, benefit: o.benefit ?? p.benefit }
+    return {
+      ...p,
+      name: o.name ?? p.name,
+      price: o.price ?? p.price,
+      description: o.description ?? p.description,
+      stock: o.stock ?? p.stock,
+      benefit: o.benefit ?? p.benefit,
+      images: (o.images && o.images.length > 0) ? o.images : p.images,
+    }
   }
 
   const sorted = [
@@ -86,9 +94,13 @@ export default async function ProductsPage() {
             <div key={product.id} className="prod-card">
               <Link href={`/products/${product.slug}`}>
                 <div className="pc-img">
-                  <div className="pc-ph">
-                    <span className="pc-icon"><CategoryIcon category={product.category} size={50} /></span>
-                  </div>
+                  {product.images[0]?.url.startsWith('http') ? (
+                    <img src={product.images[0].url} alt={product.images[0].alt || product.name} />
+                  ) : (
+                    <div className="pc-ph">
+                      <span className="pc-icon"><CategoryIcon category={product.category} size={50} /></span>
+                    </div>
+                  )}
                   {getBadge(product.id)}
                   {product.stock <= 10 && product.stock > 0 && (
                     <span className="pc-tag">Dernières unités</span>

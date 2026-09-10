@@ -17,6 +17,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const product = PRODUCTS.find((p) => p.slug === slug)
   if (!product) return {}
 
+  // generateMetadata et le composant de page ci-dessous sont deux fonctions
+  // distinctes appelees separement par Next.js : cette lecture est necessaire
+  // pour que l'image partagee (og:image) reflete une vraie photo uploadee,
+  // meme si le reste de la fiche (titre, description) reste sur le catalogue
+  // statique -- ce dernier point est un ecart preexistant, hors perimetre ici.
+  let images = product.images
+  try {
+    const { data } = await supabaseAdmin.from('product_overrides').select('images').eq('id', product.id).maybeSingle()
+    if (Array.isArray(data?.images) && data.images.length > 0) images = data.images
+  } catch {}
+  const hasRealPhoto = images[0]?.url?.startsWith('http') ?? false
+
   const title = product.seo_title ?? product.name
   const description = product.seo_description ?? product.description
   const url = `https://spbarber.fr/products/${product.slug}`
@@ -34,12 +46,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       siteName: 'SP Barber',
       images: [
         {
-          url: product.images[0]?.startsWith('http')
-            ? product.images[0]
-            : `https://spbarber.fr${product.images[0] ?? '/og-default.jpg'}`,
+          url: hasRealPhoto ? images[0].url : 'https://spbarber.fr/og-default.jpg',
           width: 800,
           height: 800,
-          alt: `${product.name} — SP Barber`,
+          alt: hasRealPhoto && images[0]?.alt ? images[0].alt : `${product.name} — SP Barber`,
         },
       ],
     },
@@ -66,7 +76,7 @@ export default async function ProductPage({ params }: Props) {
   let product = rawProduct!
 
   try {
-    const { data, error } = await supabaseAdmin.from('product_overrides').select('name,price,description,stock,benefit').eq('id', product.id).maybeSingle()
+    const { data, error } = await supabaseAdmin.from('product_overrides').select('name,price,description,stock,benefit,images').eq('id', product.id).maybeSingle()
     console.log('[product-page] id:', product.id, 'slug:', slug, '| override:', JSON.stringify(data), '| error:', error?.message ?? null)
     if (data) product = {
       ...product,
@@ -75,6 +85,7 @@ export default async function ProductPage({ params }: Props) {
       ...(data.description != null ? { description: String(data.description) } : {}),
       ...(data.stock != null ? { stock: Number(data.stock) } : {}),
       ...(data.benefit != null ? { benefit: String(data.benefit) } : {}),
+      ...(Array.isArray(data.images) && data.images.length > 0 ? { images: data.images } : {}),
     }
   } catch (e) {
     console.error('[product-page] catch:', e instanceof Error ? e.message : String(e))

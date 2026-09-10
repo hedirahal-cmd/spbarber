@@ -153,10 +153,16 @@ function ProductThumb({ category }: { category: string }) {
 }
 
 // ─── Tab Produits ──────────────────────────────────────────────
+type GalleryImage = { url: string; alt: string }
+const MAX_PHOTOS_PRODUIT = 6
+
 function TabProduits() {
   const [overrides, setOverrides] = useState<Record<string, Record<string, unknown>>>({})
   const [editing, setEditing] = useState<string | null>(null)
   const [form, setForm] = useState<Record<string, string>>({})
+  const [images, setImages] = useState<GalleryImage[]>([])
+  const [uploadingImages, setUploadingImages] = useState(false)
+  const [imgErr, setImgErr] = useState('')
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [saveErr, setSaveErr] = useState('')
@@ -180,9 +186,72 @@ function TabProduits() {
       stock: String(ov.stock != null ? ov.stock : base.stock),
       benefit: String(ov.benefit ?? base.benefit ?? ''),
     })
+    // Part d'une galerie vide si aucun override, pas du catalogue statique :
+    // ce dernier ne pointe vers aucun fichier reel, l'y afficher en admin
+    // laisserait croire a une photo qui n'existe pas.
+    setImages(Array.isArray(ov.images) ? (ov.images as GalleryImage[]) : [])
+    setImgErr('')
     setEditing(id)
     setSaved(false)
     setSaveErr('')
+  }
+
+  async function uploadImages(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files ?? [])
+    const produit = editing ? PRODUCTS.find(p => p.id === editing) : null
+    if (!files.length || !produit) { e.target.value = ''; return }
+
+    setImgErr('')
+    setUploadingImages(true)
+    for (const file of files) {
+      if (images.length >= MAX_PHOTOS_PRODUIT) {
+        setImgErr(`Maximum ${MAX_PHOTOS_PRODUIT} photos par produit.`)
+        break
+      }
+      const fd = new FormData()
+      fd.append('file', file)
+      fd.append('slug', produit.slug)
+      try {
+        const res = await fetch('/api/admin/products/upload', { method: 'POST', body: fd })
+        if (res.ok) {
+          const { url } = await res.json()
+          setImages(imgs => [...imgs, { url, alt: produit.name }])
+        } else {
+          const d = await res.json().catch(() => ({}))
+          setImgErr(d.error ?? 'Erreur upload photo')
+        }
+      } catch {
+        setImgErr('Erreur upload photo')
+      }
+    }
+    setUploadingImages(false)
+    e.target.value = ''
+  }
+
+  async function removeImage(idx: number) {
+    const photo = images[idx]
+    setImages(imgs => imgs.filter((_, i) => i !== idx))
+    try {
+      await fetch('/api/admin/products/upload', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: photo.url }),
+      })
+    } catch {}
+  }
+
+  function setImageAlt(idx: number, alt: string) {
+    setImages(imgs => imgs.map((img, i) => i === idx ? { ...img, alt } : img))
+  }
+
+  function moveImage(idx: number, dir: -1 | 1) {
+    setImages(imgs => {
+      const j = idx + dir
+      if (j < 0 || j >= imgs.length) return imgs
+      const next = [...imgs]
+      ;[next[idx], next[j]] = [next[j], next[idx]]
+      return next
+    })
   }
 
   async function save() {
@@ -190,7 +259,7 @@ function TabProduits() {
     setSaving(true)
     setSaveErr('')
     try {
-      const res = await fetch('/api/admin/products', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: editing, ...form }) })
+      const res = await fetch('/api/admin/products', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: editing, ...form, images }) })
       if (res.ok) {
         setSaved(true)
         const rows: Array<Record<string, unknown>> = await fetch('/api/admin/products').then(r => r.json())
@@ -297,13 +366,56 @@ function TabProduits() {
             {saveErr && <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 6, padding: '10px 14px', marginBottom: 16, fontSize: 13, color: '#b91c1c', fontWeight: 500 }}>Erreur : {saveErr}</div>}
             {ov && !saved && !saveErr && <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 6, padding: '10px 14px', marginBottom: 16, fontSize: 12, color: '#92400e' }}>Ce produit a des modifications actives dans Supabase.</div>}
 
-            {/* Photo */}
+            {/* Photos (galerie) */}
             <div style={{ marginBottom: 20 }}>
-              <div style={{ fontSize: 13, fontWeight: 600, color: S.text, marginBottom: 8 }}>Photo produit</div>
-              <div style={{ border: '2px dashed #e1e3e5', borderRadius: 6, padding: '24px 16px', textAlign: 'center', background: S.bg }}>
-                <ProductThumb category={selectedProduct.category} />
-                <div style={{ fontSize: 12, color: S.muted, marginTop: 8 }}>Upload via Supabase Storage (à configurer)</div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: S.text, marginBottom: 8 }}>
+                Photos ({images.length}/{MAX_PHOTOS_PRODUIT})
               </div>
+
+              {images.length === 0 && (
+                <div style={{ border: '2px dashed #e1e3e5', borderRadius: 6, padding: '24px 16px', textAlign: 'center', background: S.bg, marginBottom: 10 }}>
+                  <ProductThumb category={selectedProduct.category} />
+                  <div style={{ fontSize: 12, color: S.muted, marginTop: 8 }}>Aucune photo — l&apos;icône par défaut reste affichée sur le site.</div>
+                </div>
+              )}
+
+              {images.length > 0 && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 10 }}>
+                  {images.map((img, idx) => (
+                    <div key={idx} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', background: S.bg, borderRadius: 6, padding: 8 }}>
+                      <img src={img.url} alt="" style={{ width: 60, height: 60, objectFit: 'cover', borderRadius: 4, flexShrink: 0, background: '#e5e7eb' }} />
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <input
+                          value={img.alt}
+                          onChange={e => setImageAlt(idx, e.target.value.slice(0, 125))}
+                          placeholder="Texte alternatif (SEO)"
+                          maxLength={125}
+                          style={{ ...S.input, fontSize: 12, padding: '6px 10px' }}
+                        />
+                        <div style={{ fontSize: 10, color: S.muted, marginTop: 3 }}>{idx === 0 ? 'Couverture — utilisée sur les listes et le partage' : `Photo ${idx + 1}`}</div>
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 2, flexShrink: 0 }}>
+                        <button type="button" disabled={idx === 0} onClick={() => moveImage(idx, -1)} style={{ ...S.btnSecondary, padding: '2px 8px', fontSize: 11, opacity: idx === 0 ? 0.3 : 1 }}>↑</button>
+                        <button type="button" disabled={idx === images.length - 1} onClick={() => moveImage(idx, 1)} style={{ ...S.btnSecondary, padding: '2px 8px', fontSize: 11, opacity: idx === images.length - 1 ? 0.3 : 1 }}>↓</button>
+                      </div>
+                      <button type="button" onClick={() => removeImage(idx)} style={{ ...S.btnSecondary, padding: '4px 10px', fontSize: 12, color: '#b91c1c', borderColor: '#fca5a5', flexShrink: 0 }}>×</button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {imgErr && <div style={{ fontSize: 12, color: '#b91c1c', marginBottom: 8 }}>{imgErr}</div>}
+
+              <input id="product-photos-input" type="file" accept=".jpg,.jpeg,.png,.webp" multiple style={{ display: 'none' }} onChange={uploadImages} />
+              <button
+                type="button"
+                disabled={uploadingImages || images.length >= MAX_PHOTOS_PRODUIT}
+                onClick={() => (document.getElementById('product-photos-input') as HTMLInputElement)?.click()}
+                style={{ ...S.btnSecondary, fontSize: 12, padding: '6px 12px', opacity: images.length >= MAX_PHOTOS_PRODUIT ? 0.5 : 1 }}
+              >
+                {uploadingImages ? 'Envoi…' : images.length >= MAX_PHOTOS_PRODUIT ? 'Limite atteinte' : '+ Ajouter des photos'}
+              </button>
+              <div style={{ fontSize: 11, color: S.muted, marginTop: 6 }}>JPG, PNG ou WebP. La première photo est la couverture (listes, réseaux sociaux).</div>
             </div>
 
             {/* Titre */}
