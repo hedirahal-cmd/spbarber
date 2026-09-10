@@ -803,6 +803,7 @@ function TabSalons() {
   const [newSalon, setNewSalon] = useState<SalonRow>(EMPTY_SALON)
   const [createErr, setCreateErr] = useState('')
   const [creatingSaving, setCreatingSaving] = useState(false)
+  const [reorderErr, setReorderErr] = useState('')
 
   const load = useCallback(async () => {
     const res = await fetch('/api/admin/salons')
@@ -858,10 +859,19 @@ function TabSalons() {
     const other = salons[idx + dir]
     const curr = salons[idx]
     if (!other) return
-    await Promise.all([
-      fetch('/api/admin/salons', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ slug: curr.slug, ordre: other.ordre }) }),
-      fetch('/api/admin/salons', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ slug: other.slug, ordre: curr.ordre }) }),
-    ])
+    setReorderErr('')
+    try {
+      const [r1, r2] = await Promise.all([
+        fetch('/api/admin/salons', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ slug: curr.slug, ordre: other.ordre }) }),
+        fetch('/api/admin/salons', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ slug: other.slug, ordre: curr.ordre }) }),
+      ])
+      // Les deux PUT peuvent echouer independamment (l'un des deux salons
+      // supprime entre-temps, panne reseau ponctuelle) -- sans ce controle,
+      // un ordre incoherent entre les deux lignes passait inapercu.
+      if (!r1.ok || !r2.ok) setReorderErr('Le réordonnancement a partiellement échoué — vérifiez l\'ordre ci-dessous.')
+    } catch {
+      setReorderErr('Erreur réseau pendant le réordonnancement.')
+    }
     await load()
   }
 
@@ -912,6 +922,7 @@ function TabSalons() {
         </div>
         <button onClick={startNew} style={S.btnPrimary}>+ Ajouter un salon</button>
       </div>
+      {reorderErr && <div style={{ margin: '0 24px 16px', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 6, padding: '10px 14px', fontSize: 13, color: '#b91c1c', fontWeight: 500 }}>{reorderErr}</div>}
 
       <div style={{ padding: '0 24px 40px', display: 'flex', flexDirection: 'column', gap: 0, maxWidth: 860 }}>
 
@@ -965,14 +976,46 @@ function TabSalons() {
 }
 
 // ─── Tab Commandes ─────────────────────────────────────────────
+/** Une ligne de commande, telle que stockee : juste de quoi retrouver le produit -- pas son nom, prix ou image (cf. bloc Stock, limite 500 caracteres des metadonnees Stripe). */
+type LigneCommande = { id?: unknown; variantId?: unknown; qty?: unknown }
+
+function OrderItemsList({ items }: { items: unknown }) {
+  const lignes = Array.isArray(items) ? (items as LigneCommande[]) : []
+  if (lignes.length === 0) {
+    return <div style={{ fontSize: 12, color: S.muted, fontStyle: 'italic' }}>Aucun article (commande vide ou ancien format).</div>
+  }
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+      {lignes.map((ligne, i) => {
+        const produitId = typeof ligne.id === 'string' ? ligne.id : null
+        const base = produitId ? PRODUCTS.find(p => p.id === produitId) : undefined
+        const variantId = typeof ligne.variantId === 'string' ? ligne.variantId : null
+        const variante = variantId ? base?.variants?.find(v => v.id === variantId) : undefined
+        const qty = typeof ligne.qty === 'number' ? ligne.qty : '?'
+        return (
+          <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: S.text, padding: '6px 0', borderBottom: i < lignes.length - 1 ? `1px solid ${S.border}` : 'none' }}>
+            <span>
+              {base ? base.name : `Produit inconnu (id: ${produitId ?? '?'})`}
+              {variante && <span style={{ color: S.muted }}> — {variante.name}</span>}
+            </span>
+            <span style={{ color: S.muted, flexShrink: 0, marginLeft: 8 }}>× {qty}</span>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
 function TabCommandes() {
   const [orders, setOrders] = useState<Array<Record<string, unknown>>>([])
   const [loading, setLoading] = useState(true)
   const [updating, setUpdating] = useState<string | null>(null)
+  const [updateErr, setUpdateErr] = useState('')
   const [selected, setSelected] = useState<Record<string, unknown> | null>(null)
   const [trackingInputs, setTrackingInputs] = useState<Record<string, string>>({})
   const [shipping, setShipping] = useState<string | null>(null)
   const [shipOk, setShipOk] = useState<string | null>(null)
+  const [shipErr, setShipErr] = useState('')
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -983,28 +1026,48 @@ function TabCommandes() {
   useEffect(() => { load() }, [load])
 
   async function updateStatus(id: string, status: string) {
-    setUpdating(id)
-    await fetch('/api/admin/orders', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, status }) })
-    await load()
-    setUpdating(null)
-    if (selected && String(selected.id) === id) setSelected(s => s ? { ...s, status } : s)
+    setUpdating(id); setUpdateErr('')
+    try {
+      const res = await fetch('/api/admin/orders', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, status }) })
+      if (res.ok) {
+        // Mise a jour optimiste UNIQUEMENT apres confirmation du serveur -- un
+        // 404/500 ne doit jamais laisser croire que le statut a change.
+        if (selected && String(selected.id) === id) setSelected(s => s ? { ...s, status } : s)
+        await load()
+      } else {
+        const d = await res.json().catch(() => ({}))
+        setUpdateErr(d.error ?? `Erreur ${res.status}`)
+      }
+    } catch {
+      setUpdateErr('Erreur réseau')
+    } finally {
+      setUpdating(null)
+    }
   }
 
   async function markShipped(id: string) {
     const tracking = trackingInputs[id]?.trim() ?? ''
     if (!tracking) return
-    setShipping(id)
-    const res = await fetch('/api/admin/ship', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id, tracking_number: tracking }),
-    })
-    setShipping(null)
-    if (res.ok) {
-      setShipOk(id)
-      setTimeout(() => setShipOk(s => s === id ? null : s), 3000)
-      await load()
-      setSelected(s => s && String(s.id) === id ? { ...s, status: 'shipped', tracking_number: tracking } : s)
+    setShipping(id); setShipErr('')
+    try {
+      const res = await fetch('/api/admin/ship', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, tracking_number: tracking }),
+      })
+      if (res.ok) {
+        setShipOk(id)
+        setTimeout(() => setShipOk(s => s === id ? null : s), 3000)
+        await load()
+        setSelected(s => s && String(s.id) === id ? { ...s, status: 'shipped', tracking_number: tracking } : s)
+      } else {
+        const d = await res.json().catch(() => ({}))
+        setShipErr(d.error ?? `Erreur ${res.status}`)
+      }
+    } catch {
+      setShipErr('Erreur réseau')
+    } finally {
+      setShipping(null)
     }
   }
 
@@ -1075,19 +1138,26 @@ function TabCommandes() {
             <div style={{ fontSize: 12, color: S.muted, marginBottom: 4 }}>Total</div>
             <div style={{ fontWeight: 700, fontSize: 18, color: S.text, marginBottom: 16 }}>{selected.total ? eur(Number(selected.total)) : '—'}</div>
 
+            <div style={{ fontSize: 12, color: S.muted, marginBottom: 6 }}>Articles commandés</div>
+            <div style={{ ...S.card_, padding: 14, marginBottom: 16 }}>
+              <OrderItemsList items={selected.items} />
+            </div>
+
             <div style={{ fontSize: 12, color: S.muted, marginBottom: 4 }}>Statut actuel</div>
             <select
               value={String(selected.status ?? 'pending')}
               disabled={updating === String(selected.id)}
               onChange={e => updateStatus(String(selected.id), e.target.value)}
-              style={{ ...S.input, marginBottom: 16 }}
+              style={{ ...S.input, marginBottom: updateErr ? 8 : 16 }}
             >
               {ORDER_STATUSES.map(s => <option key={s} value={s}>{statusLabel(s)}</option>)}
             </select>
+            {updateErr && <div style={{ fontSize: 12, color: '#b91c1c', marginBottom: 16 }}>Erreur : {updateErr}</div>}
 
             {/* Tracking / expédition */}
             <div style={{ ...S.card_, padding: 14, marginBottom: 16 }}>
               <div style={{ fontSize: 12, fontWeight: 600, color: S.text, marginBottom: 8 }}>Expédition Colissimo</div>
+              {shipErr && <div style={{ fontSize: 12, color: '#b91c1c', marginBottom: 8 }}>Erreur : {shipErr}</div>}
               {selected.tracking_number ? (
                 <div style={{ fontSize: 13, color: '#15803d', marginBottom: 8 }}>
                   Numéro de suivi : <strong>{String(selected.tracking_number)}</strong>
@@ -1171,6 +1241,7 @@ function TabBarbers() {
   const [savedMsg, setSavedMsg] = useState('')
   const [deleting, setDeleting] = useState<string | null>(null)
   const [err, setErr] = useState('')
+  const [reorderErr, setReorderErr] = useState('')
   const [uploadingPhoto, setUploadingPhoto] = useState(false)
 
   const load = useCallback(async () => {
@@ -1269,10 +1340,16 @@ function TabBarbers() {
     const other = barbers[idx + dir]
     const curr = barbers[idx]
     if (!other) return
-    await Promise.all([
-      fetch('/api/admin/barbers', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: curr.id, ordre: other.ordre }) }),
-      fetch('/api/admin/barbers', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: other.id, ordre: curr.ordre }) }),
-    ])
+    setReorderErr('')
+    try {
+      const [r1, r2] = await Promise.all([
+        fetch('/api/admin/barbers', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: curr.id, ordre: other.ordre }) }),
+        fetch('/api/admin/barbers', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: other.id, ordre: curr.ordre }) }),
+      ])
+      if (!r1.ok || !r2.ok) setReorderErr('Le réordonnancement a partiellement échoué — vérifiez l\'ordre ci-dessous.')
+    } catch {
+      setReorderErr('Erreur réseau pendant le réordonnancement.')
+    }
     await load()
   }
 
@@ -1287,6 +1364,7 @@ function TabBarbers() {
           </div>
           <button onClick={startNew} style={S.btnPrimary}>+ Ajouter un barber</button>
         </div>
+        {reorderErr && <div style={{ margin: '0 24px 16px', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 6, padding: '10px 14px', fontSize: 13, color: '#b91c1c', fontWeight: 500 }}>{reorderErr}</div>}
 
         <div style={{ padding: '0 24px 24px' }}>
           {loading ? (
@@ -1574,6 +1652,12 @@ function TabLegal() {
 }
 
 // ─── Tab Avis ──────────────────────────────────────────────────
+/** Jamais NaN/hors bornes vers '★'.repeat(), qui leve sinon une exception et casse tout le tableau. */
+function noteAffichable(rating: unknown): number {
+  const n = Math.round(Number(rating))
+  return Number.isFinite(n) ? Math.min(5, Math.max(1, n)) : 5
+}
+
 function TabAvis() {
   const [reviews, setReviews] = useState<Array<Record<string, unknown>>>([])
   const [loading, setLoading] = useState(true)
@@ -1581,6 +1665,8 @@ function TabAvis() {
   const [form, setForm] = useState({ author: '', avatar: '👤', rating: '5', text: '', product_name: '', verified: true, visible: true })
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [formErr, setFormErr] = useState('')
+  const [rowErr, setRowErr] = useState('')
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -1591,20 +1677,44 @@ function TabAvis() {
   useEffect(() => { load() }, [load])
 
   async function addReview(e: React.FormEvent) {
-    e.preventDefault(); setSaving(true)
-    const res = await fetch('/api/admin/reviews', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) })
-    setSaving(false)
-    if (res.ok) { setSaved(true); setShowForm(false); setForm({ author: '', avatar: '👤', rating: '5', text: '', product_name: '', verified: true, visible: true }); await load() }
+    e.preventDefault(); setSaving(true); setFormErr('')
+    try {
+      const res = await fetch('/api/admin/reviews', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) })
+      if (res.ok) {
+        setSaved(true); setShowForm(false)
+        setForm({ author: '', avatar: '👤', rating: '5', text: '', product_name: '', verified: true, visible: true })
+        await load()
+      } else {
+        const d = await res.json().catch(() => ({}))
+        setFormErr(d.error ?? `Erreur ${res.status}`)
+      }
+    } catch {
+      setFormErr('Erreur réseau')
+    } finally {
+      setSaving(false)
+    }
   }
 
   async function toggleVisible(r: Record<string, unknown>) {
-    await fetch('/api/admin/reviews', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: r.id, visible: !r.visible }) })
+    setRowErr('')
+    try {
+      const res = await fetch('/api/admin/reviews', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: r.id, visible: !r.visible }) })
+      if (!res.ok) { const d = await res.json().catch(() => ({})); setRowErr(d.error ?? `Erreur ${res.status}`); return }
+    } catch {
+      setRowErr('Erreur réseau'); return
+    }
     await load()
   }
 
   async function del(id: unknown) {
     if (!confirm('Supprimer cet avis ?')) return
-    await fetch('/api/admin/reviews', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) })
+    setRowErr('')
+    try {
+      const res = await fetch('/api/admin/reviews', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) })
+      if (!res.ok) { const d = await res.json().catch(() => ({})); setRowErr(d.error ?? `Erreur ${res.status}`); return }
+    } catch {
+      setRowErr('Erreur réseau'); return
+    }
     await load(); setSaved(false)
   }
 
@@ -1619,18 +1729,30 @@ function TabAvis() {
       </div>
 
       {saved && <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 6, padding: '10px 14px', marginBottom: 16, fontSize: 13, color: '#15803d', fontWeight: 500 }}>Avis sauvegardé</div>}
+      {rowErr && <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 6, padding: '10px 14px', marginBottom: 16, fontSize: 13, color: '#b91c1c', fontWeight: 500 }}>Erreur : {rowErr}</div>}
 
       {showForm && (
         <div style={{ ...S.card_, padding: 20, marginBottom: 24 }}>
           <div style={{ fontSize: 15, fontWeight: 600, color: S.text, marginBottom: 16 }}>Nouvel avis</div>
+          {formErr && <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 6, padding: '10px 14px', marginBottom: 14, fontSize: 13, color: '#b91c1c', fontWeight: 500 }}>Erreur : {formErr}</div>}
           <form onSubmit={addReview}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
-              {[{ k: 'author', label: 'Nom' }, { k: 'avatar', label: 'Avatar (emoji)' }, { k: 'rating', label: 'Note (1-5)' }, { k: 'product_name', label: 'Produit' }].map(({ k, label }) => (
+              {[{ k: 'author', label: 'Nom' }, { k: 'avatar', label: 'Avatar (emoji)' }, { k: 'product_name', label: 'Produit' }].map(({ k, label }) => (
                 <div key={k}>
                   <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: S.text, marginBottom: 5 }}>{label}</label>
                   <input value={String(form[k as keyof typeof form])} onChange={e => setForm(f => ({ ...f, [k]: e.target.value }))} required={k === 'author'} style={S.input} />
                 </div>
               ))}
+              <div>
+                <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: S.text, marginBottom: 5 }}>Note (1-5)</label>
+                <input
+                  type="number" min={1} max={5} step={1}
+                  value={form.rating}
+                  onChange={e => setForm(f => ({ ...f, rating: e.target.value }))}
+                  required
+                  style={S.input}
+                />
+              </div>
             </div>
             <div style={{ marginBottom: 14 }}>
               <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: S.text, marginBottom: 5 }}>Texte de l&apos;avis</label>
@@ -1680,7 +1802,7 @@ function TabAvis() {
                       </div>
                     </div>
                   </td>
-                  <td style={{ padding: '12px 16px', color: '#b8903a', fontWeight: 700 }}>{'★'.repeat(Number(r.rating ?? 5))}</td>
+                  <td style={{ padding: '12px 16px', color: '#b8903a', fontWeight: 700 }}>{'★'.repeat(noteAffichable(r.rating))}</td>
                   <td style={{ padding: '12px 16px', color: S.muted, fontSize: 13, maxWidth: 200 }}>
                     <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{String(r.text ?? '')}</div>
                   </td>
@@ -1731,6 +1853,7 @@ function TabTemoignagesPros() {
   const [savedMsg, setSavedMsg] = useState('')
   const [deleting, setDeleting] = useState<string | null>(null)
   const [err, setErr] = useState('')
+  const [reorderErr, setReorderErr] = useState('')
   const [uploadingPhoto, setUploadingPhoto] = useState(false)
 
   const load = useCallback(async () => {
@@ -1819,10 +1942,16 @@ function TabTemoignagesPros() {
     const other = temos[idx + dir]
     const curr = temos[idx]
     if (!other) return
-    await Promise.all([
-      fetch('/api/admin/temoignages-pros', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: curr.id, ordre: other.ordre }) }),
-      fetch('/api/admin/temoignages-pros', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: other.id, ordre: curr.ordre }) }),
-    ])
+    setReorderErr('')
+    try {
+      const [r1, r2] = await Promise.all([
+        fetch('/api/admin/temoignages-pros', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: curr.id, ordre: other.ordre }) }),
+        fetch('/api/admin/temoignages-pros', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: other.id, ordre: curr.ordre }) }),
+      ])
+      if (!r1.ok || !r2.ok) setReorderErr('Le réordonnancement a partiellement échoué — vérifiez l\'ordre ci-dessous.')
+    } catch {
+      setReorderErr('Erreur réseau pendant le réordonnancement.')
+    }
     await load()
   }
 
@@ -1837,6 +1966,7 @@ function TabTemoignagesPros() {
           </div>
           <button onClick={startNew} style={S.btnPrimary}>+ Ajouter</button>
         </div>
+        {reorderErr && <div style={{ margin: '0 24px 16px', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 6, padding: '10px 14px', fontSize: 13, color: '#b91c1c', fontWeight: 500 }}>{reorderErr}</div>}
 
         <div style={{ padding: '0 24px 24px' }}>
           {loading ? (

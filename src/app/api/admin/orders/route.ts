@@ -15,7 +15,13 @@ export async function GET() {
 export async function PATCH(req: NextRequest) {
   if (!(await estAdmin())) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const { id, status } = await req.json()
-  const { error } = await supabase.from('orders').update({ status }).eq('id', id)
+  if (!id) return NextResponse.json({ error: 'id requis' }, { status: 400 })
+
+  const { data, error } = await supabase.from('orders').update({ status }).eq('id', id).select().maybeSingle()
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-  return NextResponse.json({ ok: true })
+  // Meme principe que salons : sans ce controle, un id de commande inexistant
+  // repondrait quand meme 200, et l'interface afficherait un changement de
+  // statut qui n'a jamais eu lieu en base.
+  if (!data) return NextResponse.json({ error: 'Commande introuvable' }, { status: 404 })
+  return NextResponse.json(data)
 }

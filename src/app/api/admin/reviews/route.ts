@@ -15,10 +15,20 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   if (!(await estAdmin())) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const body = await req.json()
+
+  // Rejette plutot que de clamper ou de retomber sur 5 en silence : une note
+  // hors bornes venait autrefois s'enregistrer telle quelle (999 possible), et
+  // '★'.repeat(NaN) plante l'affichage de TOUT le tableau des avis, pas
+  // seulement la ligne fautive.
+  const note = Number(body.rating)
+  if (!Number.isInteger(note) || note < 1 || note > 5) {
+    return NextResponse.json({ error: 'La note doit être un entier entre 1 et 5.' }, { status: 400 })
+  }
+
   const { error } = await supabase.from('reviews').insert({
     author: body.author,
     avatar: body.avatar || '👤',
-    rating: Number(body.rating) || 5,
+    rating: note,
     text: body.text,
     verified: body.verified ?? true,
     product_name: body.product_name || '',

@@ -27,7 +27,7 @@ export async function PUT(req: NextRequest) {
   const lat = coordonneeOuNull(latitude)
   const lng = coordonneeOuNull(longitude)
 
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from('salons')
     .update({
       ...fields,
@@ -36,9 +36,15 @@ export async function PUT(req: NextRequest) {
       updated_at: new Date().toISOString(),
     })
     .eq('slug', slug)
+    .select()
+    .maybeSingle()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-  return NextResponse.json({ ok: true })
+  // update().eq() sans correspondance reussit avec error: null -- sans ce
+  // controle, un slug errone ou une ligne supprimee entre-temps repondrait
+  // quand meme 200, comme si la modification avait eu lieu.
+  if (!data) return NextResponse.json({ error: 'Salon introuvable' }, { status: 404 })
+  return NextResponse.json(data)
 }
 
 export async function POST(req: NextRequest) {
