@@ -39,7 +39,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!salon || !salon.actif) return {}
 
   const villeLabel = salon.ville ?? ''
-  const title = salon.seo_title || `Salon Barbier ${villeLabel} — SP Barber${salon.code_postal ? ` | ${salon.code_postal}` : ''}`
+  // Pas de "— SP Barber" ici : le layout racine l'ajoute deja via son title.template
+  // ('%s | SP Barber'). L'ecrire aussi produirait "... SP Barber | SP Barber".
+  const title = salon.seo_title || `Salon Barbier ${villeLabel}${salon.code_postal ? ` | ${salon.code_postal}` : ''}`
   const description = salon.seo_description ||
     `SP Barber ${villeLabel}${salon.code_postal ? ` (${salon.code_postal})` : ''} : salon de coiffure homme et barbier professionnel.${salon.adresse ? ` ${salon.adresse}.` : ''}${salon.horaires ? ` Ouvert ${salon.horaires}.` : ''} Retrouvez aussi nos produits en ligne.`
   const url = `${BASE}/salon/${salon.slug}`

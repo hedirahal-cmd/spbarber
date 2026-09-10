@@ -650,7 +650,8 @@ function SalonFormCard({
           <div style={{ fontSize: 13, fontWeight: 600, color: S.text, marginBottom: 12 }}>Référencement (SEO)</div>
           <div style={{ marginBottom: 12 }}>
             <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: S.text, marginBottom: 5 }}>Titre SEO</label>
-            <input value={form.seo_title ?? ''} onChange={e => onField('seo_title', e.target.value)} placeholder={`Salon Barbier ${form.ville || '…'} — SP Barber`} style={S.input} />
+            <input value={form.seo_title ?? ''} onChange={e => onField('seo_title', e.target.value)} placeholder={`Salon Barbier ${form.ville || '…'}`} style={S.input} />
+            <div style={{ fontSize: 11, color: S.muted, marginTop: 4 }}>« SP Barber » est ajouté automatiquement à la fin — inutile de le répéter ici.</div>
           </div>
           <div>
             <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: S.text, marginBottom: 5 }}>Description SEO</label>
