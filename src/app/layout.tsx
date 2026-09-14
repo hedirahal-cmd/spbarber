@@ -5,6 +5,7 @@ import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
 import { CartDrawer } from '@/components/CartDrawer'
 import { SessionInit } from '@/components/SessionInit'
+import { getSiteContent } from '@/lib/site-content'
 
 /* ── Fonts via next/font (pas de requête externe, display=swap automatique) ── */
 const bebasNeue = Bebas_Neue({
@@ -89,14 +90,15 @@ export const metadata: Metadata = {
   },
 }
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const siteContent = await getSiteContent()
   return (
     <html
       lang="fr"
       className={`${bebasNeue.variable} ${dmSans.variable} ${cormorantGaramond.variable}`}
     >
       <body>
-        <Header />
+        <Header announcement={siteContent.announcement_bar} />
         <main>{children}</main>
         <Footer />
         <CartDrawer />

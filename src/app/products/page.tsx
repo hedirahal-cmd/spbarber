@@ -8,6 +8,7 @@ import { supabaseAdmin } from '@/lib/supabase'
 import { formatPrice } from '@/lib/utils'
 import { AddToCartButton } from '@/components/AddToCartButton'
 import { Scissors, Droplets, User, Zap, Sparkles } from 'lucide-react'
+import { resolveSocialProof } from '@/lib/social-proof'
 
 export const metadata: Metadata = {
   title: 'Boutique Produits Capillaires Homme — Cire, Shampooing, Kit Barbe',
@@ -37,10 +38,6 @@ const CATEGORY_LABELS: Record<string, string> = {
   accessoire: 'Accessoire',
 }
 
-const SOCIAL_PROOF: Record<string, number> = {
-  '1': 34, '2': 51, '3': 12, '4': 18, '5': 89, '6': 7,
-}
-
 function getBadge(id: string) {
   if (id === '5') return <span className="pc-tagg">Meilleure vente</span>
   if (id === '2') return <span className="pc-tag-fm">Forte marge</span>
@@ -48,12 +45,12 @@ function getBadge(id: string) {
   return null
 }
 
-type ProdOv = { id: string; name?: string | null; price?: number | null; description?: string | null; stock?: number | null; benefit?: string | null; images?: { url: string; alt: string }[] | null }
+type ProdOv = { id: string; name?: string | null; price?: number | null; description?: string | null; stock?: number | null; benefit?: string | null; images?: { url: string; alt: string }[] | null; social_proof_text?: string | null; social_proof_visible?: boolean | null }
 
 export default async function ProductsPage() {
   let overrides: Record<string, ProdOv> = {}
   try {
-    const { data, error } = await supabaseAdmin.from('product_overrides').select('id,name,price,description,stock,benefit,images')
+    const { data, error } = await supabaseAdmin.from('product_overrides').select('id,name,price,description,stock,benefit,images,social_proof_text,social_proof_visible')
     console.log('[products-page] overrides count:', data?.length ?? 0, '| error:', error?.message ?? null)
     if (data) (data as ProdOv[]).forEach(r => { overrides[r.id] = r })
   } catch (e) {
@@ -129,9 +126,10 @@ export default async function ProductsPage() {
                     </Link>
                   )}
                 </div>
-                {SOCIAL_PROOF[product.id] && (
-                  <div className="pc-social">🔥 {SOCIAL_PROOF[product.id]} achetés cette semaine</div>
-                )}
+                {(() => {
+                  const socialProof = resolveSocialProof(product.id, overrides[product.id])
+                  return socialProof && <div className="pc-social">🔥 {socialProof}</div>
+                })()}
               </div>
             </div>
           ))}

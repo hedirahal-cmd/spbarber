@@ -18,7 +18,6 @@ import { ReviewForm } from '@/components/ReviewForm'
 
 type Product = (typeof PRODUCTS)[0]
 
-const SOCIAL_COUNT = 51
 const FREE_SHIP = 4900
 
 function ProductIcon({ productId, size = 40 }: { productId: string; size?: number }) {
@@ -45,7 +44,7 @@ function getTomorrowLabel() {
   return d.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })
 }
 
-export function ShampooingNoirPage({ product, reviews: productReviews }: { product: Product; reviews: ReviewDisplay[] }) {
+export function ShampooingNoirPage({ product, reviews: productReviews, socialProof }: { product: Product; reviews: ReviewDisplay[]; socialProof: string | null }) {
   const [added, setAdded] = useState(false)
   const [stickyVisible, setStickyVisible] = useState(false)
   const [selectedPhoto, setSelectedPhoto] = useState(0)
@@ -160,10 +159,12 @@ export function ShampooingNoirPage({ product, reviews: productReviews }: { produ
             )}
           </div>
 
-          <div className="sn-social">
-            <Sparkles size={13} strokeWidth={2} />
-            {SOCIAL_COUNT} achetés cette semaine
-          </div>
+          {socialProof && (
+            <div className="sn-social">
+              <Sparkles size={13} strokeWidth={2} />
+              {socialProof}
+            </div>
+          )}
 
           <div className="sn-price-block">
             <div className="sn-price">{formatPrice(product.price)}</div>

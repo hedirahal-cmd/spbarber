@@ -20,8 +20,10 @@ async function getSalons(): Promise<Salon[]> {
 import { schemaOrganizationLocal, schemaBreadcrumb, jsonLd } from '@/lib/schema'
 import { toReviewDisplay, type ReviewDisplay } from '@/lib/reviews'
 import { ReviewsList } from '@/components/ReviewsList'
+import { getSiteContent } from '@/lib/site-content'
+import { resolveSocialProof } from '@/lib/social-proof'
 
-type ProdOverride = { id: string; name?: string | null; price?: number | null; description?: string | null; stock?: number | null; benefit?: string | null; images?: { url: string; alt: string }[] | null }
+type ProdOverride = { id: string; name?: string | null; price?: number | null; description?: string | null; stock?: number | null; benefit?: string | null; images?: { url: string; alt: string }[] | null; social_proof_text?: string | null; social_proof_visible?: boolean | null }
 
 async function getReviews(): Promise<ReviewDisplay[]> {
   try {
@@ -58,7 +60,7 @@ async function getTemoignagesPros(): Promise<TemoPro[]> {
 
 async function getProductOverrides(): Promise<Record<string, ProdOverride>> {
   try {
-    const { data } = await supabaseAdmin.from('product_overrides').select('id,name,price,description,stock,benefit,images')
+    const { data } = await supabaseAdmin.from('product_overrides').select('id,name,price,description,stock,benefit,images,social_proof_text,social_proof_visible')
     if (!data) return {}
     const map: Record<string, ProdOverride> = {}
     ;(data as ProdOverride[]).forEach(r => { map[r.id] = r })
@@ -96,10 +98,6 @@ const CATEGORY_LABELS: Record<string, string> = {
   accessoire: 'Accessoire',
 }
 
-const SOCIAL_PROOF: Record<string, number> = {
-  '1': 34, '2': 51, '3': 12, '4': 18, '5': 89, '6': 7,
-}
-
 // Avis de secours affiches tant qu'il n'y a pas assez de vrais avis approuves
 // (bloc B) -- garde volontairement rating/verified explicites plutot que de
 // laisser ReviewsList inventer une valeur par defaut pour ce cas precis.
@@ -124,6 +122,7 @@ export default async function HomePage() {
   const avgRating        = reviews.reduce((s, r) => s + r.rating, 0) / reviews.length
   const avgRatingLabel   = avgRating.toFixed(1).replace('.', ',')
   const overrides        = await getProductOverrides()
+  const siteContent      = await getSiteContent()
   const orgSchema        = schemaOrganizationLocal()
   const breadcrumbSchema = schemaBreadcrumb([{ name: 'Accueil', url: 'https://spbarber.fr' }])
 
@@ -348,9 +347,10 @@ export default async function HomePage() {
                   <div className="pc-price">{formatPrice(product.price)}</div>
                   <AddToCartButton product={product} className="pc-atc" label="Ajouter" />
                 </div>
-                {SOCIAL_PROOF[product.id] && (
-                  <div className="pc-social">🔥 {SOCIAL_PROOF[product.id]} achetés cette semaine</div>
-                )}
+                {(() => {
+                  const socialProof = resolveSocialProof(product.id, overrides[product.id])
+                  return socialProof && <div className="pc-social">🔥 {socialProof}</div>
+                })()}
               </div>
             </div>
           ))}
@@ -433,12 +433,14 @@ export default async function HomePage() {
       </section>
 
       {/* ── CTA strip 2 ── */}
-      <div className="cta-strip cta-strip-dark">
-        <div className="cta-strip-label">Rejoignez 500+ clients satisfaits</div>
-        <Link href="/products" className="cta-strip-btn cta-strip-btn-light">
-          Choisir mon produit →
-        </Link>
-      </div>
+      {siteContent.home_cta_banner.visible && (
+        <div className="cta-strip cta-strip-dark">
+          <div className="cta-strip-label">{siteContent.home_cta_banner.text}</div>
+          <Link href="/products" className="cta-strip-btn cta-strip-btn-light">
+            Choisir mon produit →
+          </Link>
+        </div>
+      )}
 
       {/* ── SALON ── */}
       <HomeSalonSection salons={salons} />

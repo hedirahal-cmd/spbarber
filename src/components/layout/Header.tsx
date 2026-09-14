@@ -5,7 +5,11 @@ import { useState } from 'react'
 import { usePathname } from 'next/navigation'
 import { useCart } from '@/hooks/useCart'
 
-export function Header() {
+interface HeaderProps {
+  announcement: { text: string; visible: boolean }
+}
+
+export function Header({ announcement }: HeaderProps) {
   const [menuOpen, setMenuOpen] = useState(false)
   const openCart = useCart((s) => s.openCart)
   const count = useCart((s) => s.itemCount())
@@ -33,9 +37,9 @@ export function Header() {
 
   return (
     <>
-      <div className="ann">
-        Livraison offerte dès <b className="ann-gold">49€</b>&nbsp;·&nbsp;<b>Cadeau offert dès 70€</b>&nbsp;·&nbsp;Expédition 48h
-      </div>
+      {announcement.visible && (
+        <div className="ann">{announcement.text}</div>
+      )}
 
       <nav className="site-nav">
         <div className="site-nav-inner">

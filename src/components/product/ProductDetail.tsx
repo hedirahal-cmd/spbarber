@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, type ReactNode } from 'react'
 import Link from 'next/link'
 import { useCart } from '@/hooks/useCart'
 import { formatPrice } from '@/lib/utils'
@@ -12,9 +12,13 @@ import { BeforeAfterSlider } from './BeforeAfterSlider'
 import type { ReviewDisplay } from '@/lib/reviews'
 import { ReviewsList } from '@/components/ReviewsList'
 import { ReviewForm } from '@/components/ReviewForm'
+import type { TrustItem } from '@/lib/site-content'
 
-const SOCIAL_PROOF: Record<string, number> = {
-  '1': 34, '2': 51, '3': 12, '4': 18, '5': 89, '6': 7,
+const TRUST_ICONS: Record<string, ReactNode> = {
+  trust_securise: <Lock size={20} strokeWidth={1.5} />,
+  trust_livraison: <Truck size={20} strokeWidth={1.5} />,
+  trust_retour: <RotateCcw size={20} strokeWidth={1.5} />,
+  trust_france: <span style={{ fontSize: 20, lineHeight: 1 }}>🇫🇷</span>,
 }
 
 function getTomorrowLabel() {
@@ -51,7 +55,7 @@ const CATEGORY_LABELS: Record<string, string> = {
 
 const FREE_SHIP = 4900
 
-export function ProductDetail({ product, reviews: productReviews }: { product: Product; reviews: ReviewDisplay[] }) {
+export function ProductDetail({ product, reviews: productReviews, trustItems, socialProof }: { product: Product; reviews: ReviewDisplay[]; trustItems: TrustItem[]; socialProof: string | null }) {
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | undefined>(
     product.variants?.[0]
   )
@@ -150,24 +154,16 @@ export function ProductDetail({ product, reviews: productReviews }: { product: P
               ))}
             </div>
           )}
-          <div className="trust-row">
-            <div className="trust-i">
-              <Lock size={20} strokeWidth={1.5} />
-              <span>Sécurisé</span>
+          {trustItems.length > 0 && (
+            <div className="trust-row">
+              {trustItems.map((item) => (
+                <div className="trust-i" key={item.key}>
+                  {TRUST_ICONS[item.key]}
+                  <span>{item.text}</span>
+                </div>
+              ))}
             </div>
-            <div className="trust-i">
-              <Truck size={20} strokeWidth={1.5} />
-              <span>Livraison 48h</span>
-            </div>
-            <div className="trust-i">
-              <RotateCcw size={20} strokeWidth={1.5} />
-              <span>Retour 30j</span>
-            </div>
-            <div className="trust-i">
-              <span style={{ fontSize: 20, lineHeight: 1 }}>🇫🇷</span>
-              <span>France</span>
-            </div>
-          </div>
+          )}
         </div>
 
         {/* Détails */}
@@ -196,8 +192,8 @@ export function ProductDetail({ product, reviews: productReviews }: { product: P
               <a href="#avis" className="fi-stars-link">Soyez le premier à donner votre avis →</a>
             )}
           </div>
-          {SOCIAL_PROOF[product.id] && (
-            <div className="fi-social">🔥 {SOCIAL_PROOF[product.id]} personnes ont acheté ce produit cette semaine</div>
+          {socialProof && (
+            <div className="fi-social">🔥 {socialProof}</div>
           )}
 
           <div className="fi-price-block">

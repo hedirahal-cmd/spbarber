@@ -7,6 +7,7 @@ import { ShampooingNoirPage } from '@/components/product/ShampooingNoirPage'
 import { schemaProduct, schemaBreadcrumb, jsonLd } from '@/lib/schema'
 import { supabase, supabaseAdmin } from '@/lib/supabase'
 import { toReviewDisplay, type ReviewDisplay } from '@/lib/reviews'
+import { resolveSocialProof } from '@/lib/social-proof'
 
 const BASE_PRODUCT = PRODUCTS.find((p) => p.id === '2')!
 
@@ -71,11 +72,12 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function ShampooingNoirRoute() {
   let product = BASE_PRODUCT
+  let socialProofOverride: { social_proof_text?: string | null; social_proof_visible?: boolean | null } | null = null
 
   try {
     const { data, error } = await supabaseAdmin
       .from('product_overrides')
-      .select('name,price,description,stock,benefit,images')
+      .select('name,price,description,stock,benefit,images,social_proof_text,social_proof_visible')
       .eq('id', '2')
       .maybeSingle()
     console.log('[shampooing-page] override:', JSON.stringify(data), '| error:', error?.message ?? null)
@@ -88,10 +90,12 @@ export default async function ShampooingNoirRoute() {
       ...(data.benefit != null ? { benefit: String(data.benefit) } : {}),
       ...(Array.isArray(data.images) && data.images.length > 0 ? { images: data.images } : {}),
     }
+    socialProofOverride = data
   } catch (e) {
     console.error('[shampooing-page] catch:', e instanceof Error ? e.message : String(e))
   }
 
+  const socialProof = resolveSocialProof('2', socialProofOverride)
   const productReviews = await getProductReviews('2')
   const productSchema = schemaProduct(product)
   const breadcrumbSchema = schemaBreadcrumb([
@@ -110,7 +114,7 @@ export default async function ShampooingNoirRoute() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbSchema) }}
       />
-      <ShampooingNoirPage product={product} reviews={productReviews} />
+      <ShampooingNoirPage product={product} reviews={productReviews} socialProof={socialProof} />
     </>
   )
 }

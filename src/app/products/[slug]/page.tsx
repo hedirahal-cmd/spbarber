@@ -8,6 +8,8 @@ import { ProductDetail } from '@/components/product/ProductDetail'
 import { schemaProduct, schemaBreadcrumb, jsonLd } from '@/lib/schema'
 import { supabase, supabaseAdmin } from '@/lib/supabase'
 import { toReviewDisplay, type ReviewDisplay } from '@/lib/reviews'
+import { getSiteContent, getTrustItems } from '@/lib/site-content'
+import { resolveSocialProof } from '@/lib/social-proof'
 
 async function getProductReviews(productId: string): Promise<ReviewDisplay[]> {
   try {
@@ -89,9 +91,10 @@ export default async function ProductPage({ params }: Props) {
   const rawProduct = PRODUCTS.find((p) => p.slug === slug)
   if (!rawProduct) notFound()
   let product = rawProduct!
+  let socialProofOverride: { social_proof_text?: string | null; social_proof_visible?: boolean | null } | null = null
 
   try {
-    const { data, error } = await supabaseAdmin.from('product_overrides').select('name,price,description,stock,benefit,images').eq('id', product.id).maybeSingle()
+    const { data, error } = await supabaseAdmin.from('product_overrides').select('name,price,description,stock,benefit,images,social_proof_text,social_proof_visible').eq('id', product.id).maybeSingle()
     console.log('[product-page] id:', product.id, 'slug:', slug, '| override:', JSON.stringify(data), '| error:', error?.message ?? null)
     if (data) product = {
       ...product,
@@ -102,6 +105,7 @@ export default async function ProductPage({ params }: Props) {
       ...(data.benefit != null ? { benefit: String(data.benefit) } : {}),
       ...(Array.isArray(data.images) && data.images.length > 0 ? { images: data.images } : {}),
     }
+    socialProofOverride = data
   } catch (e) {
     console.error('[product-page] catch:', e instanceof Error ? e.message : String(e))
   }
@@ -111,6 +115,9 @@ export default async function ProductPage({ params }: Props) {
   }
 
   const productReviews  = await getProductReviews(product.id)
+  const siteContent     = await getSiteContent()
+  const trustItems      = getTrustItems(siteContent)
+  const socialProof     = resolveSocialProof(product.id, socialProofOverride)
   const productSchema   = schemaProduct(product)
   const breadcrumbSchema = schemaBreadcrumb([
     { name: 'Accueil', url: 'https://spbarber.fr' },
@@ -128,7 +135,7 @@ export default async function ProductPage({ params }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbSchema) }}
       />
-      <ProductDetail product={product} reviews={productReviews} />
+      <ProductDetail product={product} reviews={productReviews} trustItems={trustItems} socialProof={socialProof} />
     </>
   )
 }

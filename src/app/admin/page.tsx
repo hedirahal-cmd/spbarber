@@ -1,8 +1,10 @@
 'use client'
 import { useState, useEffect, useCallback } from 'react'
 import { PRODUCTS } from '@/lib/products'
+import { SITE_CONTENT_KEYS, SITE_CONTENT_LABELS, SITE_CONTENT_DEFAULTS, type SiteContentBlock } from '@/lib/site-content-data'
+import { defaultSocialProofText } from '@/lib/social-proof'
 
-type NavSection = 'produits' | 'commandes' | 'legal' | 'avis' | 'salons' | 'barbers' | 'temoignages-pros'
+type NavSection = 'produits' | 'commandes' | 'legal' | 'avis' | 'salons' | 'barbers' | 'temoignages-pros' | 'contenu'
 
 const ORDER_STATUSES = ['pending', 'paid', 'shipped', 'delivered', 'cancelled']
 const LEGAL_SLUGS = [
@@ -92,7 +94,7 @@ function Sidebar({ active, setActive, logout }: { active: NavSection; setActive:
     { label: 'CATALOGUE', items: [{ id: 'produits' as NavSection, label: 'Produits' }] },
     { label: 'VENTES', items: [{ id: 'commandes' as NavSection, label: 'Commandes' }] },
     { label: 'SALONS', items: [{ id: 'salons' as NavSection, label: 'Salons' }, { id: 'barbers' as NavSection, label: 'Barbers' }, { id: 'temoignages-pros' as NavSection, label: 'Témoignages pros' }] },
-    { label: 'CONTENU', items: [{ id: 'legal' as NavSection, label: 'Textes légaux' }, { id: 'avis' as NavSection, label: 'Avis clients' }] },
+    { label: 'CONTENU', items: [{ id: 'legal' as NavSection, label: 'Textes légaux' }, { id: 'avis' as NavSection, label: 'Avis clients' }, { id: 'contenu' as NavSection, label: 'Contenu' }] },
   ]
   return (
     <div style={{ width: 232, background: S.sidebar, height: '100vh', position: 'fixed', top: 0, left: 0, display: 'flex', flexDirection: 'column', zIndex: 10 }}>
@@ -1875,6 +1877,151 @@ function TabAvis() {
   )
 }
 
+// ─── Tab Contenu ────────────────────────────────────────────────
+function TabContenu() {
+  const [blocks, setBlocks] = useState<Record<string, SiteContentBlock>>({})
+  const [socialOverrides, setSocialOverrides] = useState<Record<string, Record<string, unknown>>>({})
+  const [drafts, setDrafts] = useState<Record<string, string>>({})
+  const [socialDrafts, setSocialDrafts] = useState<Record<string, string>>({})
+  const [loading, setLoading] = useState(true)
+  const [savingKey, setSavingKey] = useState<string | null>(null)
+  const [err, setErr] = useState('')
+
+  const load = useCallback(async () => {
+    setLoading(true)
+    const [contentRes, productsRes] = await Promise.all([
+      fetch('/api/admin/site-content'),
+      fetch('/api/admin/products'),
+    ])
+    if (contentRes.ok) {
+      const data: Record<string, SiteContentBlock> = await contentRes.json()
+      setBlocks(data)
+      setDrafts(Object.fromEntries(SITE_CONTENT_KEYS.map(k => [k, data[k]?.text ?? SITE_CONTENT_DEFAULTS[k].text])))
+    }
+    if (productsRes.ok) {
+      const rows: Array<Record<string, unknown>> = await productsRes.json()
+      const map: Record<string, Record<string, unknown>> = {}
+      if (Array.isArray(rows)) rows.forEach(r => { map[r.id as string] = r })
+      setSocialOverrides(map)
+      setSocialDrafts(Object.fromEntries(PRODUCTS.map(p => [p.id, (map[p.id]?.social_proof_text as string) ?? defaultSocialProofText(p.id) ?? ''])))
+    }
+    setLoading(false)
+  }, [])
+  useEffect(() => { load() }, [load])
+
+  async function saveBlock(key: string, visible: boolean) {
+    setSavingKey(key); setErr('')
+    try {
+      const res = await fetch('/api/admin/site-content', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ key, text: drafts[key], visible }) })
+      if (!res.ok) { const d = await res.json().catch(() => ({})); setErr(d.error ?? `Erreur ${res.status}`); return }
+      await load()
+    } catch {
+      setErr('Erreur réseau')
+    } finally {
+      setSavingKey(null)
+    }
+  }
+
+  async function toggleBlock(key: string) {
+    const current = blocks[key] ?? SITE_CONTENT_DEFAULTS[key]
+    await saveBlock(key, !current.visible)
+  }
+
+  async function saveSocial(productId: string, visible: boolean) {
+    setSavingKey('social:' + productId); setErr('')
+    try {
+      const res = await fetch('/api/admin/products', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: productId, social_proof_text: socialDrafts[productId], social_proof_visible: visible }),
+      })
+      if (!res.ok) { const d = await res.json().catch(() => ({})); setErr(d.error ?? `Erreur ${res.status}`); return }
+      await load()
+    } catch {
+      setErr('Erreur réseau')
+    } finally {
+      setSavingKey(null)
+    }
+  }
+
+  async function toggleSocial(productId: string) {
+    const current = socialOverrides[productId]
+    const visible = (current?.social_proof_visible as boolean | null | undefined) ?? true
+    await saveSocial(productId, !visible)
+  }
+
+  if (loading) return <div style={{ padding: 24, color: S.muted, fontSize: 13 }}>Chargement…</div>
+
+  return (
+    <div style={{ padding: '20px 24px', maxWidth: 860 }}>
+      <h1 style={{ fontSize: 20, fontWeight: 600, color: S.text, margin: '0 0 4px' }}>Contenu</h1>
+      <p style={{ fontSize: 13, color: S.muted, margin: '0 0 20px' }}>
+        Textes et bandeaux marketing du site — modifiables et masquables sans repasser par du code.
+      </p>
+
+      {err && <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 6, padding: '10px 14px', marginBottom: 16, fontSize: 13, color: '#b91c1c', fontWeight: 500 }}>Erreur : {err}</div>}
+
+      <div style={{ fontSize: 12, fontWeight: 600, color: S.muted, textTransform: 'uppercase', letterSpacing: .5, margin: '0 0 10px' }}>Bandeaux du site</div>
+      <div style={{ ...S.card_, marginBottom: 28 }}>
+        {SITE_CONTENT_KEYS.map((key, i) => {
+          const block = blocks[key] ?? SITE_CONTENT_DEFAULTS[key]
+          const busy = savingKey === key
+          return (
+            <div key={key} style={{ padding: '16px 20px', borderBottom: i < SITE_CONTENT_KEYS.length - 1 ? `1px solid ${S.border}` : 'none' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                <label style={{ fontSize: 13, fontWeight: 500, color: S.text }}>{SITE_CONTENT_LABELS[key]}</label>
+                <span style={{ fontSize: 12, fontWeight: 600, padding: '3px 10px', borderRadius: 20, background: block.visible ? '#f0fdf4' : '#f4f4f5', color: block.visible ? '#15803d' : '#71717a' }}>
+                  {block.visible ? 'Visible' : 'Masqué'}
+                </span>
+              </div>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <input
+                  value={drafts[key] ?? ''}
+                  onChange={e => setDrafts(d => ({ ...d, [key]: e.target.value }))}
+                  style={{ ...S.input, flex: 1 }}
+                  maxLength={300}
+                />
+                <button onClick={() => saveBlock(key, block.visible)} disabled={busy} style={S.btnSecondary}>Enregistrer</button>
+                <button onClick={() => toggleBlock(key)} disabled={busy} style={S.btnSecondary}>{block.visible ? 'Masquer' : 'Afficher'}</button>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      <div style={{ fontSize: 12, fontWeight: 600, color: S.muted, textTransform: 'uppercase', letterSpacing: .5, margin: '0 0 10px' }}>Ventes de la semaine (par produit)</div>
+      <div style={S.card_}>
+        {PRODUCTS.map((p, i) => {
+          const ov = socialOverrides[p.id]
+          const visible = (ov?.social_proof_visible as boolean | null | undefined) ?? true
+          const busy = savingKey === 'social:' + p.id
+          return (
+            <div key={p.id} style={{ padding: '16px 20px', borderBottom: i < PRODUCTS.length - 1 ? `1px solid ${S.border}` : 'none' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                <label style={{ fontSize: 13, fontWeight: 500, color: S.text }}>{p.name}</label>
+                <span style={{ fontSize: 12, fontWeight: 600, padding: '3px 10px', borderRadius: 20, background: visible ? '#f0fdf4' : '#f4f4f5', color: visible ? '#15803d' : '#71717a' }}>
+                  {visible ? 'Visible' : 'Masqué'}
+                </span>
+              </div>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <input
+                  value={socialDrafts[p.id] ?? ''}
+                  onChange={e => setSocialDrafts(d => ({ ...d, [p.id]: e.target.value }))}
+                  style={{ ...S.input, flex: 1 }}
+                  maxLength={200}
+                  placeholder={defaultSocialProofText(p.id) ?? ''}
+                />
+                <button onClick={() => saveSocial(p.id, visible)} disabled={busy} style={S.btnSecondary}>Enregistrer</button>
+                <button onClick={() => toggleSocial(p.id)} disabled={busy} style={S.btnSecondary}>{visible ? 'Masquer' : 'Afficher'}</button>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 // ─── Tab Témoignages Pros ───────────────────────────────────────
 type TemoProRow = {
   id: string; nom: string; initiales: string; couleur_avatar: string
@@ -2264,6 +2411,7 @@ export default function AdminPage() {
           {nav === 'salons' && <TabSalons />}
           {nav === 'barbers' && <TabBarbers />}
           {nav === 'temoignages-pros' && <TabTemoignagesPros />}
+          {nav === 'contenu' && <TabContenu />}
         </div>
       </div>
     </div>
