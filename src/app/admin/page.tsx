@@ -1658,15 +1658,33 @@ function noteAffichable(rating: unknown): number {
   return Number.isFinite(n) ? Math.min(5, Math.max(1, n)) : 5
 }
 
+/** Noms resolus depuis PRODUCTS -- jamais stockes en double, toujours a jour meme si un produit est renomme depuis l'admin. */
+function nomsProduits(ids: unknown): string {
+  if (!Array.isArray(ids) || ids.length === 0) return ''
+  return ids
+    .map((id) => PRODUCTS.find((p) => p.id === id)?.name)
+    .filter((n): n is string => !!n)
+    .join(', ')
+}
+
+const EMPTY_REVIEW_FORM = { author: '', avatar: '👤', rating: '5', text: '', product_ids: [] as string[], verified: true, visible: true }
+
 function TabAvis() {
   const [reviews, setReviews] = useState<Array<Record<string, unknown>>>([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
-  const [form, setForm] = useState({ author: '', avatar: '👤', rating: '5', text: '', product_name: '', verified: true, visible: true })
+  const [form, setForm] = useState(EMPTY_REVIEW_FORM)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [formErr, setFormErr] = useState('')
   const [rowErr, setRowErr] = useState('')
+
+  function toggleProduit(id: string) {
+    setForm(f => ({
+      ...f,
+      product_ids: f.product_ids.includes(id) ? f.product_ids.filter(x => x !== id) : [...f.product_ids, id],
+    }))
+  }
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -1682,7 +1700,7 @@ function TabAvis() {
       const res = await fetch('/api/admin/reviews', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) })
       if (res.ok) {
         setSaved(true); setShowForm(false)
-        setForm({ author: '', avatar: '👤', rating: '5', text: '', product_name: '', verified: true, visible: true })
+        setForm(EMPTY_REVIEW_FORM)
         await load()
       } else {
         const d = await res.json().catch(() => ({}))
@@ -1699,6 +1717,17 @@ function TabAvis() {
     setRowErr('')
     try {
       const res = await fetch('/api/admin/reviews', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: r.id, visible: !r.visible }) })
+      if (!res.ok) { const d = await res.json().catch(() => ({})); setRowErr(d.error ?? `Erreur ${res.status}`); return }
+    } catch {
+      setRowErr('Erreur réseau'); return
+    }
+    await load()
+  }
+
+  async function toggleVerified(r: Record<string, unknown>) {
+    setRowErr('')
+    try {
+      const res = await fetch('/api/admin/reviews', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: r.id, verified: !r.verified }) })
       if (!res.ok) { const d = await res.json().catch(() => ({})); setRowErr(d.error ?? `Erreur ${res.status}`); return }
     } catch {
       setRowErr('Erreur réseau'); return
@@ -1737,21 +1766,33 @@ function TabAvis() {
           {formErr && <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 6, padding: '10px 14px', marginBottom: 14, fontSize: 13, color: '#b91c1c', fontWeight: 500 }}>Erreur : {formErr}</div>}
           <form onSubmit={addReview}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
-              {[{ k: 'author', label: 'Nom' }, { k: 'avatar', label: 'Avatar (emoji)' }, { k: 'product_name', label: 'Produit' }].map(({ k, label }) => (
+              {[{ k: 'author', label: 'Nom' }, { k: 'avatar', label: 'Avatar (emoji)' }].map(({ k, label }) => (
                 <div key={k}>
                   <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: S.text, marginBottom: 5 }}>{label}</label>
                   <input value={String(form[k as keyof typeof form])} onChange={e => setForm(f => ({ ...f, [k]: e.target.value }))} required={k === 'author'} style={S.input} />
                 </div>
               ))}
               <div>
-                <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: S.text, marginBottom: 5 }}>Note (1-5)</label>
-                <input
-                  type="number" min={1} max={5} step={1}
+                <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: S.text, marginBottom: 5 }}>Note</label>
+                <select
                   value={form.rating}
                   onChange={e => setForm(f => ({ ...f, rating: e.target.value }))}
                   required
                   style={S.input}
-                />
+                >
+                  {[1, 2, 3, 4, 5].map(n => <option key={n} value={n}>{'★'.repeat(n)} ({n})</option>)}
+                </select>
+              </div>
+            </div>
+            <div style={{ marginBottom: 14 }}>
+              <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: S.text, marginBottom: 5 }}>Produit(s) concerné(s)</label>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, border: `1px solid #ababab`, borderRadius: 4, padding: '10px 12px' }}>
+                {PRODUCTS.map(p => (
+                  <label key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 13, color: S.text, cursor: 'pointer' }}>
+                    <input type="checkbox" checked={form.product_ids.includes(p.id)} onChange={() => toggleProduit(p.id)} />
+                    {p.name}
+                  </label>
+                ))}
               </div>
             </div>
             <div style={{ marginBottom: 14 }}>
@@ -1806,15 +1847,21 @@ function TabAvis() {
                   <td style={{ padding: '12px 16px', color: S.muted, fontSize: 13, maxWidth: 200 }}>
                     <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{String(r.text ?? '')}</div>
                   </td>
-                  <td style={{ padding: '12px 16px', fontSize: 13, color: S.muted }}>{String(r.product_name ?? '—')}</td>
+                  <td style={{ padding: '12px 16px', fontSize: 13, color: S.muted }}>{nomsProduits(r.product_ids) || String(r.product_name ?? '—')}</td>
                   <td style={{ padding: '12px 16px' }}>
-                    <span style={{ fontSize: 12, fontWeight: 600, padding: '3px 10px', borderRadius: 20, background: r.visible ? '#f0fdf4' : '#f4f4f5', color: r.visible ? '#15803d' : '#71717a' }}>
-                      {r.visible ? 'Visible' : 'Masqué'}
-                    </span>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'flex-start' }}>
+                      <span style={{ fontSize: 12, fontWeight: 600, padding: '3px 10px', borderRadius: 20, background: r.visible ? '#f0fdf4' : '#f4f4f5', color: r.visible ? '#15803d' : '#71717a' }}>
+                        {r.visible ? 'Visible' : 'Masqué'}
+                      </span>
+                      <span style={{ fontSize: 12, fontWeight: 600, padding: '3px 10px', borderRadius: 20, background: r.verified ? '#eff6ff' : '#f4f4f5', color: r.verified ? '#1d4ed8' : '#71717a' }}>
+                        {r.verified ? 'Vérifié' : 'Non vérifié'}
+                      </span>
+                    </div>
                   </td>
                   <td style={{ padding: '12px 16px' }}>
-                    <div style={{ display: 'flex', gap: 6 }}>
+                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                       <button onClick={() => toggleVisible(r)} style={{ ...S.btnSecondary, padding: '5px 10px', fontSize: 12 }}>{r.visible ? 'Masquer' : 'Afficher'}</button>
+                      <button onClick={() => toggleVerified(r)} style={{ ...S.btnSecondary, padding: '5px 10px', fontSize: 12 }}>{r.verified ? 'Retirer vérifié' : 'Marquer vérifié'}</button>
                       <button onClick={() => del(r.id)} style={{ ...S.btnSecondary, padding: '5px 10px', fontSize: 12, color: '#b91c1c', borderColor: '#fca5a5' }}>Supprimer</button>
                     </div>
                   </td>

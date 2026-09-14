@@ -37,7 +37,12 @@ async function getReviews(): Promise<ReviewDisplay[]> {
       name: r.author as string,
       initials: (r.author as string).split(' ').map((w: string) => w[0] ?? '').join('').toUpperCase().slice(0, 2),
       color: AVATAR_COLORS_REV[strHash(r.author as string) % AVATAR_COLORS_REV.length],
-      product: (r.product_name as string) ?? '',
+      // product_ids (tableau de vrais ids) prime sur l'ancien product_name --
+      // jamais un nom stocke en double, toujours resolu depuis PRODUCTS ; repli
+      // sur product_name pour les avis crees avant ce champ.
+      product: Array.isArray(r.product_ids) && r.product_ids.length > 0
+        ? (r.product_ids as string[]).map(id => PRODUCTS.find(p => p.id === id)?.name).filter((n): n is string => !!n).join(', ')
+        : (r.product_name as string) ?? '',
       date: r.created_at ? new Date(r.created_at as string).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }) : '',
     }))
   } catch {}
