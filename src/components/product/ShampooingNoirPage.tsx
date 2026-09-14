@@ -12,10 +12,12 @@ import {
   Dumbbell, Sparkles, Leaf, FlaskConical,
   Droplets, Scissors, Zap, Waves, AlignJustify, Package, Wind,
 } from 'lucide-react'
+import type { ReviewDisplay } from '@/lib/reviews'
+import { ReviewsList } from '@/components/ReviewsList'
+import { ReviewForm } from '@/components/ReviewForm'
 
 type Product = (typeof PRODUCTS)[0]
 
-const REVIEWS = { count: 87, rating: '4,8' }
 const SOCIAL_COUNT = 51
 const FREE_SHIP = 4900
 
@@ -43,7 +45,7 @@ function getTomorrowLabel() {
   return d.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })
 }
 
-export function ShampooingNoirPage({ product }: { product: Product }) {
+export function ShampooingNoirPage({ product, reviews: productReviews }: { product: Product; reviews: ReviewDisplay[] }) {
   const [added, setAdded] = useState(false)
   const [stickyVisible, setStickyVisible] = useState(false)
   const [selectedPhoto, setSelectedPhoto] = useState(0)
@@ -58,6 +60,11 @@ export function ShampooingNoirPage({ product }: { product: Product }) {
   // Meme test que ProductDetail/schema.ts/checkout : le catalogue statique
   // pointe vers un chemin local qui n'existe pas encore sur disque.
   const hasGallery = product.images[0]?.url.startsWith('http') ?? false
+
+  // Calcule depuis les vrais avis recus en prop -- meme principe que ProductDetail.
+  const hasReviews = productReviews.length > 0
+  const avgRating = hasReviews ? productReviews.reduce((s, r) => s + r.rating, 0) / productReviews.length : 0
+  const avgRatingLabel = avgRating.toFixed(1).replace('.', ',')
 
   const relatedProducts = product.related
     ? PRODUCTS.filter((p) => product.related!.includes(p.id))
@@ -143,8 +150,14 @@ export function ShampooingNoirPage({ product }: { product: Product }) {
           <div className="sn-sub">Cheveux noirs intenses dès 1 lavage</div>
 
           <div className="sn-stars-row">
-            <span className="sn-stars">★★★★★</span>
-            <span className="sn-stars-lbl">{REVIEWS.rating}/5 · {REVIEWS.count} avis vérifiés</span>
+            {hasReviews ? (
+              <>
+                <span className="sn-stars">{'★'.repeat(Math.round(avgRating))}</span>
+                <span className="sn-stars-lbl">{avgRatingLabel}/5 · {productReviews.length} avis</span>
+              </>
+            ) : (
+              <a href="#avis" className="sn-stars-lbl">Soyez le premier à donner votre avis</a>
+            )}
           </div>
 
           <div className="sn-social">
@@ -279,6 +292,21 @@ export function ShampooingNoirPage({ product }: { product: Product }) {
           </div>
         </div>
       </section>
+
+      {/* Avis clients — filtres a ce produit */}
+      <div id="avis" className="fi-revs-sec">
+        {hasReviews && (
+          <div className="fi-revs-head">
+            <div>
+              <div className="fi-score-n">{avgRatingLabel}</div>
+              <div className="fi-score-s">{'★'.repeat(Math.round(avgRating))}</div>
+              <div className="fi-score-c">{productReviews.length} avis</div>
+            </div>
+          </div>
+        )}
+        <ReviewsList reviews={productReviews} variant="product" emptyMessage="Aucun avis pour le moment sur ce produit — soyez le premier à en laisser un." />
+        <ReviewForm productId={product.id} />
+      </div>
 
       {/* ── BLOC 4 — Produits complémentaires ── */}
       {relatedProducts.length > 0 && (

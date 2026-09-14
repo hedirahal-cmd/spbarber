@@ -9,18 +9,12 @@ import { AddToCartButton } from '@/components/AddToCartButton'
 import { PRODUCTS } from '@/lib/products'
 import { Lock, Truck, RotateCcw, CheckCircle2, AlertTriangle, ShoppingCart, Dumbbell, Sparkles, Leaf, FlaskConical, Scissors, Droplets, User, Zap, Clock, Waves, AlignJustify, Package, Wind } from 'lucide-react'
 import { BeforeAfterSlider } from './BeforeAfterSlider'
+import type { ReviewDisplay } from '@/lib/reviews'
+import { ReviewsList } from '@/components/ReviewsList'
+import { ReviewForm } from '@/components/ReviewForm'
 
 const SOCIAL_PROOF: Record<string, number> = {
   '1': 34, '2': 51, '3': 12, '4': 18, '5': 89, '6': 7,
-}
-
-const PRODUCT_REVIEWS: Record<string, { count: number; rating: string }> = {
-  '1': { count: 214, rating: '4,9' },
-  '2': { count: 87,  rating: '4,8' },
-  '3': { count: 53,  rating: '4,7' },
-  '4': { count: 31,  rating: '4,9' },
-  '5': { count: 312, rating: '5,0' },
-  '6': { count: 18,  rating: '4,6' },
 }
 
 function getTomorrowLabel() {
@@ -57,7 +51,7 @@ const CATEGORY_LABELS: Record<string, string> = {
 
 const FREE_SHIP = 4900
 
-export function ProductDetail({ product }: { product: Product }) {
+export function ProductDetail({ product, reviews: productReviews }: { product: Product; reviews: ReviewDisplay[] }) {
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | undefined>(
     product.variants?.[0]
   )
@@ -81,8 +75,15 @@ export function ProductDetail({ product }: { product: Product }) {
   )?.quantity ?? 0
   const stockEpuise = !product.is_dropshipping && dejaAuPanier >= product.stock
   const pct = Math.min(100, (cartTotal / FREE_SHIP) * 100)
-  const reviews = PRODUCT_REVIEWS[product.id] ?? { count: 12, rating: '4,8' }
   const tomorrow = getTomorrowLabel()
+
+  // Calcule depuis les vrais avis recus en prop -- plus de chiffre code en dur.
+  // Sans avis, la ligne de resume disparait plutot que d'afficher une valeur
+  // inventee ; avec des avis, le libelle ne dit plus "verifies" au global
+  // puisque tous ne le sont pas forcement (le badge par avis, lui, l'est).
+  const hasReviews = productReviews.length > 0
+  const avgRating = hasReviews ? productReviews.reduce((s, r) => s + r.rating, 0) / productReviews.length : 0
+  const avgRatingLabel = avgRating.toFixed(1).replace('.', ',')
 
   const relatedProducts = product.related
     ? PRODUCTS.filter((p) => product.related!.includes(p.id))
@@ -185,9 +186,15 @@ export function ProductDetail({ product }: { product: Product }) {
           <h1 className="fi-title-secondary">{product.name}</h1>
 
           <div className="fi-stars-row">
-            <span className="fi-stars">★★★★★</span>
-            <span className="fi-stars-lbl">{reviews.rating}/5 · {reviews.count} avis vérifiés</span>
-            <a href="#avis" className="fi-stars-link">Voir les avis →</a>
+            {hasReviews ? (
+              <>
+                <span className="fi-stars">{'★'.repeat(Math.round(avgRating))}</span>
+                <span className="fi-stars-lbl">{avgRatingLabel}/5 · {productReviews.length} avis</span>
+                <a href="#avis" className="fi-stars-link">Voir les avis →</a>
+              </>
+            ) : (
+              <a href="#avis" className="fi-stars-link">Soyez le premier à donner votre avis →</a>
+            )}
           </div>
           {SOCIAL_PROOF[product.id] && (
             <div className="fi-social">🔥 {SOCIAL_PROOF[product.id]} personnes ont acheté ce produit cette semaine</div>
@@ -304,6 +311,21 @@ export function ProductDetail({ product }: { product: Product }) {
           <div className="fi-desc-ttl">Description</div>
           <p>{product.description}</p>
         </div>
+      </div>
+
+      {/* Avis clients — filtres a ce produit */}
+      <div id="avis" className="fi-revs-sec">
+        {hasReviews && (
+          <div className="fi-revs-head">
+            <div>
+              <div className="fi-score-n">{avgRatingLabel}</div>
+              <div className="fi-score-s">{'★'.repeat(Math.round(avgRating))}</div>
+              <div className="fi-score-c">{productReviews.length} avis</div>
+            </div>
+          </div>
+        )}
+        <ReviewsList reviews={productReviews} variant="product" emptyMessage="Aucun avis pour le moment sur ce produit — soyez le premier à en laisser un." />
+        <ReviewForm productId={product.id} />
       </div>
 
       {/* Complétez votre routine */}

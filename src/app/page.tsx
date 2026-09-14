@@ -18,33 +18,15 @@ async function getSalons(): Promise<Salon[]> {
   return DEFAULT_SALONS
 }
 import { schemaOrganizationLocal, schemaBreadcrumb, jsonLd } from '@/lib/schema'
+import { toReviewDisplay, type ReviewDisplay } from '@/lib/reviews'
+import { ReviewsList } from '@/components/ReviewsList'
 
-type ReviewDisplay = { text: string; name: string; initials: string; color: string; product: string; date: string }
 type ProdOverride = { id: string; name?: string | null; price?: number | null; description?: string | null; stock?: number | null; benefit?: string | null; images?: { url: string; alt: string }[] | null }
-
-const AVATAR_COLORS_REV = ['#3a5a8a', '#8a3a5a', '#3a8a5a', '#5a3a8a', '#8a6a3a', '#3a7a8a']
-function strHash(s: string): number {
-  let h = 0
-  for (let i = 0; i < s.length; i++) { h = (h * 31 + s.charCodeAt(i)) >>> 0 }
-  return h
-}
 
 async function getReviews(): Promise<ReviewDisplay[]> {
   try {
     const { data } = await supabase.from('reviews').select('*').eq('visible', true).order('created_at', { ascending: false }).limit(6)
-    if (data && data.length > 0) return data.map(r => ({
-      text: `"${r.text}"`,
-      name: r.author as string,
-      initials: (r.author as string).split(' ').map((w: string) => w[0] ?? '').join('').toUpperCase().slice(0, 2),
-      color: AVATAR_COLORS_REV[strHash(r.author as string) % AVATAR_COLORS_REV.length],
-      // product_ids (tableau de vrais ids) prime sur l'ancien product_name --
-      // jamais un nom stocke en double, toujours resolu depuis PRODUCTS ; repli
-      // sur product_name pour les avis crees avant ce champ.
-      product: Array.isArray(r.product_ids) && r.product_ids.length > 0
-        ? (r.product_ids as string[]).map(id => PRODUCTS.find(p => p.id === id)?.name).filter((n): n is string => !!n).join(', ')
-        : (r.product_name as string) ?? '',
-      date: r.created_at ? new Date(r.created_at as string).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }) : '',
-    }))
+    if (data && data.length > 0) return data.map(toReviewDisplay)
   } catch {}
   return []
 }
@@ -118,13 +100,16 @@ const SOCIAL_PROOF: Record<string, number> = {
   '1': 34, '2': 51, '3': 12, '4': 18, '5': 89, '6': 7,
 }
 
-const REVIEWS = [
-  { text: `"La cire tient toute la journée. Mes potes me demandent tous ce que j'utilise."`, name: 'Karim B.', initials: 'KB', color: '#3a5a8a', product: 'Cire Cheveux Premium', date: 'Mai 2025' },
-  { text: `"Le pack barbe est parfait. Qualité vraiment pro, rien à voir avec la grande surface."`, name: 'Amélie D.', initials: 'AD', color: '#8a3a5a', product: 'Pack Barbe Complet', date: 'Avr 2025' },
-  { text: `"La crème curl définit mes boucles sans les alourdir. Enfin un vrai produit pour cheveux texturés !"`, name: 'Marcus T.', initials: 'MT', color: '#3a8a5a', product: 'Crème Curl', date: 'Mar 2025' },
-  { text: `"Le shampooing noir a vraiment ravivé ma couleur. Résultat bluffant dès la première utilisation."`, name: 'Thierry M.', initials: 'TM', color: '#5a3a8a', product: 'Shampooing Noir', date: 'Mai 2025' },
-  { text: `"Cadeau parfait pour mon frère. La présentation est soignée et les produits sont top qualité."`, name: 'Sarah L.', initials: 'SL', color: '#8a6a3a', product: 'Pack Barbe Complet', date: 'Avr 2025' },
-  { text: `"J'utilise l'huile de barbe tous les matins. Ma barbe est beaucoup plus douce et brillante."`, name: 'Youssef A.', initials: 'YA', color: '#3a7a8a', product: 'Huile de Barbe', date: 'Mar 2025' },
+// Avis de secours affiches tant qu'il n'y a pas assez de vrais avis approuves
+// (bloc B) -- garde volontairement rating/verified explicites plutot que de
+// laisser ReviewsList inventer une valeur par defaut pour ce cas precis.
+const REVIEWS: ReviewDisplay[] = [
+  { id: 'seed-1', text: `"La cire tient toute la journée. Mes potes me demandent tous ce que j'utilise."`, name: 'Karim B.', initials: 'KB', color: '#3a5a8a', product: 'Cire Cheveux Premium', date: 'Mai 2025', rating: 5, verified: true },
+  { id: 'seed-2', text: `"Le pack barbe est parfait. Qualité vraiment pro, rien à voir avec la grande surface."`, name: 'Amélie D.', initials: 'AD', color: '#8a3a5a', product: 'Pack Barbe Complet', date: 'Avr 2025', rating: 5, verified: true },
+  { id: 'seed-3', text: `"La crème curl définit mes boucles sans les alourdir. Enfin un vrai produit pour cheveux texturés !"`, name: 'Marcus T.', initials: 'MT', color: '#3a8a5a', product: 'Crème Curl', date: 'Mar 2025', rating: 5, verified: true },
+  { id: 'seed-4', text: `"Le shampooing noir a vraiment ravivé ma couleur. Résultat bluffant dès la première utilisation."`, name: 'Thierry M.', initials: 'TM', color: '#5a3a8a', product: 'Shampooing Noir', date: 'Mai 2025', rating: 5, verified: true },
+  { id: 'seed-5', text: `"Cadeau parfait pour mon frère. La présentation est soignée et les produits sont top qualité."`, name: 'Sarah L.', initials: 'SL', color: '#8a6a3a', product: 'Pack Barbe Complet', date: 'Avr 2025', rating: 5, verified: true },
+  { id: 'seed-6', text: `"J'utilise l'huile de barbe tous les matins. Ma barbe est beaucoup plus douce et brillante."`, name: 'Youssef A.', initials: 'YA', color: '#3a7a8a', product: 'Huile de Barbe', date: 'Mar 2025', rating: 5, verified: true },
 ]
 
 
@@ -133,6 +118,11 @@ export default async function HomePage() {
   const temos            = await getTemoignagesPros()
   const reviewsDb        = await getReviews()
   const reviews          = reviewsDb.length > 0 ? reviewsDb : REVIEWS
+  // Meme logique que le resume par produit (ProductDetail) : calcule depuis
+  // les avis reellement affiches, plus de "4,9 / 500+ avis" invente. `reviews`
+  // n'est jamais vide ici (repli sur REVIEWS), donc pas d'etat vide a gerer.
+  const avgRating        = reviews.reduce((s, r) => s + r.rating, 0) / reviews.length
+  const avgRatingLabel   = avgRating.toFixed(1).replace('.', ',')
   const overrides        = await getProductOverrides()
   const orgSchema        = schemaOrganizationLocal()
   const breadcrumbSchema = schemaBreadcrumb([{ name: 'Accueil', url: 'https://spbarber.fr' }])
@@ -462,28 +452,13 @@ export default async function HomePage() {
           </div>
         </div>
         <div className="h-rev-summary">
-          <div className="h-rev-avg">4,9</div>
+          <div className="h-rev-avg">{avgRatingLabel}</div>
           <div>
-            <div className="h-rev-stars-big">★★★★★</div>
-            <div className="h-rev-total">Basé sur 500+ avis vérifiés</div>
+            <div className="h-rev-stars-big">{'★'.repeat(Math.round(avgRating))}</div>
+            <div className="h-rev-total">Basé sur {reviews.length} avis</div>
           </div>
         </div>
-        <div className="h-rev-grid">
-          {reviews.map((r, i) => (
-            <div key={i} className="h-rev-card">
-              <div className="h-rev-stars">★★★★★</div>
-              <p className="h-rev-text">{r.text}</p>
-              <div className="h-rev-auth">
-                <div className="h-rev-av" style={{ background: r.color }}>{r.initials}</div>
-                <div>
-                  <div className="h-rev-name">{r.name}</div>
-                  <div className="h-rev-meta">{r.product} · {r.date}</div>
-                  <div className="h-rev-check">✓ Achat vérifié</div>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
+        <ReviewsList reviews={reviews} variant="home" />
       </section>
 
       {/* ── STICKY MOBILE ── */}

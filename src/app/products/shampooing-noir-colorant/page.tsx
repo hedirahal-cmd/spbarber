@@ -5,9 +5,24 @@ import type { Metadata } from 'next'
 import { PRODUCTS } from '@/lib/products'
 import { ShampooingNoirPage } from '@/components/product/ShampooingNoirPage'
 import { schemaProduct, schemaBreadcrumb, jsonLd } from '@/lib/schema'
-import { supabaseAdmin } from '@/lib/supabase'
+import { supabase, supabaseAdmin } from '@/lib/supabase'
+import { toReviewDisplay, type ReviewDisplay } from '@/lib/reviews'
 
 const BASE_PRODUCT = PRODUCTS.find((p) => p.id === '2')!
+
+async function getProductReviews(productId: string): Promise<ReviewDisplay[]> {
+  try {
+    const { data } = await supabase
+      .from('reviews')
+      .select('*')
+      .eq('visible', true)
+      .contains('product_ids', [productId])
+      .order('created_at', { ascending: false })
+      .limit(20)
+    if (data) return data.map(toReviewDisplay)
+  } catch {}
+  return []
+}
 
 // Etait un objet statique `export const metadata` -- ne pouvait donc pas lire
 // Supabase. Converti en generateMetadata() pour que og:image/alt refletent une
@@ -77,6 +92,7 @@ export default async function ShampooingNoirRoute() {
     console.error('[shampooing-page] catch:', e instanceof Error ? e.message : String(e))
   }
 
+  const productReviews = await getProductReviews('2')
   const productSchema = schemaProduct(product)
   const breadcrumbSchema = schemaBreadcrumb([
     { name: 'Accueil', url: 'https://spbarber.fr' },
@@ -94,7 +110,7 @@ export default async function ShampooingNoirRoute() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbSchema) }}
       />
-      <ShampooingNoirPage product={product} />
+      <ShampooingNoirPage product={product} reviews={productReviews} />
     </>
   )
 }

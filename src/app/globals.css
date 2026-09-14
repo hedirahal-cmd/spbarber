@@ -1363,7 +1363,47 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
 .fi-rev-auth { display: flex; align-items: center; gap: 10px; }
 .fi-rev-av { width: 34px; height: 34px; border-radius: 50%; background: var(--gold); display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
 .fi-rev-auth b { display: block; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--w); font-weight: 600; }
-.fi-rev-auth small { font-size: 9px; color: var(--gold); }
+.fi-rev-auth small { font-size: 9px; color: var(--gold); display: block; margin-top: 2px; }
+.fi-rev-check { font-size: 10px; color: var(--gold); margin-top: 4px; }
+
+/* Formulaire public de depot d'avis -- prefixe rf- */
+.rf-form { max-width: 560px; margin: 48px auto 0; padding: 40px 28px 0; border-top: 1px solid rgba(255,255,255,.08); display: flex; flex-direction: column; gap: 16px; }
+.rf-title { font-family: var(--fs); font-size: 20px; color: var(--w); margin-bottom: 4px; }
+.rf-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.rf-label { display: block; font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(248,246,243,.45); margin-bottom: 6px; }
+.rf-input, .rf-select, .rf-textarea {
+  width: 100%;
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.14);
+  color: var(--w);
+  padding: 10px 12px;
+  font-size: 14px;
+  font-family: var(--fb);
+  border-radius: 2px;
+  box-sizing: border-box;
+}
+.rf-input:focus, .rf-select:focus, .rf-textarea:focus { outline: none; border-color: var(--gold); }
+.rf-textarea { resize: vertical; }
+.rf-btn {
+  align-self: flex-start;
+  background: var(--gold);
+  color: var(--b);
+  border: none;
+  padding: 12px 28px;
+  font-family: var(--fb);
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-weight: 700;
+  cursor: pointer;
+}
+.rf-btn:hover { background: var(--goldl); }
+.rf-btn:disabled { opacity: .6; cursor: wait; }
+.rf-err { color: #f87171; font-size: 12px; }
+.rf-done { color: var(--gold); font-size: 14px; padding: 32px 28px 0; max-width: 560px; margin: 0 auto; }
+@media (max-width: 720px) {
+  .rf-row { grid-template-columns: 1fr; }
+}
 .sug-sec { padding: 60px 48px 0; }
 .sug-head { padding: 0 0 32px; }
 .sug-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--gm); }

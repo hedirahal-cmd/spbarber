@@ -6,7 +6,22 @@ import { notFound, redirect } from 'next/navigation'
 import { PRODUCTS } from '@/lib/products'
 import { ProductDetail } from '@/components/product/ProductDetail'
 import { schemaProduct, schemaBreadcrumb, jsonLd } from '@/lib/schema'
-import { supabaseAdmin } from '@/lib/supabase'
+import { supabase, supabaseAdmin } from '@/lib/supabase'
+import { toReviewDisplay, type ReviewDisplay } from '@/lib/reviews'
+
+async function getProductReviews(productId: string): Promise<ReviewDisplay[]> {
+  try {
+    const { data } = await supabase
+      .from('reviews')
+      .select('*')
+      .eq('visible', true)
+      .contains('product_ids', [productId])
+      .order('created_at', { ascending: false })
+      .limit(20)
+    if (data) return data.map(toReviewDisplay)
+  } catch {}
+  return []
+}
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -95,6 +110,7 @@ export default async function ProductPage({ params }: Props) {
     redirect(product.dsers_url)
   }
 
+  const productReviews  = await getProductReviews(product.id)
   const productSchema   = schemaProduct(product)
   const breadcrumbSchema = schemaBreadcrumb([
     { name: 'Accueil', url: 'https://spbarber.fr' },
@@ -112,7 +128,7 @@ export default async function ProductPage({ params }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbSchema) }}
       />
-      <ProductDetail product={product} />
+      <ProductDetail product={product} reviews={productReviews} />
     </>
   )
 }
