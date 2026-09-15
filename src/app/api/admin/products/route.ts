@@ -48,7 +48,12 @@ export async function PUT(req: NextRequest) {
     benefit: benefit !== undefined ? (benefit || null) : existant?.benefit ?? null,
     images: images !== undefined ? normaliserImages(images) : existant?.images ?? [],
     social_proof_text: social_proof_text !== undefined ? (social_proof_text || null) : existant?.social_proof_text ?? null,
-    social_proof_visible: social_proof_visible !== undefined ? !!social_proof_visible : existant?.social_proof_visible ?? null,
+    // != null exclut a la fois undefined ET null : un booleen force via !!
+    // n'a pas de notion de "rester tel quel", `!!null` valant false et non
+    // null. Un appelant qui renverrait un null explicite (ex. l'objet recu
+    // tel quel d'un GET) ecraserait donc silencieusement la valeur existante
+    // avec `!== undefined` seul.
+    social_proof_visible: social_proof_visible != null ? !!social_proof_visible : existant?.social_proof_visible ?? null,
     updated_at: new Date().toISOString(),
   })
 

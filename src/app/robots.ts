@@ -6,7 +6,7 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: '*',
         allow: '/',
-        disallow: ['/admin/', '/api/', '/cart', '/checkout', '/success'],
+        disallow: ['/admin/', '/api/', '/cart', '/checkout'],
       },
     ],
     sitemap: 'https://spbarber.fr/sitemap.xml',
