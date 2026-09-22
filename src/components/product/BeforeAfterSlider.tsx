@@ -1,16 +1,40 @@
 'use client'
-import { useRef, useState, useCallback } from 'react'
+import { useRef, useState, useCallback, useEffect } from 'react'
 import { CheckCircle2 } from 'lucide-react'
+
+export interface BeforeAfterImage {
+  url: string
+  alt: string
+}
 
 interface Props {
   bare?: boolean
   className?: string
+  before?: BeforeAfterImage | null
+  after?: BeforeAfterImage | null
 }
 
-export function BeforeAfterSlider({ bare = false, className = '' }: Props) {
+export function BeforeAfterSlider({ bare = false, className = '', before = null, after = null }: Props) {
   const [pct, setPct] = useState(50)
   const [dragging, setDragging] = useState(false)
+  const [wrapWidth, setWrapWidth] = useState(0)
   const containerRef = useRef<HTMLDivElement>(null)
+  const hasPhotos = !!before && !!after
+
+  // La photo "avant" doit garder la largeur du conteneur ENTIER, jamais celle
+  // de son calque decoupe (qui retrecit avec le curseur) -- sinon elle se
+  // deformerait au lieu d'etre simplement revelee derriere le cache. Mesuree
+  // de la meme facon que updatePct calcule le pourcentage.
+  useEffect(() => {
+    if (!hasPhotos) return
+    const el = containerRef.current
+    if (!el) return
+    const mesurer = () => setWrapWidth(el.getBoundingClientRect().width)
+    mesurer()
+    const observer = new ResizeObserver(mesurer)
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [hasPhotos])
 
   const updatePct = useCallback((clientX: number) => {
     const el = containerRef.current
@@ -46,26 +70,34 @@ export function BeforeAfterSlider({ bare = false, className = '' }: Props) {
       aria-valuemax={100}
     >
       <div className="aas-after">
-        <div className="aas-hair-wrap">
-          {Array.from({ length: 14 }).map((_, i) => (
-            <div key={i} className="aas-strand aas-strand-dark" style={{ height: `${72 + (i % 3) * 12}%`, animationDelay: `${i * 0.07}s` }} />
-          ))}
-        </div>
+        {hasPhotos ? (
+          <img src={after.url} alt={after.alt} className="aas-photo" />
+        ) : (
+          <div className="aas-hair-wrap">
+            {Array.from({ length: 14 }).map((_, i) => (
+              <div key={i} className="aas-strand aas-strand-dark" style={{ height: `${72 + (i % 3) * 12}%`, animationDelay: `${i * 0.07}s` }} />
+            ))}
+          </div>
+        )}
         <div className="aas-label-after">APRÈS</div>
         <div className="aas-badge">Couleur restaurée</div>
         <div className="aas-glow" />
       </div>
 
       <div className="aas-before" style={{ width: `${pct}%` }}>
-        <div className="aas-hair-wrap">
-          {Array.from({ length: 14 }).map((_, i) => (
-            <div
-              key={i}
-              className={`aas-strand ${i % 3 === 0 ? 'aas-strand-white' : i % 3 === 1 ? 'aas-strand-grey' : 'aas-strand-mixed'}`}
-              style={{ height: `${72 + (i % 3) * 12}%`, animationDelay: `${i * 0.07}s` }}
-            />
-          ))}
-        </div>
+        {hasPhotos ? (
+          <img src={before.url} alt={before.alt} className="aas-photo" style={{ width: wrapWidth || '100%' }} />
+        ) : (
+          <div className="aas-hair-wrap">
+            {Array.from({ length: 14 }).map((_, i) => (
+              <div
+                key={i}
+                className={`aas-strand ${i % 3 === 0 ? 'aas-strand-white' : i % 3 === 1 ? 'aas-strand-grey' : 'aas-strand-mixed'}`}
+                style={{ height: `${72 + (i % 3) * 12}%`, animationDelay: `${i * 0.07}s` }}
+              />
+            ))}
+          </div>
+        )}
         <div className="aas-label-before">AVANT</div>
         <div className="aas-badge aas-badge-before">Cheveux grisonnants</div>
       </div>

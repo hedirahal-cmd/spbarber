@@ -29,7 +29,7 @@ function normaliserImages(images: unknown): { url: string; alt: string }[] {
 export async function PUT(req: NextRequest) {
   if (!(await estAdmin())) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const body = await req.json()
-  const { id, name, price, description, stock, benefit, images, social_proof_text, social_proof_visible } = body
+  const { id, name, price, description, stock, benefit, images, social_proof_text, social_proof_visible, before_image_url, after_image_url } = body
   if (!id) return NextResponse.json({ error: 'id requis' }, { status: 400 })
 
   // Deux ecrans admin distincts editent des sous-ensembles differents de cette
@@ -54,6 +54,8 @@ export async function PUT(req: NextRequest) {
     // tel quel d'un GET) ecraserait donc silencieusement la valeur existante
     // avec `!== undefined` seul.
     social_proof_visible: social_proof_visible != null ? !!social_proof_visible : existant?.social_proof_visible ?? null,
+    before_image_url: before_image_url !== undefined ? (before_image_url || null) : existant?.before_image_url ?? null,
+    after_image_url: after_image_url !== undefined ? (after_image_url || null) : existant?.after_image_url ?? null,
     updated_at: new Date().toISOString(),
   })
 

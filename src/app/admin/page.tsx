@@ -165,6 +165,10 @@ function TabProduits() {
   const [images, setImages] = useState<GalleryImage[]>([])
   const [uploadingImages, setUploadingImages] = useState(false)
   const [imgErr, setImgErr] = useState('')
+  const [beforeImageUrl, setBeforeImageUrl] = useState<string | null>(null)
+  const [afterImageUrl, setAfterImageUrl] = useState<string | null>(null)
+  const [uploadingBeforeAfter, setUploadingBeforeAfter] = useState<'before' | 'after' | null>(null)
+  const [beforeAfterErr, setBeforeAfterErr] = useState('')
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [saveErr, setSaveErr] = useState('')
@@ -192,6 +196,9 @@ function TabProduits() {
     // ce dernier ne pointe vers aucun fichier reel, l'y afficher en admin
     // laisserait croire a une photo qui n'existe pas.
     setImages(Array.isArray(ov.images) ? (ov.images as GalleryImage[]) : [])
+    setBeforeImageUrl(typeof ov.before_image_url === 'string' ? ov.before_image_url : null)
+    setAfterImageUrl(typeof ov.after_image_url === 'string' ? ov.after_image_url : null)
+    setBeforeAfterErr('')
     setImgErr('')
     setEditing(id)
     setSaved(false)
@@ -256,12 +263,52 @@ function TabProduits() {
     })
   }
 
+  async function uploadBeforeAfterPhoto(slot: 'before' | 'after', e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    const produit = editing ? PRODUCTS.find(p => p.id === editing) : null
+    if (!file || !produit) { e.target.value = ''; return }
+
+    setBeforeAfterErr('')
+    setUploadingBeforeAfter(slot)
+    const ancienUrl = slot === 'before' ? beforeImageUrl : afterImageUrl
+    const fd = new FormData()
+    fd.append('file', file)
+    fd.append('slug', produit.slug)
+    try {
+      const res = await fetch('/api/admin/products/upload', { method: 'POST', body: fd })
+      if (res.ok) {
+        const { url } = await res.json()
+        if (slot === 'before') setBeforeImageUrl(url); else setAfterImageUrl(url)
+        // Remplace l'ancienne photo : on supprime l'ancien fichier une fois le
+        // nouveau confirme, sinon un fichier orphelin s'accumule dans le bucket.
+        if (ancienUrl) {
+          await fetch('/api/admin/products/upload', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url: ancienUrl }) }).catch(() => {})
+        }
+      } else {
+        const d = await res.json().catch(() => ({}))
+        setBeforeAfterErr(d.error ?? 'Erreur upload photo')
+      }
+    } catch {
+      setBeforeAfterErr('Erreur upload photo')
+    }
+    setUploadingBeforeAfter(null)
+    e.target.value = ''
+  }
+
+  function removeBeforeAfterPhoto(slot: 'before' | 'after') {
+    const url = slot === 'before' ? beforeImageUrl : afterImageUrl
+    if (slot === 'before') setBeforeImageUrl(null); else setAfterImageUrl(null)
+    if (url) {
+      fetch('/api/admin/products/upload', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url }) }).catch(() => {})
+    }
+  }
+
   async function save() {
     if (!editing) return
     setSaving(true)
     setSaveErr('')
     try {
-      const res = await fetch('/api/admin/products', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: editing, ...form, images }) })
+      const res = await fetch('/api/admin/products', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: editing, ...form, images, before_image_url: beforeImageUrl, after_image_url: afterImageUrl }) })
       if (res.ok) {
         setSaved(true)
         const rows: Array<Record<string, unknown>> = await fetch('/api/admin/products').then(r => r.json())
@@ -419,6 +466,48 @@ function TabProduits() {
               </button>
               <div style={{ fontSize: 11, color: S.muted, marginTop: 6 }}>JPG, PNG ou WebP. La première photo est la couverture (listes, réseaux sociaux).</div>
             </div>
+
+            {/* Avant / Après (slider) — Shampooing Noir uniquement, seul produit qui affiche ce composant */}
+            {editing === '2' && (
+              <div style={{ marginBottom: 20 }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: S.text, marginBottom: 4 }}>Photos avant / après (slider)</div>
+                <div style={{ fontSize: 11, color: S.muted, marginBottom: 10 }}>Format carré recommandé, comme les photos produits (1200×1200).</div>
+                {beforeAfterErr && <div style={{ fontSize: 12, color: '#b91c1c', marginBottom: 8 }}>{beforeAfterErr}</div>}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                  {(['before', 'after'] as const).map(slot => {
+                    const url = slot === 'before' ? beforeImageUrl : afterImageUrl
+                    const label = slot === 'before' ? 'Avant' : 'Après'
+                    const busy = uploadingBeforeAfter === slot
+                    return (
+                      <div key={slot}>
+                        <div style={{ fontSize: 11, fontWeight: 600, color: S.muted, marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.5 }}>{label}</div>
+                        <input id={`ba-input-${slot}`} type="file" accept=".jpg,.jpeg,.png,.webp" style={{ display: 'none' }} onChange={e => uploadBeforeAfterPhoto(slot, e)} />
+                        {url ? (
+                          <div style={{ background: S.bg, borderRadius: 6, padding: 8 }}>
+                            <img src={url} alt="" style={{ width: '100%', aspectRatio: '1 / 1', objectFit: 'cover', borderRadius: 4, background: '#e5e7eb', display: 'block', marginBottom: 6 }} />
+                            <div style={{ display: 'flex', gap: 6 }}>
+                              <button type="button" disabled={busy} onClick={() => (document.getElementById(`ba-input-${slot}`) as HTMLInputElement)?.click()} style={{ ...S.btnSecondary, fontSize: 11, padding: '4px 8px', flex: 1 }}>
+                                {busy ? 'Envoi…' : 'Remplacer'}
+                              </button>
+                              <button type="button" onClick={() => removeBeforeAfterPhoto(slot)} style={{ ...S.btnSecondary, fontSize: 11, padding: '4px 8px', color: '#b91c1c', borderColor: '#fca5a5' }}>×</button>
+                            </div>
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            disabled={busy}
+                            onClick={() => (document.getElementById(`ba-input-${slot}`) as HTMLInputElement)?.click()}
+                            style={{ ...S.btnSecondary, fontSize: 12, padding: '20px 8px', width: '100%', border: '2px dashed #e1e3e5' }}
+                          >
+                            {busy ? 'Envoi…' : `+ Photo ${label.toLowerCase()}`}
+                          </button>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
 
             {/* Titre */}
             <div style={{ marginBottom: 16 }}>

@@ -6,7 +6,7 @@ import { formatPrice } from '@/lib/utils'
 import { PRODUCTS } from '@/lib/products'
 import { PaymentLogos } from '@/components/PaymentLogos'
 import { AddToCartButton } from '@/components/AddToCartButton'
-import { BeforeAfterSlider } from '@/components/product/BeforeAfterSlider'
+import { BeforeAfterSlider, type BeforeAfterImage } from '@/components/product/BeforeAfterSlider'
 import {
   CheckCircle2, ShoppingCart, Clock, Truck,
   Dumbbell, Sparkles, Leaf, FlaskConical,
@@ -44,7 +44,7 @@ function getTomorrowLabel() {
   return d.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })
 }
 
-export function ShampooingNoirPage({ product, reviews: productReviews, socialProof }: { product: Product; reviews: ReviewDisplay[]; socialProof: string | null }) {
+export function ShampooingNoirPage({ product, reviews: productReviews, socialProof, beforeImage, afterImage }: { product: Product; reviews: ReviewDisplay[]; socialProof: string | null; beforeImage: BeforeAfterImage | null; afterImage: BeforeAfterImage | null }) {
   const [added, setAdded] = useState(false)
   const [stickyVisible, setStickyVisible] = useState(false)
   const [selectedPhoto, setSelectedPhoto] = useState(0)
@@ -126,7 +126,7 @@ export function ShampooingNoirPage({ product, reviews: productReviews, socialPro
           )}
 
           {/* Slider avant/après — hauteur 280px max */}
-          <BeforeAfterSlider bare className="sn-hero-slider" />
+          <BeforeAfterSlider bare className="sn-hero-slider" before={beforeImage} after={afterImage} />
 
           <div className="sn-pills">
             <span className="sn-pill">Sans ammoniaque</span>

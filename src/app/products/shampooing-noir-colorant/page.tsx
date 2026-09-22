@@ -8,6 +8,7 @@ import { schemaProduct, schemaBreadcrumb, jsonLd } from '@/lib/schema'
 import { supabase, supabaseAdmin } from '@/lib/supabase'
 import { toReviewDisplay, type ReviewDisplay } from '@/lib/reviews'
 import { resolveSocialProof } from '@/lib/social-proof'
+import type { BeforeAfterImage } from '@/components/product/BeforeAfterSlider'
 
 const BASE_PRODUCT = PRODUCTS.find((p) => p.id === '2')!
 
@@ -73,11 +74,13 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function ShampooingNoirRoute() {
   let product = BASE_PRODUCT
   let socialProofOverride: { social_proof_text?: string | null; social_proof_visible?: boolean | null } | null = null
+  let beforeImage: BeforeAfterImage | null = null
+  let afterImage: BeforeAfterImage | null = null
 
   try {
     const { data, error } = await supabaseAdmin
       .from('product_overrides')
-      .select('name,price,description,stock,benefit,images,social_proof_text,social_proof_visible')
+      .select('name,price,description,stock,benefit,images,social_proof_text,social_proof_visible,before_image_url,after_image_url')
       .eq('id', '2')
       .maybeSingle()
     console.log('[shampooing-page] override:', JSON.stringify(data), '| error:', error?.message ?? null)
@@ -91,6 +94,12 @@ export default async function ShampooingNoirRoute() {
       ...(Array.isArray(data.images) && data.images.length > 0 ? { images: data.images } : {}),
     }
     socialProofOverride = data
+    if (typeof data?.before_image_url === 'string' && data.before_image_url) {
+      beforeImage = { url: data.before_image_url, alt: `${product.name} — avant` }
+    }
+    if (typeof data?.after_image_url === 'string' && data.after_image_url) {
+      afterImage = { url: data.after_image_url, alt: `${product.name} — après` }
+    }
   } catch (e) {
     console.error('[shampooing-page] catch:', e instanceof Error ? e.message : String(e))
   }
@@ -114,7 +123,7 @@ export default async function ShampooingNoirRoute() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbSchema) }}
       />
-      <ShampooingNoirPage product={product} reviews={productReviews} socialProof={socialProof} />
+      <ShampooingNoirPage product={product} reviews={productReviews} socialProof={socialProof} beforeImage={beforeImage} afterImage={afterImage} />
     </>
   )
 }
