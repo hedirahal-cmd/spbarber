@@ -3210,7 +3210,7 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
 /* Photo placeholder en haut de la colonne gauche */
 .sn-hero-photo {
   width: 100%;
-  aspect-ratio: 4 / 3;
+  aspect-ratio: 1;
   background: var(--g);
   border: 1px solid var(--gm);
   border-radius: 4px;
@@ -3234,8 +3234,8 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
 
 .sn-hero-slider {
   width: 100%;
-  height: 280px;
-  max-height: 280px;
+  aspect-ratio: 1;
+  height: auto;
   margin-bottom: 0;
   border-radius: 4px;
   flex: none;
@@ -3526,7 +3526,6 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
     overflow-y: visible;
     max-height: none;
   }
-  .sn-hero-slider { height: 260px; max-height: 260px; }
   .sn-hero-right {
     padding: 32px 24px;
     border-left: none;
