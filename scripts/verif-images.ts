@@ -191,8 +191,8 @@ async function main() {
   verifie('seul le hero affiche la vraie photo (1 occurrence, pas 2)',
     occurrences(html, `src="${URL_PHOTO_2}"`) === 1,
     occurrences(html, `src="${URL_PHOTO_2}"`) + ' occurrence(s) trouvee(s), 1 attendue')
-  verifie('le bloc description garde son icone placeholder, meme avec override',
-    html.includes('class="sn-ph-lbl"'))
+  verifie('le bloc photo de la description a bien ete retire, meme avec override',
+    !html.includes('sn-pd-left') && !html.includes('sn-ph-icon'))
 
   console.log('\n--- F. Checkout reel Stripe : la galerie survit a pricing.ts + Stripe ---')
   const r = await checkout([{

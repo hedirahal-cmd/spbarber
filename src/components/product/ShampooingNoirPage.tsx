@@ -211,17 +211,8 @@ export function ShampooingNoirPage({ product, reviews: productReviews, socialPro
         </div>
       </section>
 
-      {/* ── BLOC 2 — Photo produit + Description ── */}
+      {/* ── BLOC 2 — Description ── */}
       <section className="sn-pd-sec">
-        <div className="sn-pd-left">
-          <div className="sn-ph">
-            <div className="sn-ph-icon">
-              <Droplets size={64} strokeWidth={0.9} color="var(--gt)" />
-            </div>
-            <div className="sn-ph-lbl">Photo produit</div>
-          </div>
-        </div>
-
         <div className="sn-pd-right">
           <div className="sn-desc-ttl">Description</div>
           <p className="sn-desc-txt">{product.description}</p>

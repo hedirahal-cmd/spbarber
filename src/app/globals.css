@@ -1237,7 +1237,7 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
   margin: 0 auto;
   align-items: start;
 }
-.fi-img-main { aspect-ratio: 1; background: var(--g); overflow: hidden; position: relative; width: 50%; margin: 0 auto; }
+.fi-img-main { aspect-ratio: 1; background: var(--g); overflow: hidden; position: relative; }
 .fi-img-ph {
   width: 100%;
   height: 100%;
@@ -3204,8 +3204,7 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
 
 /* Photo placeholder en haut de la colonne gauche */
 .sn-hero-photo {
-  width: 50%;
-  margin: 0 auto;
+  width: 100%;
   aspect-ratio: 1;
   background: var(--g);
   border: 1px solid var(--gm);
@@ -3220,19 +3219,15 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
   font-size: 11px;
   font-family: var(--fb);
   letter-spacing: 0.5px;
-  /* Sans ca, .sn-hero-left (colonne flex, max-height:100vh) ecrase la hauteur
-     de cette photo des que le contenu depasse une fenetre de taille normale --
-     la largeur reste a 100% mais la hauteur s'effondre, deformant le cadre en
-     bandeau. .sn-hero-slider, juste en dessous, avait deja cette protection. */
   flex: none;
 }
 .sn-hero-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
 .sn-hero-slider {
-  width: 50%;
-  margin: 0 auto;
+  width: 100%;
   aspect-ratio: 1;
   height: auto;
+  margin-bottom: 0;
   border-radius: 4px;
   flex: none;
 }
@@ -3362,44 +3357,14 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
 .sn-prog-track { height: 3px; background: var(--gm); border-radius: 2px; overflow: hidden; }
 .sn-prog-fill { height: 100%; background: var(--gold); border-radius: 2px; transition: width 0.4s ease; }
 
-/* ── BLOC 2 — Photo + Description ── */
+/* ── BLOC 2 — Description ── */
 .sn-pd-sec {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
   background: var(--w);
   border-top: 1px solid var(--gm);
 }
-.sn-pd-left {
-  background: var(--g);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 400px;
-  border-right: 1px solid var(--gm);
-}
-.sn-ph {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 16px;
-}
-.sn-ph-icon {
-  width: 160px;
-  height: 160px;
-  background: var(--gm);
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.sn-ph-lbl {
-  font-size: 10px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  color: var(--gt);
-  font-family: var(--fb);
-}
 .sn-pd-right {
+  max-width: 760px;
+  margin: 0 auto;
   padding: 48px;
   display: flex;
   flex-direction: column;
@@ -3523,8 +3488,6 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
     border-left: none;
     border-top: 1px solid var(--gm);
   }
-  .sn-pd-sec { grid-template-columns: 1fr; }
-  .sn-pd-left { min-height: 280px; border-right: none; border-bottom: 1px solid var(--gm); }
   .sn-pd-right { padding: 36px 24px; }
 }
 @media (max-width: 640px) {
