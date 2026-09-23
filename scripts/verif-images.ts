@@ -188,9 +188,11 @@ async function main() {
     'obtenu ' + metaContent(html, 'og:image'))
   verifie('og:image:alt reprend le texte alternatif de l admin', metaContent(html, 'og:image:alt') === ALT_PHOTO_2,
     'obtenu ' + metaContent(html, 'og:image:alt'))
-  verifie('les DEUX emplacements photo de la page (hero + bloc description) sont cables',
-    occurrences(html, `src="${URL_PHOTO_2}"`) >= 2,
-    occurrences(html, `src="${URL_PHOTO_2}"`) + ' occurrence(s) trouvee(s), 2 attendues')
+  verifie('seul le hero affiche la vraie photo (1 occurrence, pas 2)',
+    occurrences(html, `src="${URL_PHOTO_2}"`) === 1,
+    occurrences(html, `src="${URL_PHOTO_2}"`) + ' occurrence(s) trouvee(s), 1 attendue')
+  verifie('le bloc description garde son icone placeholder, meme avec override',
+    html.includes('class="sn-ph-lbl"'))
 
   console.log('\n--- F. Checkout reel Stripe : la galerie survit a pricing.ts + Stripe ---')
   const r = await checkout([{

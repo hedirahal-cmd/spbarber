@@ -93,7 +93,7 @@ export function ShampooingNoirPage({ product, reviews: productReviews, socialPro
       {/* ── BLOC 1 — Hero 2 colonnes ── */}
       <section className="sn-hero">
 
-        {/* Colonne gauche — scroll interne, photo + slider */}
+        {/* Colonne gauche — photo + slider */}
         <div className="sn-hero-left">
           {/* Photo produit */}
           <div className="sn-hero-photo">
@@ -215,18 +215,10 @@ export function ShampooingNoirPage({ product, reviews: productReviews, socialPro
       <section className="sn-pd-sec">
         <div className="sn-pd-left">
           <div className="sn-ph">
-            <div className="sn-ph-icon" style={hasGallery ? { overflow: 'hidden' } : undefined}>
-              {hasGallery ? (
-                <img
-                  src={product.images[0].url}
-                  alt={product.images[0].alt || product.name}
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                />
-              ) : (
-                <Droplets size={64} strokeWidth={0.9} color="var(--gt)" />
-              )}
+            <div className="sn-ph-icon">
+              <Droplets size={64} strokeWidth={0.9} color="var(--gt)" />
             </div>
-            {!hasGallery && <div className="sn-ph-lbl">Photo produit</div>}
+            <div className="sn-ph-lbl">Photo produit</div>
           </div>
         </div>
 

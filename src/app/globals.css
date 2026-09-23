@@ -3200,12 +3200,7 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
   display: flex;
   flex-direction: column;
   gap: 20px;
-  overflow-y: auto;
-  max-height: 100vh;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
 }
-.sn-hero-left::-webkit-scrollbar { display: none; }
 
 /* Photo placeholder en haut de la colonne gauche */
 .sn-hero-photo {
@@ -3266,8 +3261,6 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
   gap: 14px;
   background: var(--w);
   border-left: 1px solid var(--gm);
-  position: sticky;
-  top: 80px;
 }
 .sn-bc { font-size: 11px; color: var(--gt); }
 .sn-bc a { color: var(--gt); text-decoration: none; }
@@ -3524,15 +3517,11 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
   .sn-hero { grid-template-columns: 1fr; }
   .sn-hero-left {
     padding: 28px 24px;
-    overflow-y: visible;
-    max-height: none;
   }
   .sn-hero-right {
     padding: 32px 24px;
     border-left: none;
     border-top: 1px solid var(--gm);
-    position: static;
-    top: auto;
   }
   .sn-pd-sec { grid-template-columns: 1fr; }
   .sn-pd-left { min-height: 280px; border-right: none; border-bottom: 1px solid var(--gm); }
