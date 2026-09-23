@@ -2007,9 +2007,18 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
   overflow: hidden;
 }
 .aas-photo {
+  /* max-width:none empeche -- sans lui, le reset global "img{max-width:100%}"
+     (ligne 21) plafonne silencieusement la largeur fixe imposee en ligne (JS)
+     sur la photo "avant" a 100% du calque decoupe qui retrecit pendant le
+     glisser : max-width l'emporte toujours sur width, quelle que soit la
+     specificite. La photo se redimensionnait donc reellement avec le curseur
+     au lieu de rester figee derriere lui. top/left seuls (pas "inset:0") pour
+     eviter tout conflit horizontal avec cette largeur fixe. */
   position: absolute;
-  inset: 0;
+  top: 0;
+  left: 0;
   width: 100%;
+  max-width: none;
   height: 100%;
   object-fit: cover;
   display: block;
