@@ -934,6 +934,26 @@ button { font-family: var(--fb); }
 }
 .pc-atc:hover { background: var(--goldl); transform: translateY(-1px); }
 
+/* .produits-dark reutilise .prod-card/.pc-* avec /products (catalogue complet,
+   qui doit rester clair) -- /products a lui aussi un id="produits" (ancre de
+   navigation partagee, voir Header.tsx), donc un simple #produits matcherait
+   les deux pages. La classe ci-dessous ne cible que la section de l'accueil. */
+.produits-dark { background: var(--b); }
+.produits-dark .sec-ey { color: rgba(248,246,243,.3); }
+.produits-dark .sec-title { color: var(--w); }
+.produits-dark .see-all { color: var(--w); border-bottom-color: rgba(248,246,243,.3); }
+.produits-dark .see-all:hover { color: var(--goldl); border-bottom-color: var(--goldl); }
+.produits-dark .prod-grid { background: var(--b); }
+.produits-dark .prod-card { background: #141210; }
+.produits-dark .prod-card:hover { box-shadow: 0 6px 30px rgba(184,144,58,.15); }
+.produits-dark .pc-img { background: linear-gradient(150deg, #1c1816, #0c0c0c); }
+.produits-dark .pc-ph { background: transparent; }
+.produits-dark .pc-icon { color: var(--w); }
+.produits-dark .pc-cat { color: var(--gold); }
+.produits-dark .pc-benefit { color: var(--w); }
+.produits-dark .pc-price { color: var(--goldl); }
+.produits-dark + .cta-strip { background: var(--b); }
+
 /* ═══ KIT BANNER ═══ */
 .kit-wrap { margin: 0 48px 44px; }
 .kit-banner {

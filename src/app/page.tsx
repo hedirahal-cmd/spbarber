@@ -275,10 +275,10 @@ export default async function HomePage() {
       </div>
 
       {/* ── PRODUITS — Bénéfice avant nom ── */}
-      <section id="produits">
+      <section id="produits" className="produits-dark">
         <div className="sec-head">
           <div>
-            <div className="sec-ey">— Nos bestsellers —</div>
+            <div className="sec-ey">— Testé par nos barbiers —</div>
             <h2 className="sec-title">PRODUITS</h2>
           </div>
           <Link href="/products" className="see-all">Voir tout →</Link>
