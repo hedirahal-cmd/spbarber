@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { PRODUCTS } from '@/lib/products'
 import { AddToCartButton } from '@/components/AddToCartButton'
 import { formatPrice } from '@/lib/utils'
-import { Scissors, Droplets, User, Zap, Sparkles, Truck, Gift, RotateCcw } from 'lucide-react'
+import { Scissors, Droplets, User, Zap, Sparkles, Truck, Gift, RotateCcw, Wind } from 'lucide-react'
 import { HomeSalonSection } from '@/components/home/HomeSalonSection'
 import { DEFAULT_SALONS, type Salon } from '@/lib/salons'
 import { supabase, supabaseAdmin } from '@/lib/supabase'
@@ -23,7 +23,13 @@ import { ReviewsList } from '@/components/ReviewsList'
 import { getSiteContent } from '@/lib/site-content'
 import { resolveSocialProof } from '@/lib/social-proof'
 
-type ProdOverride = { id: string; name?: string | null; price?: number | null; description?: string | null; stock?: number | null; benefit?: string | null; images?: { url: string; alt: string }[] | null; social_proof_text?: string | null; social_proof_visible?: boolean | null }
+type ProdOverride = {
+  id: string; name?: string | null; price?: number | null; description?: string | null; stock?: number | null
+  benefit?: string | null; images?: { url: string; alt: string }[] | null
+  social_proof_text?: string | null; social_proof_visible?: boolean | null
+  actif?: boolean | null; is_bestseller?: boolean | null; bestseller_ordre?: number | null
+  bestseller_badge?: string | null; bestseller_cat?: string | null
+}
 
 async function getReviews(): Promise<ReviewDisplay[]> {
   try {
@@ -60,7 +66,7 @@ async function getTemoignagesPros(): Promise<TemoPro[]> {
 
 async function getProductOverrides(): Promise<Record<string, ProdOverride>> {
   try {
-    const { data } = await supabaseAdmin.from('product_overrides').select('id,name,price,description,stock,benefit,images,social_proof_text,social_proof_visible')
+    const { data } = await supabaseAdmin.from('product_overrides').select('id,name,price,description,stock,benefit,images,social_proof_text,social_proof_visible,actif,is_bestseller,bestseller_ordre,bestseller_badge,bestseller_cat')
     if (!data) return {}
     const map: Record<string, ProdOverride> = {}
     ;(data as ProdOverride[]).forEach(r => { map[r.id] = r })
@@ -80,6 +86,7 @@ function applyOverride(p: (typeof PRODUCTS)[0], ov: Record<string, ProdOverride>
     stock: o.stock ?? p.stock,
     benefit: o.benefit ?? p.benefit,
     images: (o.images && o.images.length > 0) ? o.images : p.images,
+    actif: o.actif !== false,
   }
 }
 
@@ -126,10 +133,16 @@ export default async function HomePage() {
   const orgSchema        = schemaOrganizationLocal()
   const breadcrumbSchema = schemaBreadcrumb([{ name: 'Accueil', url: 'https://spbarber.fr' }])
 
-  const packBarbe = applyOverride(PRODUCTS.find((p) => p.id === '5')!, overrides)
-  const shampNoir = applyOverride(PRODUCTS.find((p) => p.id === '2')!, overrides)
-  const cireCheveux = applyOverride(PRODUCTS.find((p) => p.id === '1')!, overrides)
-  const featured = PRODUCTS.filter((p) => p.id !== '5' && p.id !== '2' && p.id !== '1').slice(0, 6).map(p => applyOverride(p, overrides))
+  // Bestsellers choisis en admin (case a cocher par produit) -- ordre croissant,
+  // les non-renseignes en dernier, plafonne a 3 pour matcher la grille figee a
+  // 3 colonnes (best2-grid).
+  const bestsellers = PRODUCTS
+    .map((p) => ({ product: applyOverride(p, overrides), ov: overrides[p.id] }))
+    .filter(({ product, ov }) => !!ov?.is_bestseller && product.actif !== false)
+    .sort((a, b) => (a.ov?.bestseller_ordre ?? 999) - (b.ov?.bestseller_ordre ?? 999))
+    .slice(0, 3)
+  const bestsellerIds = new Set(bestsellers.map(({ product }) => product.id))
+  const featured = PRODUCTS.filter((p) => !bestsellerIds.has(p.id)).slice(0, 6).map(p => applyOverride(p, overrides)).filter((p) => p.actif !== false)
 
   return (
     <>
@@ -176,11 +189,11 @@ export default async function HomePage() {
               <span className="hq-sub">Shampooing colorant</span>
             </span>
           </Link>
-          <Link href="/products/cire-cheveux-premium" className="hq-btn">
-            <span className="hq-icon"><Scissors size={22} strokeWidth={1.6} /></span>
+          <Link href="/products/poudre-texturante" className="hq-btn">
+            <span className="hq-icon"><Wind size={22} strokeWidth={1.6} /></span>
             <span className="hq-txt">
-              <span className="hq-main">J&apos;ai du mal à me coiffer</span>
-              <span className="hq-sub">Cire fixante</span>
+              <span className="hq-main">J&apos;ai des cheveux fins, sans tenue</span>
+              <span className="hq-sub">Poudre texturante</span>
             </span>
           </Link>
           <Link href="/products/pack-barbe-complet" className="hq-btn">
@@ -217,74 +230,29 @@ export default async function HomePage() {
           </div>
         </div>
         <div className="best2-grid">
-          {/* Pack Barbe — Meilleure vente */}
-          <div className="best2-card">
-            <span className="best2-badge-mv">Meilleure vente</span>
-            <Link href={`/products/${packBarbe.slug}`} className="best2-card-inner">
-              <div className="best2-img">
-                {packBarbe.images[0]?.url.startsWith('http') ? (
-                  <img src={packBarbe.images[0].url} alt={packBarbe.images[0].alt || packBarbe.name} />
-                ) : (
-                  <span className="best2-icon"><CategoryIcon category={packBarbe.category} size={72} /></span>
-                )}
+          {bestsellers.map(({ product, ov }) => (
+            <div className="best2-card" key={product.id}>
+              <span className="best2-badge-mv">{ov?.bestseller_badge || 'Bestseller'}</span>
+              <Link href={`/products/${product.slug}`} className="best2-card-inner">
+                <div className="best2-img">
+                  {product.images[0]?.url.startsWith('http') ? (
+                    <img src={product.images[0].url} alt={product.images[0].alt || product.name} />
+                  ) : (
+                    <span className="best2-icon"><CategoryIcon category={product.category} size={72} /></span>
+                  )}
+                </div>
+                <div className="best2-info">
+                  <div className="best2-cat">{ov?.bestseller_cat || CATEGORY_LABELS[product.category] || product.category}</div>
+                  <div className="best2-name">{product.benefit}</div>
+                  <div className="best2-benef">{product.name}</div>
+                  <span className="best2-price">{formatPrice(product.price)}</span>
+                </div>
+              </Link>
+              <div className="best2-atc-wrap">
+                <AddToCartButton product={product} className="best2-btn" label="Ajouter au panier" />
               </div>
-              <div className="best2-info">
-                <div className="best2-cat">Pack complet · Barbe</div>
-                <div className="best2-name">{packBarbe.benefit}</div>
-                <div className="best2-benef">{packBarbe.name}</div>
-                <span className="best2-price">{formatPrice(packBarbe.price)}</span>
-              </div>
-            </Link>
-            <div className="best2-atc-wrap">
-              <AddToCartButton product={packBarbe} className="best2-btn" label="Ajouter au panier" />
             </div>
-          </div>
-
-          {/* Cire Cheveux — Bestseller coiffage */}
-          <div className="best2-card">
-            <span className="best2-badge-bs">Bestseller</span>
-            <Link href={`/products/${cireCheveux.slug}`} className="best2-card-inner">
-              <div className="best2-img">
-                {cireCheveux.images[0]?.url.startsWith('http') ? (
-                  <img src={cireCheveux.images[0].url} alt={cireCheveux.images[0].alt || cireCheveux.name} />
-                ) : (
-                  <span className="best2-icon"><CategoryIcon category={cireCheveux.category} size={72} /></span>
-                )}
-              </div>
-              <div className="best2-info">
-                <div className="best2-cat">Coiffant · Tenue forte</div>
-                <div className="best2-name">{cireCheveux.benefit}</div>
-                <div className="best2-benef">{cireCheveux.name}</div>
-                <span className="best2-price">{formatPrice(cireCheveux.price)}</span>
-              </div>
-            </Link>
-            <div className="best2-atc-wrap">
-              <AddToCartButton product={cireCheveux} className="best2-btn" label="Ajouter au panier" />
-            </div>
-          </div>
-
-          {/* Shampooing Noir — Forte marge */}
-          <div className="best2-card">
-            <span className="best2-badge-mv">Coup de coeur</span>
-            <Link href={`/products/${shampNoir.slug}`} className="best2-card-inner">
-              <div className="best2-img">
-                {shampNoir.images[0]?.url.startsWith('http') ? (
-                  <img src={shampNoir.images[0].url} alt={shampNoir.images[0].alt || shampNoir.name} />
-                ) : (
-                  <span className="best2-icon"><CategoryIcon category={shampNoir.category} size={72} /></span>
-                )}
-              </div>
-              <div className="best2-info">
-                <div className="best2-cat">Soin colorant</div>
-                <div className="best2-name">{shampNoir.benefit}</div>
-                <div className="best2-benef">{shampNoir.name}</div>
-                <span className="best2-price">{formatPrice(shampNoir.price)}</span>
-              </div>
-            </Link>
-            <div className="best2-atc-wrap">
-              <AddToCartButton product={shampNoir} className="best2-btn" label="Ajouter au panier" />
-            </div>
-          </div>
+          ))}
         </div>
       </section>
 
@@ -330,7 +298,6 @@ export default async function HomePage() {
                   {product.stock <= 10 && product.stock > 0 && (
                     <span className="pc-tag">Dernières unités</span>
                   )}
-                  {product.id === '1' && <span className="pc-tagg">Bestseller</span>}
                   {product.id === '3' && <span className="pc-tagg">Choix des barbiers</span>}
                   {product.id === '4' && <span className="pc-tag">Pro</span>}
                   {product.id === '6' && <span className="pc-tag">Résultat salon</span>}

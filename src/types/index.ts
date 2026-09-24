@@ -21,6 +21,7 @@ export interface Product {
   benefit?: string
   trust?: string[]
   related?: string[]
+  actif?: boolean
 }
 
 export interface ProductVariant {

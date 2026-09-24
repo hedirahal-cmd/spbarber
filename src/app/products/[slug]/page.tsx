@@ -41,7 +41,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   // statique -- ce dernier point est un ecart preexistant, hors perimetre ici.
   let images = product.images
   try {
-    const { data } = await supabaseAdmin.from('product_overrides').select('images').eq('id', product.id).maybeSingle()
+    const { data } = await supabaseAdmin.from('product_overrides').select('images,actif').eq('id', product.id).maybeSingle()
+    if (data?.actif === false) return {}
     if (Array.isArray(data?.images) && data.images.length > 0) images = data.images
   } catch {}
   const hasRealPhoto = images[0]?.url?.startsWith('http') ?? false
@@ -94,7 +95,7 @@ export default async function ProductPage({ params }: Props) {
   let socialProofOverride: { social_proof_text?: string | null; social_proof_visible?: boolean | null } | null = null
 
   try {
-    const { data, error } = await supabaseAdmin.from('product_overrides').select('name,price,description,stock,benefit,images,social_proof_text,social_proof_visible').eq('id', product.id).maybeSingle()
+    const { data, error } = await supabaseAdmin.from('product_overrides').select('name,price,description,stock,benefit,images,social_proof_text,social_proof_visible,actif').eq('id', product.id).maybeSingle()
     console.log('[product-page] id:', product.id, 'slug:', slug, '| override:', JSON.stringify(data), '| error:', error?.message ?? null)
     if (data) product = {
       ...product,
@@ -104,11 +105,14 @@ export default async function ProductPage({ params }: Props) {
       ...(data.stock != null ? { stock: Number(data.stock) } : {}),
       ...(data.benefit != null ? { benefit: String(data.benefit) } : {}),
       ...(Array.isArray(data.images) && data.images.length > 0 ? { images: data.images } : {}),
+      actif: data.actif !== false,
     }
     socialProofOverride = data
   } catch (e) {
     console.error('[product-page] catch:', e instanceof Error ? e.message : String(e))
   }
+
+  if (product.actif === false) notFound()
 
   if (product.is_dropshipping && product.dsers_url) {
     redirect(product.dsers_url)

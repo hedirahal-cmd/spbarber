@@ -29,7 +29,7 @@ function normaliserImages(images: unknown): { url: string; alt: string }[] {
 export async function PUT(req: NextRequest) {
   if (!(await estAdmin())) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const body = await req.json()
-  const { id, name, price, description, stock, benefit, images, social_proof_text, social_proof_visible, before_image_url, after_image_url } = body
+  const { id, name, price, description, stock, benefit, images, social_proof_text, social_proof_visible, before_image_url, after_image_url, actif, is_bestseller, bestseller_ordre, bestseller_badge, bestseller_cat } = body
   if (!id) return NextResponse.json({ error: 'id requis' }, { status: 400 })
 
   // Deux ecrans admin distincts editent des sous-ensembles differents de cette
@@ -56,6 +56,14 @@ export async function PUT(req: NextRequest) {
     social_proof_visible: social_proof_visible != null ? !!social_proof_visible : existant?.social_proof_visible ?? null,
     before_image_url: before_image_url !== undefined ? (before_image_url || null) : existant?.before_image_url ?? null,
     after_image_url: after_image_url !== undefined ? (after_image_url || null) : existant?.after_image_url ?? null,
+    // != null (pas !== undefined) pour actif/is_bestseller : meme piege que
+    // social_proof_visible ci-dessus, un booleen force via !! n'a pas de
+    // notion de "rester tel quel" avec !== undefined seul.
+    actif: actif != null ? !!actif : existant?.actif ?? true,
+    is_bestseller: is_bestseller != null ? !!is_bestseller : existant?.is_bestseller ?? false,
+    bestseller_ordre: bestseller_ordre !== undefined ? (bestseller_ordre === null ? null : Number(bestseller_ordre)) : existant?.bestseller_ordre ?? null,
+    bestseller_badge: bestseller_badge !== undefined ? (bestseller_badge || null) : existant?.bestseller_badge ?? null,
+    bestseller_cat: bestseller_cat !== undefined ? (bestseller_cat || null) : existant?.bestseller_cat ?? null,
     updated_at: new Date().toISOString(),
   })
 

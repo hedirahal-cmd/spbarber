@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
 import type { Metadata } from 'next'
+import { notFound } from 'next/navigation'
 import { PRODUCTS } from '@/lib/products'
 import { ShampooingNoirPage } from '@/components/product/ShampooingNoirPage'
 import { schemaProduct, schemaBreadcrumb, jsonLd } from '@/lib/schema'
@@ -32,7 +33,8 @@ async function getProductReviews(productId: string): Promise<ReviewDisplay[]> {
 export async function generateMetadata(): Promise<Metadata> {
   let images = BASE_PRODUCT.images
   try {
-    const { data } = await supabaseAdmin.from('product_overrides').select('images').eq('id', '2').maybeSingle()
+    const { data } = await supabaseAdmin.from('product_overrides').select('images,actif').eq('id', '2').maybeSingle()
+    if (data?.actif === false) return {}
     if (Array.isArray(data?.images) && data.images.length > 0) images = data.images
   } catch {}
   const hasRealPhoto = images[0]?.url?.startsWith('http') ?? false
@@ -80,7 +82,7 @@ export default async function ShampooingNoirRoute() {
   try {
     const { data, error } = await supabaseAdmin
       .from('product_overrides')
-      .select('name,price,description,stock,benefit,images,social_proof_text,social_proof_visible,before_image_url,after_image_url')
+      .select('name,price,description,stock,benefit,images,social_proof_text,social_proof_visible,before_image_url,after_image_url,actif')
       .eq('id', '2')
       .maybeSingle()
     console.log('[shampooing-page] override:', JSON.stringify(data), '| error:', error?.message ?? null)
@@ -92,6 +94,7 @@ export default async function ShampooingNoirRoute() {
       ...(data.stock != null ? { stock: Number(data.stock) } : {}),
       ...(data.benefit != null ? { benefit: String(data.benefit) } : {}),
       ...(Array.isArray(data.images) && data.images.length > 0 ? { images: data.images } : {}),
+      actif: data.actif !== false,
     }
     socialProofOverride = data
     if (typeof data?.before_image_url === 'string' && data.before_image_url) {
@@ -103,6 +106,8 @@ export default async function ShampooingNoirRoute() {
   } catch (e) {
     console.error('[shampooing-page] catch:', e instanceof Error ? e.message : String(e))
   }
+
+  if (product.actif === false) notFound()
 
   const socialProof = resolveSocialProof('2', socialProofOverride)
   const productReviews = await getProductReviews('2')

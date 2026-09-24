@@ -169,6 +169,11 @@ function TabProduits() {
   const [afterImageUrl, setAfterImageUrl] = useState<string | null>(null)
   const [uploadingBeforeAfter, setUploadingBeforeAfter] = useState<'before' | 'after' | null>(null)
   const [beforeAfterErr, setBeforeAfterErr] = useState('')
+  const [actif, setActif] = useState(true)
+  const [isBestseller, setIsBestseller] = useState(false)
+  const [bestsellerOrdre, setBestsellerOrdre] = useState('')
+  const [bestsellerBadge, setBestsellerBadge] = useState('')
+  const [bestsellerCat, setBestsellerCat] = useState('')
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [saveErr, setSaveErr] = useState('')
@@ -198,6 +203,11 @@ function TabProduits() {
     setImages(Array.isArray(ov.images) ? (ov.images as GalleryImage[]) : [])
     setBeforeImageUrl(typeof ov.before_image_url === 'string' ? ov.before_image_url : null)
     setAfterImageUrl(typeof ov.after_image_url === 'string' ? ov.after_image_url : null)
+    setActif(ov.actif !== false)
+    setIsBestseller(!!ov.is_bestseller)
+    setBestsellerOrdre(ov.bestseller_ordre != null ? String(ov.bestseller_ordre) : '')
+    setBestsellerBadge(typeof ov.bestseller_badge === 'string' ? ov.bestseller_badge : '')
+    setBestsellerCat(typeof ov.bestseller_cat === 'string' ? ov.bestseller_cat : '')
     setBeforeAfterErr('')
     setImgErr('')
     setEditing(id)
@@ -308,7 +318,14 @@ function TabProduits() {
     setSaving(true)
     setSaveErr('')
     try {
-      const res = await fetch('/api/admin/products', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: editing, ...form, images, before_image_url: beforeImageUrl, after_image_url: afterImageUrl }) })
+      const res = await fetch('/api/admin/products', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
+        id: editing, ...form, images, before_image_url: beforeImageUrl, after_image_url: afterImageUrl,
+        actif,
+        is_bestseller: isBestseller,
+        bestseller_ordre: bestsellerOrdre === '' ? null : Number(bestsellerOrdre),
+        bestseller_badge: bestsellerBadge,
+        bestseller_cat: bestsellerCat,
+      }) })
       if (res.ok) {
         setSaved(true)
         const rows: Array<Record<string, unknown>> = await fetch('/api/admin/products').then(r => r.json())
@@ -385,9 +402,14 @@ function TabProduits() {
                       <td style={{ padding: '14px 16px', textAlign: 'right', fontWeight: 600, color: S.text }}>{eur(price)}</td>
                       <td style={{ padding: '14px 16px', textAlign: 'right', color: stock <= 10 ? '#b91c1c' : S.text, fontWeight: stock <= 10 ? 600 : 400 }}>{stock}</td>
                       <td style={{ padding: '14px 16px', textAlign: 'center' }}>
-                        <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 20, background: p.is_dropshipping ? '#eff6ff' : '#f0fdf4', color: p.is_dropshipping ? '#1d4ed8' : '#15803d' }}>
-                          {p.is_dropshipping ? 'Dropshipping' : 'En stock'}
-                        </span>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'center' }}>
+                          <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 20, background: p.is_dropshipping ? '#eff6ff' : '#f0fdf4', color: p.is_dropshipping ? '#1d4ed8' : '#15803d' }}>
+                            {p.is_dropshipping ? 'Dropshipping' : 'En stock'}
+                          </span>
+                          <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 20, background: o?.actif === false ? '#f4f4f5' : '#f0fdf4', color: o?.actif === false ? '#71717a' : '#15803d' }}>
+                            {o?.actif === false ? 'Inactif' : 'Actif'}
+                          </span>
+                        </div>
                       </td>
                     </tr>
                   )
@@ -541,6 +563,39 @@ function TabProduits() {
                 <div style={{ fontSize: 11, color: S.muted, marginBottom: 6 }}>&nbsp;</div>
                 <input type="number" value={form.stock ?? ''} onChange={e => setForm(f => ({ ...f, stock: e.target.value }))} style={S.input} />
               </div>
+            </div>
+
+            {/* Actif */}
+            <div style={{ marginBottom: 24 }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 500, color: S.text, cursor: 'pointer' }}>
+                <input type="checkbox" checked={actif} onChange={e => setActif(e.target.checked)} />
+                Fiche active
+              </label>
+              <div style={{ fontSize: 11, color: S.muted, marginTop: 4 }}>Décochez pour retirer la fiche du site (404 propre) sans la supprimer — réactivable à tout moment. Sans effet sur les commandes déjà passées.</div>
+            </div>
+
+            {/* Bestsellers */}
+            <div style={{ marginBottom: 24 }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 500, color: S.text, cursor: 'pointer', marginBottom: 8 }}>
+                <input type="checkbox" checked={isBestseller} onChange={e => setIsBestseller(e.target.checked)} />
+                Afficher dans «&nbsp;Nos Bestsellers&nbsp;» (accueil)
+              </label>
+              {isBestseller && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10, paddingLeft: 22 }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: 12, color: S.muted, marginBottom: 4 }}>Ordre (1, 2, 3…)</label>
+                    <input type="number" value={bestsellerOrdre} onChange={e => setBestsellerOrdre(e.target.value)} style={{ ...S.input, maxWidth: 100 }} />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: 12, color: S.muted, marginBottom: 4 }}>Badge (vide = «&nbsp;Bestseller&nbsp;» par défaut)</label>
+                    <input value={bestsellerBadge} onChange={e => setBestsellerBadge(e.target.value)} placeholder="Bestseller" style={S.input} />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: 12, color: S.muted, marginBottom: 4 }}>Catégorie affichée (vide = catégorie du produit)</label>
+                    <input value={bestsellerCat} onChange={e => setBestsellerCat(e.target.value)} placeholder={CAT_LABELS[selectedProduct.category] ?? selectedProduct.category} style={S.input} />
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Variants */}

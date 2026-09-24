@@ -44,6 +44,7 @@ type OverrideRow = {
   stock: number | null
   benefit: string | null
   images: { url: string; alt: string }[] | null
+  actif: boolean | null
 }
 
 /** Garde-fou de volume : une ligne de panier ne depasse pas ce nombre d'unites. */
@@ -68,7 +69,7 @@ async function lireOverrides(): Promise<Map<string, OverrideRow>> {
   try {
     const { data, error } = await supabaseAdmin
       .from('product_overrides')
-      .select('id,name,price,description,stock,benefit,images')
+      .select('id,name,price,description,stock,benefit,images,actif')
 
     if (error) {
       console.error('[pricing] lecture product_overrides en erreur:', error.message)
@@ -117,6 +118,14 @@ function resoudreLigne(
 
   // 3. Override eventuel, applique comme sur les pages produit.
   const ov = overrides.get(base.id)
+
+  // Fiche desactivee depuis l'admin : refusee au meme titre qu'un produit
+  // inconnu, y compris pour un lien direct deja partage ou un panier rempli
+  // avant la desactivation.
+  if (ov?.actif === false) {
+    throw new CartValidationError(ligne + ' : produit indisponible.')
+  }
+
   const prixProduit = ov && ov.price != null ? Number(ov.price) : base.price
 
   // 4. Variante : elle doit exister dans le catalogue du produit resolu.

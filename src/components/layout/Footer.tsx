@@ -14,7 +14,7 @@ export function Footer() {
         <div className="ft-col">
           <h4>Produits</h4>
           <ul>
-            <li><Link href="/products/cire-cheveux-premium">Cire Cheveux</Link></li>
+            <li><Link href="/products/poudre-texturante">Poudre Texturante</Link></li>
             <li><Link href="/products/shampooing-noir-colorant">Shampooing Noir</Link></li>
             <li><Link href="/products/creme-curl-control">Crème Curl</Link></li>
             <li><Link href="/products/peigne-texture-expert">Peigne Expert</Link></li>

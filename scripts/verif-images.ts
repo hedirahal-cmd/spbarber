@@ -176,7 +176,11 @@ async function main() {
   console.log('\n--- D. Accueil : carte vedette (Cire Cheveux) + grille ---')
   html = await page('/')
   verifie('la carte vedette Cire Cheveux affiche la vraie photo', html.includes(`src="${URL_PHOTO_1}"`))
-  verifie('les autres cartes vedettes gardent leur icone (aucune regression)', html.includes('best2-icon'))
+  // Bestsellers (best2-grid) est desormais choisi en admin (is_bestseller),
+  // vide par defaut sans configuration -- absent de ce banc. La grille
+  // #produits, elle, reste toujours peuplee : c est elle qui porte la
+  // garantie "pas de regression sur le repli icone".
+  verifie('les autres cartes gardent leur icone (aucune regression)', html.includes('pc-ph'))
 
   console.log('\n--- E. Shampooing Noir Colorant (page dediee, id 2, avec override) ---')
   overrides = [
