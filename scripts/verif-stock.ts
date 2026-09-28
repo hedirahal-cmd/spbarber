@@ -71,8 +71,12 @@ const faux = http.createServer((req, res) => {
     }
 
     if (req.method === 'GET' && chemin.includes('/product_overrides')) {
+      // actif:true explicite : la Tondeuse Fade Pro (id 6) est actif:false
+      // dans le vrai catalogue statique depuis son retrait de la vente -- ce
+      // banc teste le comportement dropshipping (stock ignore), pas le statut
+      // actif, donc l'override doit le neutraliser pour les cas qui l'utilisent.
       const lignes = Object.entries(stock).map(([id, s]) => ({
-        id, name: null, price: null, description: null, stock: s, benefit: null,
+        id, name: null, price: null, description: null, stock: s, benefit: null, actif: true,
       }))
       res.writeHead(200, { 'Content-Type': 'application/json' })
       res.end(JSON.stringify(lignes))

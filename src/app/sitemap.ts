@@ -86,9 +86,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   ]
 
-  // Exclure les produits dropshipping (ils redirigent hors du site)
+  // Exclure les fiches desactivees -- inclut desormais les tondeuses en
+  // dropshipping manuel (plus de redirection hors site une fois actives),
+  // et corrige au passage un angle mort : ce filtre ne verifiait jamais
+  // `actif` du tout, un produit desactive restait indexe.
   const productRoutes: MetadataRoute.Sitemap = PRODUCTS
-    .filter((p) => !p.is_dropshipping)
+    .filter((p) => p.actif !== false)
     .map((p) => ({
       url: `${BASE}/products/${p.slug}`,
       lastModified: new Date(),

@@ -7,12 +7,12 @@ import { Product, ProductVariant } from '@/types'
 import { PaymentLogos } from '@/components/PaymentLogos'
 import { AddToCartButton } from '@/components/AddToCartButton'
 import { PRODUCTS } from '@/lib/products'
-import { Lock, Truck, RotateCcw, CheckCircle2, AlertTriangle, ShoppingCart, Dumbbell, Sparkles, Leaf, FlaskConical, Scissors, Droplets, User, Zap, Clock, Waves, AlignJustify, Package, Wind, Cog } from 'lucide-react'
+import { Lock, Truck, RotateCcw, CheckCircle2, AlertTriangle, ShoppingCart, Dumbbell, Sparkles, Leaf, FlaskConical, Scissors, Droplets, User, Zap, Clock, Waves, AlignJustify, Package, Wind, Cog, Package2 } from 'lucide-react'
 import { BeforeAfterSlider } from './BeforeAfterSlider'
 import type { ReviewDisplay } from '@/lib/reviews'
 import { ReviewsList } from '@/components/ReviewsList'
 import { ReviewForm } from '@/components/ReviewForm'
-import type { TrustItem } from '@/lib/site-content'
+import type { TrustItem, SiteContentBlock } from '@/lib/site-content'
 
 const TRUST_ICONS: Record<string, ReactNode> = {
   trust_securise: <Lock size={20} strokeWidth={1.5} />,
@@ -57,7 +57,9 @@ const CATEGORY_LABELS: Record<string, string> = {
 
 const FREE_SHIP = 4900
 
-export function ProductDetail({ product, reviews: productReviews, trustItems, socialProof }: { product: Product; reviews: ReviewDisplay[]; trustItems: TrustItem[]; socialProof: string | null }) {
+type TondeuseContent = { pourquoiMarque: SiteContentBlock; delaiLivraison: SiteContentBlock; livraisonSeparee: SiteContentBlock } | null
+
+export function ProductDetail({ product, reviews: productReviews, trustItems, socialProof, tondeuseContent = null }: { product: Product; reviews: ReviewDisplay[]; trustItems: TrustItem[]; socialProof: string | null; tondeuseContent?: TondeuseContent }) {
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | undefined>(
     product.variants?.[0]
   )
@@ -234,20 +236,42 @@ export function ProductDetail({ product, reviews: productReviews, trustItems, so
             </div>
           )}
 
-          {product.stock > 0 ? (
-            <div className="stock-ok" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <CheckCircle2 size={13} strokeWidth={2} />En stock — expédié sous 48h
-              {product.stock <= 10 && <span className="stock-urgent">Seulement {product.stock} restants</span>}
-            </div>
+          {/* Tondeuse (dropshipping manuel) : delai reel plutot que la
+              promesse 48h/lendemain, qui serait fausse pour ce produit. */}
+          {tondeuseContent ? (
+            <>
+              <div className="stock-ok" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <CheckCircle2 size={13} strokeWidth={2} />Disponible
+              </div>
+              {tondeuseContent.delaiLivraison.visible && tondeuseContent.delaiLivraison.text && (
+                <div className="fi-urgence">
+                  <Clock size={12} strokeWidth={2} />
+                  {tondeuseContent.delaiLivraison.text}
+                </div>
+              )}
+              {tondeuseContent.livraisonSeparee.visible && tondeuseContent.livraisonSeparee.text && (
+                <div className="fi-urgence">
+                  <Package2 size={12} strokeWidth={2} />
+                  {tondeuseContent.livraisonSeparee.text}
+                </div>
+              )}
+            </>
           ) : (
-            <div className="stock-warn" style={{ display: 'flex', alignItems: 'center', gap: 6 }}><AlertTriangle size={13} strokeWidth={2} />Stock limité</div>
+            <>
+              {product.stock > 0 ? (
+                <div className="stock-ok" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <CheckCircle2 size={13} strokeWidth={2} />En stock — expédié sous 48h
+                  {product.stock <= 10 && <span className="stock-urgent">Seulement {product.stock} restants</span>}
+                </div>
+              ) : (
+                <div className="stock-warn" style={{ display: 'flex', alignItems: 'center', gap: 6 }}><AlertTriangle size={13} strokeWidth={2} />Stock limité</div>
+              )}
+              <div className="fi-urgence">
+                <Clock size={12} strokeWidth={2} />
+                Commandez avant 16h — livraison le <strong>{tomorrow}</strong>
+              </div>
+            </>
           )}
-
-          {/* Urgence livraison */}
-          <div className="fi-urgence">
-            <Clock size={12} strokeWidth={2} />
-            Commandez avant 16h — livraison le <strong>{tomorrow}</strong>
-          </div>
 
           <button
             ref={atcRef}
@@ -308,6 +332,12 @@ export function ProductDetail({ product, reviews: productReviews, trustItems, so
         <div className="fi-desc-block">
           <div className="fi-desc-ttl">Description</div>
           <p>{product.description}</p>
+          {tondeuseContent?.pourquoiMarque.visible && tondeuseContent.pourquoiMarque.text && (
+            <>
+              <div className="fi-desc-ttl" style={{ marginTop: 20 }}>Pourquoi cette marque</div>
+              <p>{tondeuseContent.pourquoiMarque.text}</p>
+            </>
+          )}
         </div>
       </div>
 

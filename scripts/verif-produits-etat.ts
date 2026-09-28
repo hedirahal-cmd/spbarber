@@ -225,6 +225,18 @@ async function main() {
   res = await putAdmin({ id: '5', actif: false }, false)
   verifie('PUT sans cookie => 401', res.statut === 401)
 
+  console.log('\n--- I. Produit desactive UNIQUEMENT dans le catalogue statique, aucune ligne override (id 6, Tondeuse Fade Pro, retiree de la vente) ---')
+  overrides = {}
+  p = await page('/products/tondeuse-fade-pro')
+  verifie('statut 404 (repli sur actif du catalogue statique, sans override)', p.statut === 404, 'obtenu ' + p.statut)
+  const rcStatique = await checkout([{
+    product: { id: '6', name: 'Tondeuse', slug: 'tondeuse-fade-pro', description: 'x', price: 7990, images: [], category: 'tondeuse', stock: 999, is_dropshipping: true, created_at: '2026-01-01T00:00:00.000Z' },
+    quantity: 1,
+  }])
+  verifie('checkout refuse => 400, meme sans la moindre ligne override', rcStatique.statut === 400, 'obtenu ' + rcStatique.statut + ' ' + JSON.stringify(rcStatique.corps))
+  const sitemapXml = await page('/sitemap.xml')
+  verifie('absente du sitemap (repli actif du catalogue statique)', !sitemapXml.corps.includes('tondeuse-fade-pro'))
+
   console.log('\n=======================================')
   console.log('  ' + ok + ' OK, ' + ko + ' ECHEC')
   console.log('=======================================')

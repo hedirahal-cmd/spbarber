@@ -14,6 +14,9 @@ export interface Product {
   stock: number
   is_dropshipping: boolean
   dsers_url?: string
+  /** dsers_url reste une note interne (lien fournisseur pour Hedi), n'entraine
+   * plus de redirection client -- dropshipping gere manuellement pour ce produit. */
+  skip_dsers_redirect?: boolean
   variants?: ProductVariant[]
   seo_title?: string
   seo_description?: string
@@ -47,6 +50,7 @@ export interface Order {
   stripe_payment_intent_id: string
   shipping_address: ShippingAddress
   created_at: string
+  fournisseur_commande?: boolean
 }
 
 export interface ShippingAddress {

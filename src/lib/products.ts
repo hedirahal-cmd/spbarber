@@ -107,9 +107,12 @@ export const PRODUCTS: Product[] = [
     category: 'tondeuse',
     stock: 999,
     is_dropshipping: true,
-    // TODO F-006 : ceci pointe vers la page d'accueil DSers, pas vers la vraie
-    // fiche produit -- Hedi doit fournir le vrai lien avant que ce produit soit
-    // reellement mis en avant/achetable. Ne pas inventer d'URL de remplacement.
+    // Retiree de la vente (2026-09-28, decision Hedi) -- pas remise en ligne.
+    // actif:false plutot que suppression pour ne pas casser l'historique des
+    // commandes deja passees (OrderItemsList resout le nom depuis PRODUCTS).
+    // dsers_url reste cassee (F-006), sans consequence puisque le produit est
+    // de toute facon masque avant d'atteindre la redirection.
+    actif: false,
     dsers_url: 'https://www.dsers.com',
     benefit: 'Dégradé pro — lames japonaises',
     trust: ['Lames acier japonais inoxydables', 'Dégradé précis comme en salon', 'Livraison sous 48h', 'Satisfait ou remboursé'],
@@ -144,11 +147,11 @@ export const PRODUCTS: Product[] = [
     created_at: new Date().toISOString(),
   },
   {
-    // NON MISE EN AVANT : actif:false tant que le vrai lien produit DSers
-    // n'est pas branche (TODO ci-dessous). Sans ca, ce produit resterait
-    // techniquement achetable (dropshipping = hors systeme de stock) malgre
-    // l'absence de fournisseur reel derriere. Pas de champ `related` non plus,
-    // pour ne pas le faire apparaitre dans "Completez votre routine" ailleurs.
+    // NON MISE EN AVANT : actif:false tant que ce chantier (achat direct en
+    // dropshipping manuel) n'est pas termine et valide par Hedi -- il passera
+    // lui-meme actif:true une fois pret, pas avant. Pas de champ `related`,
+    // pour ne pas le faire apparaitre dans "Completez votre routine" ailleurs
+    // avant d'etre pret.
     id: '8',
     name: 'Tondeuse BRDCLIP FA1T',
     slug: 'tondeuse-brdclip-fa1t',
@@ -159,10 +162,12 @@ export const PRODUCTS: Product[] = [
     category: 'tondeuse',
     stock: 999,
     is_dropshipping: true,
-    // TODO F-006-bis : lien produit DSers pas encore importe par Hedi (source
-    // AliExpress pour reference interne uniquement, jamais a exposer publiquement :
-    // https://fr.aliexpress.com/item/1005006825951304.html). Ne pas inventer
-    // d'URL de remplacement -- redemander le vrai lien avant d'activer ce produit.
+    // Dropshipping manuel : Hedi passe lui-meme la commande chez le
+    // fournisseur apres reception du paiement -- pas de redirection client.
+    skip_dsers_redirect: true,
+    // Lien DSers = note interne pour Hedi, PAS pour le client (voir ci-dessus).
+    // Pas encore importe dans son compte DSers ; reference AliExpress pour lui
+    // seul, jamais a exposer publiquement : https://fr.aliexpress.com/item/1005006825951304.html
     actif: false,
     benefit: 'Lames titane, 90 min d\'autonomie',
     trust: ['Lames titane précises', 'Usage à sec ou sous la douche', 'Livraison sous 48h', 'Satisfait ou remboursé'],
@@ -173,7 +178,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     // NON MISE EN AVANT : meme situation que la BRDCLIP FA1T ci-dessus (voir
-    // commentaire au-dessus) -- actif:false + TODO dsers_url + pas de `related`.
+    // commentaire au-dessus) -- actif:false + pas de `related`.
     id: '9',
     name: 'Tondeuse Kemei KM-999',
     slug: 'tondeuse-kemei-km-999',
@@ -184,10 +189,11 @@ export const PRODUCTS: Product[] = [
     category: 'tondeuse',
     stock: 999,
     is_dropshipping: true,
-    // TODO F-006-bis : lien produit DSers pas encore importe par Hedi (source
-    // AliExpress pour reference interne uniquement, jamais a exposer publiquement :
-    // https://fr.aliexpress.com/item/1005008348243648.html). Ne pas inventer
-    // d'URL de remplacement -- redemander le vrai lien avant d'activer ce produit.
+    // Dropshipping manuel : meme principe que la BRDCLIP FA1T ci-dessus.
+    skip_dsers_redirect: true,
+    // Lien DSers = note interne pour Hedi, PAS pour le client. Pas encore
+    // importe dans son compte DSers ; reference AliExpress pour lui seul,
+    // jamais a exposer publiquement : https://fr.aliexpress.com/item/1005008348243648.html
     actif: false,
     benefit: 'Lame DLC zéro écart, écran LED',
     trust: ['Coupe nette sans tiraillement', 'Écran LED de charge', 'Livraison sous 48h', 'Satisfait ou remboursé'],

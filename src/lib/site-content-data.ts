@@ -21,6 +21,10 @@ export const SITE_CONTENT_DEFAULTS: Record<string, SiteContentBlock> = {
   trust_livraison: { text: 'Livraison 48h', visible: true },
   trust_retour: { text: 'Retour 30j', visible: true },
   trust_france: { text: 'France', visible: true },
+  // Textes provisoires -- Hedi les remplacera lui-meme depuis l'onglet Contenu.
+  tondeuse_pourquoi_marque: { text: 'Nous sélectionnons des tondeuses fiables et éprouvées, testées pour leur qualité de coupe et leur autonomie, pour une alternative professionnelle sans les tarifs du matériel haut de gamme.', visible: true },
+  tondeuse_delai_livraison: { text: 'Livraison sous 2 semaines', visible: true },
+  tondeuse_livraison_separee: { text: 'Commandée avec d\'autres produits du site ? Cette tondeuse est livrée séparément.', visible: true },
 }
 
 export const SITE_CONTENT_LABELS: Record<string, string> = {
@@ -30,11 +34,15 @@ export const SITE_CONTENT_LABELS: Record<string, string> = {
   trust_livraison: 'Repère fiche produit — Livraison 48h',
   trust_retour: 'Repère fiche produit — Retour 30 jours',
   trust_france: 'Repère fiche produit — France',
+  tondeuse_pourquoi_marque: 'Fiche tondeuse — Pourquoi cette marque',
+  tondeuse_delai_livraison: 'Fiche tondeuse — Délai de livraison',
+  tondeuse_livraison_separee: 'Fiche tondeuse — Livraison séparée si commande mixte',
 }
 
 /** Ordre d'affichage stable dans l'admin, et ordre des 4 reperes sur la fiche produit. */
 export const SITE_CONTENT_KEYS = [
   'announcement_bar', 'home_cta_banner', 'trust_securise', 'trust_livraison', 'trust_retour', 'trust_france',
+  'tondeuse_pourquoi_marque', 'tondeuse_delai_livraison', 'tondeuse_livraison_separee',
 ] as const
 
 export const TRUST_KEYS = ['trust_securise', 'trust_livraison', 'trust_retour', 'trust_france'] as const

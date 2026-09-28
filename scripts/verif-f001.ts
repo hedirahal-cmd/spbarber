@@ -23,6 +23,12 @@ const OVERRIDES = [
   // provenance du montant soit sans ambiguite.
   { id: '1', name: null, price: 1990, description: null, stock: null, benefit: null },
   { id: '2', name: null, price: 2890, description: null, stock: null, benefit: null },
+  // La Tondeuse Fade Pro (id 6) est retiree de la vente (actif:false) dans le
+  // catalogue statique -- sans repli explicite ici, les cas 3 et 5 ci-dessous
+  // (qui testent la resolution slug/poids et la validation de variante, pas
+  // le statut actif) echoueraient sur "produit indisponible" au lieu de
+  // tester ce qu'ils sont censes tester.
+  { id: '6', name: null, price: null, description: null, stock: null, benefit: null, actif: true },
 ]
 
 let modeErreur = false

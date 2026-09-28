@@ -119,13 +119,20 @@ export default async function ProductPage({ params }: Props) {
 
   if (product.actif === false) notFound()
 
-  if (product.is_dropshipping && product.dsers_url) {
+  if (product.is_dropshipping && product.dsers_url && !product.skip_dsers_redirect) {
     redirect(product.dsers_url)
   }
 
   const productReviews  = await getProductReviews(product.id)
   const siteContent     = await getSiteContent()
   const trustItems      = getTrustItems(siteContent)
+  // Blocs texte specifiques aux tondeuses (editables depuis l'onglet Contenu,
+  // memes cles pour tous les produits de cette categorie -- pas par produit).
+  const tondeuseContent = product.category === 'tondeuse' ? {
+    pourquoiMarque: siteContent.tondeuse_pourquoi_marque,
+    delaiLivraison: siteContent.tondeuse_delai_livraison,
+    livraisonSeparee: siteContent.tondeuse_livraison_separee,
+  } : null
   const socialProof     = resolveSocialProof(product.id, socialProofOverride)
   const productSchema   = schemaProduct(product)
   const breadcrumbSchema = schemaBreadcrumb([
@@ -144,7 +151,7 @@ export default async function ProductPage({ params }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbSchema) }}
       />
-      <ProductDetail product={product} reviews={productReviews} trustItems={trustItems} socialProof={socialProof} />
+      <ProductDetail product={product} reviews={productReviews} trustItems={trustItems} socialProof={socialProof} tondeuseContent={tondeuseContent} />
     </>
   )
 }

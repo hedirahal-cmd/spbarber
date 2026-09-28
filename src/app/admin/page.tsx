@@ -1152,6 +1152,18 @@ function OrderItemsList({ items }: { items: unknown }) {
   )
 }
 
+// Une commande contient-elle au moins un article en dropshipping (aujourd'hui :
+// une tondeuse) ? Meme resolution que OrderItemsList, depuis le catalogue
+// statique -- une ligne malformee ou un id introuvable ne fait pas planter,
+// juste ignoree (ni pour l'affichage, ni pour ce filtre).
+function commandeContientDropshipping(order: Record<string, unknown>): boolean {
+  const lignes = Array.isArray(order.items) ? (order.items as LigneCommande[]) : []
+  return lignes.some(l => {
+    const produitId = typeof l.id === 'string' ? l.id : null
+    return produitId ? PRODUCTS.find(p => p.id === produitId)?.is_dropshipping === true : false
+  })
+}
+
 function TabCommandes() {
   const [orders, setOrders] = useState<Array<Record<string, unknown>>>([])
   const [loading, setLoading] = useState(true)
@@ -1162,6 +1174,9 @@ function TabCommandes() {
   const [shipping, setShipping] = useState<string | null>(null)
   const [shipOk, setShipOk] = useState<string | null>(null)
   const [shipErr, setShipErr] = useState('')
+  const [filtre, setFiltre] = useState<'toutes' | 'tondeuses'>('toutes')
+  const [fournisseurUpdating, setFournisseurUpdating] = useState<string | null>(null)
+  const [fournisseurErr, setFournisseurErr] = useState('')
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -1217,20 +1232,54 @@ function TabCommandes() {
     }
   }
 
+  async function markFournisseurCommande(id: string, valeur: boolean) {
+    setFournisseurUpdating(id); setFournisseurErr('')
+    try {
+      const res = await fetch('/api/admin/orders', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, fournisseur_commande: valeur }) })
+      if (res.ok) {
+        if (selected && String(selected.id) === id) setSelected(s => s ? { ...s, fournisseur_commande: valeur } : s)
+        await load()
+      } else {
+        const d = await res.json().catch(() => ({}))
+        setFournisseurErr(d.error ?? `Erreur ${res.status}`)
+      }
+    } catch {
+      setFournisseurErr('Erreur réseau')
+    } finally {
+      setFournisseurUpdating(null)
+    }
+  }
+
+  const ordersFiltrees = filtre === 'tondeuses' ? orders.filter(commandeContientDropshipping) : orders
+
   return (
     <div style={{ display: 'flex', gap: 0, height: '100%' }}>
       <div style={{ flex: 1, overflowY: 'auto' }}>
         <div style={{ padding: '20px 24px 16px' }}>
           <h1 style={{ fontSize: 20, fontWeight: 600, color: S.text, margin: 0 }}>Commandes</h1>
-          <p style={{ fontSize: 13, color: S.muted, margin: '2px 0 0' }}>{orders.length} commande{orders.length !== 1 ? 's' : ''}</p>
+          <p style={{ fontSize: 13, color: S.muted, margin: '2px 0 0' }}>{ordersFiltrees.length} commande{ordersFiltrees.length !== 1 ? 's' : ''}</p>
+          <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+            {(['toutes', 'tondeuses'] as const).map(f => (
+              <button
+                key={f}
+                onClick={() => setFiltre(f)}
+                style={{
+                  ...S.btnSecondary, padding: '6px 14px', fontSize: 12,
+                  ...(filtre === f ? { background: S.text, color: '#fff', borderColor: S.text } : {}),
+                }}
+              >
+                {f === 'toutes' ? 'Toutes' : 'Tondeuses'}
+              </button>
+            ))}
+          </div>
         </div>
 
         {loading ? (
           <div style={{ padding: '40px 24px', textAlign: 'center', color: S.muted, fontSize: 14 }}>Chargement…</div>
-        ) : !orders.length ? (
+        ) : !ordersFiltrees.length ? (
           <div style={{ padding: '40px 24px', textAlign: 'center' }}>
             <div style={{ fontSize: 32, marginBottom: 12, color: '#d1d5db' }}>■</div>
-            <div style={{ fontSize: 14, color: S.muted }}>Aucune commande pour le moment.</div>
+            <div style={{ fontSize: 14, color: S.muted }}>{filtre === 'tondeuses' ? 'Aucune commande tondeuse pour le moment.' : 'Aucune commande pour le moment.'}</div>
           </div>
         ) : (
           <div style={{ padding: '0 24px 24px' }}>
@@ -1244,7 +1293,7 @@ function TabCommandes() {
                   </tr>
                 </thead>
                 <tbody>
-                  {orders.map(o => {
+                  {ordersFiltrees.map(o => {
                     const badge = statusBadge(String(o.status ?? ''))
                     const isActive = selected && String(selected.id) === String(o.id)
                     return (
@@ -1333,6 +1382,23 @@ function TabCommandes() {
                 <div style={{ fontSize: 12, color: S.muted }}>Commande déjà expédiée ou livrée.</div>
               )}
             </div>
+
+            {commandeContientDropshipping(selected) && (
+              <div style={{ ...S.card_, padding: 14, marginBottom: 16 }}>
+                <div style={{ fontSize: 12, fontWeight: 600, color: S.text, marginBottom: 8 }}>Fournisseur (dropshipping)</div>
+                <div style={{ fontSize: 11, color: S.muted, marginBottom: 10 }}>Distinct du suivi d&apos;expédition ci-dessus — coche une fois la commande passée toi-même chez le fournisseur.</div>
+                {fournisseurErr && <div style={{ fontSize: 12, color: '#b91c1c', marginBottom: 8 }}>Erreur : {fournisseurErr}</div>}
+                <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: S.text, cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    checked={!!selected.fournisseur_commande}
+                    disabled={fournisseurUpdating === String(selected.id)}
+                    onChange={e => markFournisseurCommande(String(selected.id), e.target.checked)}
+                  />
+                  Commande passée chez le fournisseur
+                </label>
+              </div>
+            )}
 
             {!!selected.shipping_address && (
               <>
