@@ -42,7 +42,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   let images = product.images
   try {
     const { data } = await supabaseAdmin.from('product_overrides').select('images,actif').eq('id', product.id).maybeSingle()
-    if (data?.actif === false) return {}
+    // L'override l'emporte s'il existe ; sinon le catalogue statique fait foi
+    // -- sans ce repli, un produit jamais encore publie (actif:false depuis
+    // sa creation, aucune ligne d'override) resterait indexable/partageable
+    // (titre, description, og:image) alors que la fiche elle-meme rend 404.
+    const actifEffectif = data?.actif ?? product.actif ?? true
+    if (!actifEffectif) return {}
     if (Array.isArray(data?.images) && data.images.length > 0) images = data.images
   } catch {}
   const hasRealPhoto = images[0]?.url?.startsWith('http') ?? false

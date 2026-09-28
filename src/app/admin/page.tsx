@@ -14,10 +14,10 @@ const LEGAL_SLUGS = [
 ]
 
 const CAT_LABELS: Record<string, string> = {
-  coiffant: 'Coiffant', soin: 'Soin', barbe: 'Barbe', accessoire: 'Accessoire',
+  coiffant: 'Coiffant', soin: 'Soin', barbe: 'Barbe', accessoire: 'Accessoire', tondeuse: 'Tondeuse',
 }
 const CAT_COLORS: Record<string, string> = {
-  coiffant: '#2563eb', soin: '#7c3aed', barbe: '#b8903a', accessoire: '#16a34a',
+  coiffant: '#2563eb', soin: '#7c3aed', barbe: '#b8903a', accessoire: '#16a34a', tondeuse: '#57534e',
 }
 
 function eur(c: number) { return (c / 100).toFixed(2).replace('.', ',') + ' €' }
@@ -146,7 +146,7 @@ function Sidebar({ active, setActive, logout }: { active: NavSection; setActive:
 
 // ─── Produit: image placeholder ─────────────────────────────────
 function ProductThumb({ category }: { category: string }) {
-  const icons: Record<string, string> = { coiffant: '◈', soin: '◉', barbe: '◆', accessoire: '◇' }
+  const icons: Record<string, string> = { coiffant: '◈', soin: '◉', barbe: '◆', accessoire: '◇', tondeuse: '⚙' }
   return (
     <div style={{ width: 44, height: 44, borderRadius: 6, background: '#f4f4f5', border: '1px solid #e4e4e7', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, color: CAT_COLORS[category] ?? '#71717a', flexShrink: 0 }}>
       {icons[category] ?? '◈'}

@@ -7,7 +7,7 @@ import { Product, ProductVariant } from '@/types'
 import { PaymentLogos } from '@/components/PaymentLogos'
 import { AddToCartButton } from '@/components/AddToCartButton'
 import { PRODUCTS } from '@/lib/products'
-import { Lock, Truck, RotateCcw, CheckCircle2, AlertTriangle, ShoppingCart, Dumbbell, Sparkles, Leaf, FlaskConical, Scissors, Droplets, User, Zap, Clock, Waves, AlignJustify, Package, Wind } from 'lucide-react'
+import { Lock, Truck, RotateCcw, CheckCircle2, AlertTriangle, ShoppingCart, Dumbbell, Sparkles, Leaf, FlaskConical, Scissors, Droplets, User, Zap, Clock, Waves, AlignJustify, Package, Wind, Cog } from 'lucide-react'
 import { BeforeAfterSlider } from './BeforeAfterSlider'
 import type { ReviewDisplay } from '@/lib/reviews'
 import { ReviewsList } from '@/components/ReviewsList'
@@ -32,6 +32,7 @@ function CategoryIcon({ category, size = 64 }: { category: string; size?: number
   if (category === 'soin') return <Droplets size={size} strokeWidth={1.2} />
   if (category === 'barbe') return <User size={size} strokeWidth={1.2} />
   if (category === 'accessoire') return <Zap size={size} strokeWidth={1.2} />
+  if (category === 'tondeuse') return <Cog size={size} strokeWidth={1.2} />
   return <Sparkles size={size} strokeWidth={1.2} />
 }
 
@@ -51,6 +52,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   soin: 'Soin',
   barbe: 'Barbe',
   accessoire: 'Accessoire',
+  tondeuse: 'Tondeuse',
 }
 
 const FREE_SHIP = 4900

@@ -7,7 +7,7 @@ import { PRODUCTS } from '@/lib/products'
 import { supabaseAdmin } from '@/lib/supabase'
 import { formatPrice } from '@/lib/utils'
 import { AddToCartButton } from '@/components/AddToCartButton'
-import { Scissors, Droplets, User, Zap, Sparkles } from 'lucide-react'
+import { Scissors, Droplets, User, Zap, Sparkles, Cog } from 'lucide-react'
 import { resolveSocialProof } from '@/lib/social-proof'
 
 export const metadata: Metadata = {
@@ -28,6 +28,7 @@ function CategoryIcon({ category, size = 50 }: { category: string; size?: number
   if (category === 'soin') return <Droplets size={size} strokeWidth={1.2} />
   if (category === 'barbe') return <User size={size} strokeWidth={1.2} />
   if (category === 'accessoire') return <Zap size={size} strokeWidth={1.2} />
+  if (category === 'tondeuse') return <Cog size={size} strokeWidth={1.2} />
   return <Sparkles size={size} strokeWidth={1.2} />
 }
 
@@ -36,6 +37,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   soin: 'Soin',
   barbe: 'Barbe',
   accessoire: 'Accessoire',
+  tondeuse: 'Tondeuse',
 }
 
 function getBadge(id: string) {

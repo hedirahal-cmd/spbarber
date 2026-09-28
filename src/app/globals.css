@@ -938,7 +938,10 @@ button { font-family: var(--fb); }
    qui doit rester clair) -- /products a lui aussi un id="produits" (ancre de
    navigation partagee, voir Header.tsx), donc un simple #produits matcherait
    les deux pages. La classe ci-dessous ne cible que la section de l'accueil. */
-.produits-dark { background: var(--b); }
+/* flow-root : contient la marge basse de .prod-grid, qui sinon "s'echappe"
+   du bas de cette section (margin collapsing) et laisse voir le fond blanc
+   de la page juste apres -- invisible avant que cette section soit noire. */
+.produits-dark { background: var(--b); display: flow-root; }
 .produits-dark .sec-ey { color: rgba(248,246,243,.3); }
 .produits-dark .sec-title { color: var(--w); }
 .produits-dark .see-all { color: var(--w); border-bottom-color: rgba(248,246,243,.3); }
@@ -952,7 +955,6 @@ button { font-family: var(--fb); }
 .produits-dark .pc-cat { color: var(--gold); }
 .produits-dark .pc-benefit { color: var(--w); }
 .produits-dark .pc-price { color: var(--goldl); }
-.produits-dark + .cta-strip { background: var(--b); }
 
 /* ═══ KIT BANNER ═══ */
 .kit-wrap { margin: 0 48px 44px; }

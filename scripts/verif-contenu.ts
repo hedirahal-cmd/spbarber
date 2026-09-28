@@ -162,7 +162,7 @@ async function main() {
   const accueil = await page('/')
   verifie('bandeau d annonce par defaut present', accueil.includes('Cadeau offert dès 70€'))
   verifie('bannière CTA par defaut presente', accueil.includes('Rejoignez 500+ clients satisfaits'))
-  verifie('ventes de la semaine produit 3 (defaut 12) sur l accueil', accueil.includes('12 personnes ont acheté cette semaine'))
+  verifie('ventes de la semaine retiree de la section Produits de l accueil (demande explicite)', !accueil.includes('12 personnes ont acheté cette semaine'))
 
   const listing = await page('/products')
   verifie('ventes de la semaine produit 1 (defaut 34) sur le catalogue', listing.includes('34 personnes ont acheté cette semaine'))

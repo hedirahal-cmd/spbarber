@@ -119,10 +119,14 @@ function resoudreLigne(
   // 3. Override eventuel, applique comme sur les pages produit.
   const ov = overrides.get(base.id)
 
-  // Fiche desactivee depuis l'admin : refusee au meme titre qu'un produit
-  // inconnu, y compris pour un lien direct deja partage ou un panier rempli
-  // avant la desactivation.
-  if (ov?.actif === false) {
+  // Fiche desactivee (depuis l'admin, OU directement dans le catalogue
+  // statique pour un produit jamais encore publie -- ex. dropshipping sans
+  // lien fournisseur reel) : refusee au meme titre qu'un produit inconnu, y
+  // compris pour un lien direct deja partage ou un panier rempli avant coup.
+  // L'override l'emporte s'il existe ; sinon le catalogue statique fait foi
+  // -- meme precedence que prix/stock juste en dessous.
+  const actifEffectif = ov?.actif ?? base.actif ?? true
+  if (!actifEffectif) {
     throw new CartValidationError(ligne + ' : produit indisponible.')
   }
 

@@ -159,7 +159,7 @@ const ligneCire = (qty: number) => ({
 
 // Tondeuse Fade Pro (id 6) : dropshipping, variante Elite -- hors du systeme.
 const ligneTondeuse = (qty: number) => ({
-  product: { id: '6', name: 'Tondeuse', slug: 'tondeuse-fade-pro', description: 'x', price: 7990, images: [], category: 'accessoire', stock: 999, is_dropshipping: true, created_at: '2026-01-01T00:00:00.000Z' },
+  product: { id: '6', name: 'Tondeuse', slug: 'tondeuse-fade-pro', description: 'x', price: 7990, images: [], category: 'tondeuse', stock: 999, is_dropshipping: true, created_at: '2026-01-01T00:00:00.000Z' },
   variant: { id: '6c', name: 'Elite', price: 9990 },
   quantity: qty,
 })

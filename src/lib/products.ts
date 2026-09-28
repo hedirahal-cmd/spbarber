@@ -104,9 +104,12 @@ export const PRODUCTS: Product[] = [
       'La Tondeuse Fade Pro SP Barber est l\'outil professionnel pour réaliser des dégradés fade parfaits à la maison. Ses lames en acier japonais inoxydable garantissent une coupe précise, nette et durable. Idéale pour les hommes qui souhaitent maîtriser la coupe dégradé, le skin fade ou le buzz cut sans passer par le salon de coiffure. Silencieuse, légère et rechargeable, elle convient à tous types de cheveux — droits, ondulés ou texturés. Le choix des barbiers professionnels pour un résultat fade haircut impeccable à la maison.',
     price: 7990,
     images: [{ url: '/images/products/tondeuse-fade.jpg', alt: 'Tondeuse Fade Pro SP Barber, lames acier japonais' }],
-    category: 'accessoire',
+    category: 'tondeuse',
     stock: 999,
     is_dropshipping: true,
+    // TODO F-006 : ceci pointe vers la page d'accueil DSers, pas vers la vraie
+    // fiche produit -- Hedi doit fournir le vrai lien avant que ce produit soit
+    // reellement mis en avant/achetable. Ne pas inventer d'URL de remplacement.
     dsers_url: 'https://www.dsers.com',
     benefit: 'Dégradé pro — lames japonaises',
     trust: ['Lames acier japonais inoxydables', 'Dégradé précis comme en salon', 'Livraison sous 48h', 'Satisfait ou remboursé'],
@@ -138,6 +141,59 @@ export const PRODUCTS: Product[] = [
     seo_title: 'Poudre Texturante Cheveux Homme — SP Barber | Volume & Grip Mat',
     seo_description:
       'Poudre texturante homme pour volume et grip mat instantanés. Formule légère, idéale cheveux fins. Résultat salon à la maison. Livraison offerte dès 49€.',
+    created_at: new Date().toISOString(),
+  },
+  {
+    // NON MISE EN AVANT : actif:false tant que le vrai lien produit DSers
+    // n'est pas branche (TODO ci-dessous). Sans ca, ce produit resterait
+    // techniquement achetable (dropshipping = hors systeme de stock) malgre
+    // l'absence de fournisseur reel derriere. Pas de champ `related` non plus,
+    // pour ne pas le faire apparaitre dans "Completez votre routine" ailleurs.
+    id: '8',
+    name: 'Tondeuse BRDCLIP FA1T',
+    slug: 'tondeuse-brdclip-fa1t',
+    description:
+      'La Tondeuse BRDCLIP FA1T embarque des lames en titane pour une coupe précise et durable, sans faux mouvement. Sa batterie Li-ion offre environ 90 minutes d\'autonomie pour une recharge complète d\'environ 2 heures sur son support de charge inclus. Conçue pour un usage à sec ou sous la douche, ses lames se rincent facilement à l\'eau. Livrée avec plusieurs embouts interchangeables (de 0,5 à 5 mm), elle s\'adapte à toutes les longueurs de coupe, du dégradé le plus court à la finition la plus fournie.',
+    price: 2739,
+    images: [{ url: '/images/products/tondeuse-brdclip-fa1t.jpg', alt: 'Tondeuse BRDCLIP FA1T SP Barber, lames titane' }],
+    category: 'tondeuse',
+    stock: 999,
+    is_dropshipping: true,
+    // TODO F-006-bis : lien produit DSers pas encore importe par Hedi (source
+    // AliExpress pour reference interne uniquement, jamais a exposer publiquement :
+    // https://fr.aliexpress.com/item/1005006825951304.html). Ne pas inventer
+    // d'URL de remplacement -- redemander le vrai lien avant d'activer ce produit.
+    actif: false,
+    benefit: 'Lames titane, 90 min d\'autonomie',
+    trust: ['Lames titane précises', 'Usage à sec ou sous la douche', 'Livraison sous 48h', 'Satisfait ou remboursé'],
+    seo_title: 'Tondeuse BRDCLIP FA1T — SP Barber | Lames Titane, Sans Fil',
+    seo_description:
+      'Tondeuse cheveux sans fil BRDCLIP FA1T. Lames titane, autonomie 90 min, usage sec ou humide. Embouts interchangeables 0,5 à 5 mm.',
+    created_at: new Date().toISOString(),
+  },
+  {
+    // NON MISE EN AVANT : meme situation que la BRDCLIP FA1T ci-dessus (voir
+    // commentaire au-dessus) -- actif:false + TODO dsers_url + pas de `related`.
+    id: '9',
+    name: 'Tondeuse Kemei KM-999',
+    slug: 'tondeuse-kemei-km-999',
+    description:
+      'La Tondeuse Kemei KM-999 est équipée d\'une lame DLC zéro écart pour une coupe nette, sans tiraillement ni accroche dans les cheveux. Son écran LED affiche en temps réel le niveau de charge de la batterie 1500 mAh, qui offre environ 3 heures d\'utilisation continue pour une recharge USB d\'environ 3 heures. Compacte et sans fil, elle se glisse facilement dans un sac de voyage pour un entretien impeccable en toutes circonstances.',
+    price: 2659,
+    images: [{ url: '/images/products/tondeuse-kemei-km-999.jpg', alt: 'Tondeuse Kemei KM-999 SP Barber, lame DLC' }],
+    category: 'tondeuse',
+    stock: 999,
+    is_dropshipping: true,
+    // TODO F-006-bis : lien produit DSers pas encore importe par Hedi (source
+    // AliExpress pour reference interne uniquement, jamais a exposer publiquement :
+    // https://fr.aliexpress.com/item/1005008348243648.html). Ne pas inventer
+    // d'URL de remplacement -- redemander le vrai lien avant d'activer ce produit.
+    actif: false,
+    benefit: 'Lame DLC zéro écart, écran LED',
+    trust: ['Coupe nette sans tiraillement', 'Écran LED de charge', 'Livraison sous 48h', 'Satisfait ou remboursé'],
+    seo_title: 'Tondeuse Kemei KM-999 — SP Barber | Lame DLC, Écran LED',
+    seo_description:
+      'Tondeuse cheveux sans fil Kemei KM-999. Lame DLC zéro écart, écran LED de charge, batterie 1500 mAh. Recharge USB rapide.',
     created_at: new Date().toISOString(),
   },
 ]

@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { PRODUCTS } from '@/lib/products'
 import { AddToCartButton } from '@/components/AddToCartButton'
 import { formatPrice } from '@/lib/utils'
-import { Scissors, Droplets, User, Zap, Sparkles, Truck, Gift, RotateCcw, Wind } from 'lucide-react'
+import { Scissors, Droplets, User, Zap, Sparkles, Truck, Gift, RotateCcw, Wind, Cog } from 'lucide-react'
 import { HomeSalonSection } from '@/components/home/HomeSalonSection'
 import { DEFAULT_SALONS, type Salon } from '@/lib/salons'
 import { supabase, supabaseAdmin } from '@/lib/supabase'
@@ -21,7 +21,6 @@ import { schemaOrganizationLocal, schemaBreadcrumb, jsonLd } from '@/lib/schema'
 import { toReviewDisplay, type ReviewDisplay } from '@/lib/reviews'
 import { ReviewsList } from '@/components/ReviewsList'
 import { getSiteContent } from '@/lib/site-content'
-import { resolveSocialProof } from '@/lib/social-proof'
 
 type ProdOverride = {
   id: string; name?: string | null; price?: number | null; description?: string | null; stock?: number | null
@@ -95,6 +94,7 @@ function CategoryIcon({ category, size = 64 }: { category: string; size?: number
   if (category === 'soin') return <Droplets size={size} strokeWidth={1.2} />
   if (category === 'barbe') return <User size={size} strokeWidth={1.2} />
   if (category === 'accessoire') return <Zap size={size} strokeWidth={1.2} />
+  if (category === 'tondeuse') return <Cog size={size} strokeWidth={1.2} />
   return <Sparkles size={size} strokeWidth={1.2} />
 }
 
@@ -103,6 +103,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   soin: 'Soin',
   barbe: 'Barbe',
   accessoire: 'Accessoire',
+  tondeuse: 'Tondeuse',
 }
 
 // Avis de secours affiches tant qu'il n'y a pas assez de vrais avis approuves
@@ -256,24 +257,6 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ── CTA après bestsellers ── */}
-      <div className="cta-strip cta-strip-dark" style={{ padding: '16px 24px' }}>
-        <Link href="/products" className="cta-strip-btn">
-          Voir toute la gamme →
-        </Link>
-      </div>
-
-      {/* ── REA BAR ── */}
-      <div className="rea-compact">
-        <div className="rea-c-item"><Truck size={11} strokeWidth={1.8} /> Livraison offerte dès 49€</div>
-        <div className="rea-c-sep">|</div>
-        <div className="rea-c-item"><Gift size={11} strokeWidth={1.8} /> Cadeau dès 70€</div>
-        <div className="rea-c-sep">|</div>
-        <div className="rea-c-item"><RotateCcw size={11} strokeWidth={1.8} /> Retour 30j</div>
-        <div className="rea-c-sep">|</div>
-        <div className="rea-c-item"><Zap size={11} strokeWidth={1.8} /> Expédié 48h</div>
-      </div>
-
       {/* ── PRODUITS — Bénéfice avant nom ── */}
       <section id="produits" className="produits-dark">
         <div className="sec-head">
@@ -314,21 +297,26 @@ export default async function HomePage() {
                   <div className="pc-price">{formatPrice(product.price)}</div>
                   <AddToCartButton product={product} className="pc-atc" label="Ajouter" />
                 </div>
-                {(() => {
-                  const socialProof = resolveSocialProof(product.id, overrides[product.id])
-                  return socialProof && <div className="pc-social">🔥 {socialProof}</div>
-                })()}
               </div>
             </div>
           ))}
         </div>
       </section>
 
-      {/* ── CTA strip ── */}
-      <div className="cta-strip">
+      {/* ── CTA après Produits + REA BAR (fin de la zone noire) ── */}
+      <div className="cta-strip cta-strip-dark">
         <Link href="/products" className="cta-strip-btn">
           Voir toute la gamme →
         </Link>
+      </div>
+      <div className="rea-compact">
+        <div className="rea-c-item"><Truck size={11} strokeWidth={1.8} /> Livraison offerte dès 49€</div>
+        <div className="rea-c-sep">|</div>
+        <div className="rea-c-item"><Gift size={11} strokeWidth={1.8} /> Cadeau dès 70€</div>
+        <div className="rea-c-sep">|</div>
+        <div className="rea-c-item"><RotateCcw size={11} strokeWidth={1.8} /> Retour 30j</div>
+        <div className="rea-c-sep">|</div>
+        <div className="rea-c-item"><Zap size={11} strokeWidth={1.8} /> Expédié 48h</div>
       </div>
 
       {/* ── PACK BARBE ── */}

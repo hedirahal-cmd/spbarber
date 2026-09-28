@@ -2,7 +2,7 @@
 import { useCart } from '@/hooks/useCart'
 import {
   X, ShoppingCart, Plus, Minus, ChevronDown, ChevronUp,
-  Lock, Scissors, Droplets, User, Zap, Sparkles,
+  Lock, Scissors, Droplets, User, Zap, Sparkles, Cog,
 } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
 import { PaymentLogos } from './PaymentLogos'
@@ -23,6 +23,7 @@ function CatIcon({ cat, size = 20 }: { cat: string; size?: number }) {
   if (cat === 'soin')       return <Droplets   size={size} strokeWidth={sw} />
   if (cat === 'barbe')      return <User       size={size} strokeWidth={sw} />
   if (cat === 'accessoire') return <Zap        size={size} strokeWidth={sw} />
+  if (cat === 'tondeuse')   return <Cog        size={size} strokeWidth={sw} />
   return <Sparkles size={size} strokeWidth={sw} />
 }
 

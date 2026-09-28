@@ -5,7 +5,7 @@ import { getSessionId } from '@/lib/session'
 import Link from 'next/link'
 import {
   Lock, Truck, RotateCcw, ArrowLeft,
-  Scissors, Droplets, User, Zap, Sparkles,
+  Scissors, Droplets, User, Zap, Sparkles, Cog,
 } from 'lucide-react'
 import { PaymentLogos } from '@/components/PaymentLogos'
 import { formatPrice } from '@/lib/utils'
@@ -20,6 +20,7 @@ function CatIcon({ cat, size = 20 }: { cat: string; size?: number }) {
   if (cat === 'soin')       return <Droplets   size={size} strokeWidth={sw} />
   if (cat === 'barbe')      return <User       size={size} strokeWidth={sw} />
   if (cat === 'accessoire') return <Zap        size={size} strokeWidth={sw} />
+  if (cat === 'tondeuse')   return <Cog        size={size} strokeWidth={sw} />
   return <Sparkles size={size} strokeWidth={sw} />
 }
 
