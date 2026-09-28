@@ -21,8 +21,8 @@ export const DEFAULT_BARBERS: Barber[] = [
   {
     id: '1', slug: 'samy-p', nom: 'Samy P.', initiales: 'SP', couleur_avatar: '#1a3a5c', photo_url: null,
     salon_slug: 'fougeres', ville: 'Fougères', specialite: 'Dégradé Fade & Skin Fade',
-    description: '"La Cire Premium est mon indispensable. Tenue impeccable du matin au soir — je l\'utilise sur tous mes clients depuis des années."',
-    annees_experience: 8, produit_favori_slug: 'cire-cheveux-premium', produit_favori_nom: 'Cire Cheveux Premium',
+    description: '"Le dégradé, c\'est ma signature — précision au millimètre, fini net à chaque coupe."',
+    annees_experience: 8, produit_favori_slug: null, produit_favori_nom: null,
     actif: true, ordre: 1,
   },
   {

@@ -9,12 +9,10 @@ function getBaseUrl(): string {
 }
 
 const POIDS_PRODUIT: Record<string, number> = {
-  'cire-cheveux-premium': 150,
   'shampooing-noir-colorant': 300,
   'creme-curl-control': 200,
   'peigne-texture-expert': 100,
   'pack-barbe-complet': 600,
-  'tondeuse-fade-pro': 800,
 }
 
 function getColissimoPrice(poidsTotal: number): number {

@@ -18,7 +18,6 @@ export function Footer() {
             <li><Link href="/products/shampooing-noir-colorant">Shampooing Noir</Link></li>
             <li><Link href="/products/creme-curl-control">Crème Curl</Link></li>
             <li><Link href="/products/peigne-texture-expert">Peigne Expert</Link></li>
-            <li><Link href="/products/tondeuse-fade-pro">Tondeuse Pro</Link></li>
             <li><Link href="/products/pack-barbe-complet">Pack Barbe</Link></li>
           </ul>
         </div>

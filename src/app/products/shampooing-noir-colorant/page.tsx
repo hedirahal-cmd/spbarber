@@ -10,6 +10,8 @@ import { supabase, supabaseAdmin } from '@/lib/supabase'
 import { toReviewDisplay, type ReviewDisplay } from '@/lib/reviews'
 import { resolveSocialProof } from '@/lib/social-proof'
 import type { BeforeAfterImage } from '@/components/product/BeforeAfterSlider'
+import { applyOverride } from '@/lib/product-overrides'
+import { getProductOverrides } from '@/lib/product-overrides-server'
 
 const BASE_PRODUCT = PRODUCTS.find((p) => p.id === '2')!
 
@@ -109,6 +111,15 @@ export default async function ShampooingNoirRoute() {
 
   if (product.actif === false) notFound()
 
+  // Meme logique que products/[slug]/page.tsx : prix/statut fusionnes avec
+  // product_overrides pour le bloc "Completez votre routine".
+  const overrides = await getProductOverrides()
+  const relatedProducts = (BASE_PRODUCT.related ?? [])
+    .map((id) => PRODUCTS.find((p) => p.id === id))
+    .filter((p): p is (typeof PRODUCTS)[number] => !!p)
+    .map((p) => applyOverride(p, overrides))
+    .filter((p) => p.actif !== false)
+
   const socialProof = resolveSocialProof('2', socialProofOverride)
   const productReviews = await getProductReviews('2')
   const productSchema = schemaProduct(product)
@@ -128,7 +139,7 @@ export default async function ShampooingNoirRoute() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbSchema) }}
       />
-      <ShampooingNoirPage product={product} reviews={productReviews} socialProof={socialProof} beforeImage={beforeImage} afterImage={afterImage} />
+      <ShampooingNoirPage product={product} relatedProducts={relatedProducts} reviews={productReviews} socialProof={socialProof} beforeImage={beforeImage} afterImage={afterImage} />
     </>
   )
 }

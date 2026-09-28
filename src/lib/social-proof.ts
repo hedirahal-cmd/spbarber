@@ -4,7 +4,7 @@
  * rien edite pour ce produit dans l'onglet Contenu.
  */
 export const SOCIAL_PROOF_DEFAULTS: Record<string, number> = {
-  '1': 34, '2': 51, '3': 12, '4': 18, '5': 89, '6': 7,
+  '2': 51, '3': 12, '4': 18, '5': 89,
 }
 
 export interface ProductSocialOverride {

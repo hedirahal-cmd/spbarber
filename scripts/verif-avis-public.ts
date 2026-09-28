@@ -144,12 +144,12 @@ async function main() {
 
   console.log('\n--- E. Rendu par produit : filtrage + resume reel + badge verifie ---')
   reviews = [
-    { id: 'v1', author: 'Amine', rating: 5, text: 'Top', visible: true, verified: true, product_ids: ['1'], created_at: new Date().toISOString() },
-    { id: 'v2', author: 'Sofia', rating: 3, text: 'Correct', visible: true, verified: false, product_ids: ['1'], created_at: new Date().toISOString() },
+    { id: 'v1', author: 'Amine', rating: 5, text: 'Top', visible: true, verified: true, product_ids: ['3'], created_at: new Date().toISOString() },
+    { id: 'v2', author: 'Sofia', rating: 3, text: 'Correct', visible: true, verified: false, product_ids: ['3'], created_at: new Date().toISOString() },
     { id: 'v3', author: 'Autre', rating: 5, text: 'Pour un autre produit', visible: true, verified: true, product_ids: ['5'], created_at: new Date().toISOString() },
   ]
-  const page = await (await fetch(base() + '/products/cire-cheveux-premium')).text()
-  verifie('les 2 avis du produit 1 apparaissent (Amine et Sofia)', page.includes('Amine') && page.includes('Sofia'))
+  const page = await (await fetch(base() + '/products/creme-curl-control')).text()
+  verifie('les 2 avis du produit 3 apparaissent (Amine et Sofia)', page.includes('Amine') && page.includes('Sofia'))
   verifie('l avis d un AUTRE produit (Autre) n apparait PAS ici', !page.includes('>Autre<') && !(page.includes('Autre') && page.includes('Pour un autre produit')))
   verifie('moyenne reelle (5+3)/2=4,0 affichee, pas un chiffre invente', page.includes('4,0/5') || page.includes('4,0<'))
   verifie('badge verifie affiche pour l avis verifie (Amine)', page.includes('Achat vérifié'))
@@ -177,8 +177,8 @@ async function main() {
   reviews = []
   const accueilVide = await (await fetch(base() + '/')).text()
   verifie(
-    'repli sur les avis de secours (note 5,0, 6 avis)',
-    accueilVide.includes('5,0') && accueilVide.includes('Basé sur') && accueilVide.includes('-->6<!--'),
+    'repli sur les avis de secours (note 5,0, 5 avis)',
+    accueilVide.includes('5,0') && accueilVide.includes('Basé sur') && accueilVide.includes('-->5<!--'),
   )
 
   console.log('\n=======================================')

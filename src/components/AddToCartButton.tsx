@@ -25,9 +25,15 @@ export function AddToCartButton({ product, variant, className = 'fi-atc-btn', la
     (i) => i.product.id === product.id && i.variant?.id === variant?.id,
   )?.quantity ?? 0
   const stockEpuise = !product.is_dropshipping && dejaAuPanier >= product.stock
+  // Filet de securite : les listes qui alimentent ce bouton (fiche, "Completez
+  // votre routine", suggestions du panier) excluent deja les produits
+  // desactives, mais un objet Product perime (ex. panier localStorage ancien)
+  // ne doit jamais pouvoir forcer l'ajout d'un produit retire de la vente.
+  const indisponible = product.actif === false
+  const bloque = stockEpuise || indisponible
 
   function handleClick() {
-    if (stockEpuise) return
+    if (bloque) return
     addItem(product, variant)
     openCart()
     setAdded(true)
@@ -38,14 +44,16 @@ export function AddToCartButton({ product, variant, className = 'fi-atc-btn', la
     <button
       className={className}
       onClick={handleClick}
-      disabled={stockEpuise}
-      style={added ? { background: 'var(--green)' } : stockEpuise ? { opacity: 0.5, cursor: 'not-allowed' } : undefined}
+      disabled={bloque}
+      style={added ? { background: 'var(--green)' } : bloque ? { opacity: 0.5, cursor: 'not-allowed' } : undefined}
     >
       {added
         ? '✓ Ajouté !'
-        : stockEpuise
-          ? 'Rupture de stock'
-          : <><ShoppingCart size={13} strokeWidth={2} style={{ marginRight: 5, verticalAlign: 'middle' }} />{label}</>}
+        : indisponible
+          ? 'Indisponible'
+          : stockEpuise
+            ? 'Rupture de stock'
+            : <><ShoppingCart size={13} strokeWidth={2} style={{ marginRight: 5, verticalAlign: 'middle' }} />{label}</>}
     </button>
   )
 }

@@ -95,12 +95,10 @@ export function schemaOrganizationLocal() {
 }
 
 const PRODUCT_REVIEWS: Record<string, { count: number; rating: string }> = {
-  '1': { count: 214, rating: '4.9' },
   '2': { count: 87, rating: '4.8' },
   '3': { count: 53, rating: '4.7' },
   '4': { count: 31, rating: '4.9' },
   '5': { count: 312, rating: '5.0' },
-  '6': { count: 18, rating: '4.6' },
 }
 
 export function schemaProduct(product: Product) {

@@ -45,7 +45,7 @@ function getTomorrowLabel() {
   return d.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })
 }
 
-export function ShampooingNoirPage({ product, reviews: productReviews, socialProof, beforeImage, afterImage }: { product: Product; reviews: ReviewDisplay[]; socialProof: string | null; beforeImage: BeforeAfterImage | null; afterImage: BeforeAfterImage | null }) {
+export function ShampooingNoirPage({ product, relatedProducts = [], reviews: productReviews, socialProof, beforeImage, afterImage }: { product: Product; relatedProducts?: Product[]; reviews: ReviewDisplay[]; socialProof: string | null; beforeImage: BeforeAfterImage | null; afterImage: BeforeAfterImage | null }) {
   const [added, setAdded] = useState(false)
   const [stickyVisible, setStickyVisible] = useState(false)
   const [selectedPhoto, setSelectedPhoto] = useState(0)
@@ -66,10 +66,6 @@ export function ShampooingNoirPage({ product, reviews: productReviews, socialPro
   const hasReviews = productReviews.length > 0
   const avgRating = hasReviews ? productReviews.reduce((s, r) => s + r.rating, 0) / productReviews.length : 0
   const avgRatingLabel = avgRating.toFixed(1).replace('.', ',')
-
-  const relatedProducts = product.related
-    ? PRODUCTS.filter((p) => product.related!.includes(p.id))
-    : []
 
   useEffect(() => {
     const el = atcRef.current

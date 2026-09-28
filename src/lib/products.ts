@@ -12,6 +12,10 @@ export const PRODUCTS: Product[] = [
     category: 'coiffant',
     stock: 50,
     is_dropshipping: false,
+    // Retiree de la vente (2026-09-28, decision Hedi) -- pas remise en ligne.
+    // actif:false plutot que suppression pour ne pas casser l'historique des
+    // commandes deja passees (OrderItemsList resout le nom depuis PRODUCTS).
+    actif: false,
     benefit: 'Fixation forte toute la journée',
     trust: ['Fixation forte 24h', 'Effet naturel & brillance mat', 'Livraison sous 48h', 'Satisfait ou remboursé'],
     related: ['3', '4'],

@@ -148,7 +148,11 @@ async function main() {
   console.log('  OK    trafic Supabase detourne vers le faux serveur')
 
   overrides = [
-    { id: '1', name: null, price: null, description: null, stock: null, benefit: null, images: [{ url: URL_PHOTO_1, alt: ALT_PHOTO_1 }] },
+    // actif:true force ici : la Cire Cheveux Premium (id 1) est retiree de la
+    // vente (actif:false) dans le catalogue statique depuis la decision Hedi
+    // du 2026-09-28 -- ce banc teste la galerie/og:image, pas le statut actif,
+    // et garde ce produit comme fixture existante plutot que d'en changer.
+    { id: '1', name: null, price: null, description: null, stock: null, benefit: null, images: [{ url: URL_PHOTO_1, alt: ALT_PHOTO_1 }], actif: true },
   ]
 
   console.log('\n--- A. Fiche produit (id 1, avec override) : vraie galerie + og:image/alt ---')
@@ -184,7 +188,7 @@ async function main() {
 
   console.log('\n--- E. Shampooing Noir Colorant (page dediee, id 2, avec override) ---')
   overrides = [
-    { id: '1', name: null, price: null, description: null, stock: null, benefit: null, images: [{ url: URL_PHOTO_1, alt: ALT_PHOTO_1 }] },
+    { id: '1', name: null, price: null, description: null, stock: null, benefit: null, images: [{ url: URL_PHOTO_1, alt: ALT_PHOTO_1 }], actif: true },
     { id: '2', name: null, price: null, description: null, stock: null, benefit: null, images: [{ url: URL_PHOTO_2, alt: ALT_PHOTO_2 }] },
   ]
   html = await page('/products/shampooing-noir-colorant')

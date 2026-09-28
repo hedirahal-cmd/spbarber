@@ -46,7 +46,7 @@ type TemoPro = {
 }
 
 const DEFAULT_TEMOS_PROS: TemoPro[] = [
-  { id: '1', nom: 'Samy P.', initiales: 'SP', couleur_avatar: '#1a3a5c', photo_url: null, salon: 'SP Barber Shop', ville: 'Fougères', annees_experience: 8, citation: 'La Cire Premium est mon indispensable. Tenue impeccable du matin au soir — je l\'utilise sur tous mes clients depuis des années.', produit_favori_slug: 'cire-cheveux-premium', produit_favori_nom: 'Cire Cheveux Premium' },
+  { id: '1', nom: 'Samy P.', initiales: 'SP', couleur_avatar: '#1a3a5c', photo_url: null, salon: 'SP Barber Shop', ville: 'Fougères', annees_experience: 8, citation: 'Le dégradé, c\'est ma signature — précision au millimètre, fini net à chaque coupe.', produit_favori_slug: null, produit_favori_nom: null },
   { id: '2', nom: 'Karim M.', initiales: 'KM', couleur_avatar: '#4a1a6b', photo_url: null, salon: 'Barber King', ville: 'Fougères', annees_experience: 5, citation: 'Le Pack Barbe, c\'est exactement ce que je recommande à mes clients qui veulent entretenir leur barbe à la maison comme en salon.', produit_favori_slug: 'pack-barbe-complet', produit_favori_nom: 'Pack Barbe Complet' },
   { id: '3', nom: 'David L.', initiales: 'DL', couleur_avatar: '#1a5c3a', photo_url: null, salon: 'SP Barbershop', ville: 'Ernée', annees_experience: 4, citation: 'Le Shampooing Noir est parfait pour raviver la couleur entre deux coupes. Aucun client ne revient sans vouloir en racheter.', produit_favori_slug: 'shampooing-noir-colorant', produit_favori_nom: 'Shampooing Noir Colorant' },
 ]
@@ -110,7 +110,6 @@ const CATEGORY_LABELS: Record<string, string> = {
 // (bloc B) -- garde volontairement rating/verified explicites plutot que de
 // laisser ReviewsList inventer une valeur par defaut pour ce cas precis.
 const REVIEWS: ReviewDisplay[] = [
-  { id: 'seed-1', text: `"La cire tient toute la journée. Mes potes me demandent tous ce que j'utilise."`, name: 'Karim B.', initials: 'KB', color: '#3a5a8a', product: 'Cire Cheveux Premium', date: 'Mai 2025', rating: 5, verified: true },
   { id: 'seed-2', text: `"Le pack barbe est parfait. Qualité vraiment pro, rien à voir avec la grande surface."`, name: 'Amélie D.', initials: 'AD', color: '#8a3a5a', product: 'Pack Barbe Complet', date: 'Avr 2025', rating: 5, verified: true },
   { id: 'seed-3', text: `"La crème curl définit mes boucles sans les alourdir. Enfin un vrai produit pour cheveux texturés !"`, name: 'Marcus T.', initials: 'MT', color: '#3a8a5a', product: 'Crème Curl', date: 'Mar 2025', rating: 5, verified: true },
   { id: 'seed-4', text: `"Le shampooing noir a vraiment ravivé ma couleur. Résultat bluffant dès la première utilisation."`, name: 'Thierry M.', initials: 'TM', color: '#5a3a8a', product: 'Shampooing Noir', date: 'Mai 2025', rating: 5, verified: true },
@@ -285,7 +284,6 @@ export default async function HomePage() {
                   )}
                   {product.id === '3' && <span className="pc-tagg">Choix des barbiers</span>}
                   {product.id === '4' && <span className="pc-tag">Pro</span>}
-                  {product.id === '6' && <span className="pc-tag">Résultat salon</span>}
                   <div className="pc-overlay">Voir le produit</div>
                 </div>
               </Link>

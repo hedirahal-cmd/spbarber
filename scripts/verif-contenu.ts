@@ -165,13 +165,13 @@ async function main() {
   verifie('ventes de la semaine retiree de la section Produits de l accueil (demande explicite)', !accueil.includes('12 personnes ont acheté cette semaine'))
 
   const listing = await page('/products')
-  verifie('ventes de la semaine produit 1 (defaut 34) sur le catalogue', listing.includes('34 personnes ont acheté cette semaine'))
+  verifie('ventes de la semaine produit 3 (defaut 12) sur le catalogue', listing.includes('12 personnes ont acheté cette semaine'))
   const zoneProduit7 = zoneEntre(listing, '/products/poudre-texturante', 'prod-card')
   verifie('produit 7 (aucun defaut) n affiche aucune vente de la semaine', !zoneProduit7.includes('ont acheté cette semaine'))
 
-  const ficheCire = await page('/products/cire-cheveux-premium')
-  verifie('les 4 reperes de confiance par defaut sont presents', ['Sécurisé', 'Livraison 48h', 'Retour 30j', 'France'].every((t) => ficheCire.includes(t)))
-  verifie('ventes de la semaine produit 1 (defaut 34) sur la fiche', ficheCire.includes('34 personnes ont acheté cette semaine'))
+  const ficheCurl = await page('/products/creme-curl-control')
+  verifie('les 4 reperes de confiance par defaut sont presents', ['Sécurisé', 'Livraison 48h', 'Retour 30j', 'France'].every((t) => ficheCurl.includes(t)))
+  verifie('ventes de la semaine produit 3 (defaut 12) sur la fiche', ficheCurl.includes('12 personnes ont acheté cette semaine'))
 
   const ficheShampNoir = await page('/products/shampooing-noir-colorant')
   verifie('ventes de la semaine produit 2 (defaut 51) sur la page shampooing noir', ficheShampNoir.includes('51 personnes ont acheté cette semaine'))

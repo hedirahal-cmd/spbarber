@@ -62,15 +62,11 @@ const FAQS = [
     items: [
       {
         q: 'Les produits SP Barber conviennent-ils à tous les types de cheveux ?',
-        a: 'Oui. La cire convient aux cheveux courts à mi-longs. La crème Curl est formulée pour les cheveux bouclés. Le shampooing noir s\'adapte aux cheveux blancs ou gris. Consultez la description de chaque produit pour plus de détails.',
+        a: 'Oui. La crème Curl est formulée pour les cheveux bouclés. Le shampooing noir s\'adapte aux cheveux blancs ou gris. Consultez la description de chaque produit pour plus de détails.',
       },
       {
         q: 'Quelle est la composition des produits ?',
         a: 'Tous nos produits sont formulés avec des ingrédients sélectionnés par des barbiers professionnels. La liste complète des ingrédients est disponible sur la fiche de chaque produit.',
-      },
-      {
-        q: 'Puis-je utiliser la cire chaque jour ?',
-        a: 'Oui, notre Cire Cheveux Premium est conçue pour une utilisation quotidienne. Elle ne laisse pas de résidus et se rince facilement au shampooing.',
       },
     ],
   },

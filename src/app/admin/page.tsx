@@ -1463,12 +1463,10 @@ const EMPTY_BARBER: BarberRow = {
 }
 
 const BARBER_PRODUCTS = [
-  { slug: 'cire-cheveux-premium', nom: 'Cire Cheveux Premium' },
   { slug: 'pack-barbe-complet', nom: 'Pack Barbe Complet' },
   { slug: 'shampooing-noir-colorant', nom: 'Shampooing Noir Colorant' },
   { slug: 'creme-curl-control', nom: 'Crème Curl Control' },
   { slug: 'peigne-texture-expert', nom: 'Peigne Texture Expert' },
-  { slug: 'tondeuse-fade-pro', nom: 'Tondeuse Fade Pro' },
 ]
 
 function slugify(s: string): string {

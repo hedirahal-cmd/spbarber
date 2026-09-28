@@ -6,6 +6,9 @@ import { Footer } from '@/components/layout/Footer'
 import { CartDrawer } from '@/components/CartDrawer'
 import { SessionInit } from '@/components/SessionInit'
 import { getSiteContent } from '@/lib/site-content'
+import { getProductOverrides } from '@/lib/product-overrides-server'
+import { applyOverride } from '@/lib/product-overrides'
+import { PRODUCTS } from '@/lib/products'
 
 /* ── Fonts via next/font (pas de requête externe, display=swap automatique) ── */
 const bebasNeue = Bebas_Neue({
@@ -92,6 +95,15 @@ export const metadata: Metadata = {
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const siteContent = await getSiteContent()
+  const overrides = await getProductOverrides()
+  // Liste deja fusionnee/filtree (prix a jour, produits desactives exclus) --
+  // volontairement pas les overrides bruts : ce composant client serialise ses
+  // props dans le HTML pour l'hydratation, et des champs sans rapport (texte
+  // "ventes de la semaine", etc.) n'ont rien a y faire.
+  const cartProducts = PRODUCTS
+    .filter((p) => !p.is_dropshipping)
+    .map((p) => applyOverride(p, overrides))
+    .filter((p) => p.actif !== false)
   return (
     <html
       lang="fr"
@@ -101,7 +113,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <Header announcement={siteContent.announcement_bar} />
         <main>{children}</main>
         <Footer />
-        <CartDrawer />
+        <CartDrawer products={cartProducts} />
         <SessionInit />
       </body>
     </html>

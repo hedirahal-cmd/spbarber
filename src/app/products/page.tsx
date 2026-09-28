@@ -43,7 +43,6 @@ const CATEGORY_LABELS: Record<string, string> = {
 function getBadge(id: string) {
   if (id === '5') return <span className="pc-tagg">Meilleure vente</span>
   if (id === '2') return <span className="pc-tag-fm">Forte marge</span>
-  if (id === '1') return <span className="pc-tagg">Bestseller</span>
   return null
 }
 

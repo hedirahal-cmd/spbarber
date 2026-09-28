@@ -10,6 +10,8 @@ import { supabase, supabaseAdmin } from '@/lib/supabase'
 import { toReviewDisplay, type ReviewDisplay } from '@/lib/reviews'
 import { getSiteContent, getTrustItems } from '@/lib/site-content'
 import { resolveSocialProof } from '@/lib/social-proof'
+import { applyOverride } from '@/lib/product-overrides'
+import { getProductOverrides } from '@/lib/product-overrides-server'
 
 async function getProductReviews(productId: string): Promise<ReviewDisplay[]> {
   try {
@@ -96,32 +98,25 @@ export default async function ProductPage({ params }: Props) {
   const { slug } = await params
   const rawProduct = PRODUCTS.find((p) => p.slug === slug)
   if (!rawProduct) notFound()
-  let product = rawProduct!
-  let socialProofOverride: { social_proof_text?: string | null; social_proof_visible?: boolean | null } | null = null
 
-  try {
-    const { data, error } = await supabaseAdmin.from('product_overrides').select('name,price,description,stock,benefit,images,social_proof_text,social_proof_visible,actif').eq('id', product.id).maybeSingle()
-    console.log('[product-page] id:', product.id, 'slug:', slug, '| override:', JSON.stringify(data), '| error:', error?.message ?? null)
-    if (data) product = {
-      ...product,
-      ...(data.name != null ? { name: String(data.name) } : {}),
-      ...(data.price != null ? { price: Number(data.price) } : {}),
-      ...(data.description != null ? { description: String(data.description) } : {}),
-      ...(data.stock != null ? { stock: Number(data.stock) } : {}),
-      ...(data.benefit != null ? { benefit: String(data.benefit) } : {}),
-      ...(Array.isArray(data.images) && data.images.length > 0 ? { images: data.images } : {}),
-      actif: data.actif !== false,
-    }
-    socialProofOverride = data
-  } catch (e) {
-    console.error('[product-page] catch:', e instanceof Error ? e.message : String(e))
-  }
+  const overrides = await getProductOverrides()
+  const product = applyOverride(rawProduct, overrides)
+  const socialProofOverride = overrides[rawProduct.id] ?? null
 
   if (product.actif === false) notFound()
 
   if (product.is_dropshipping && product.dsers_url && !product.skip_dsers_redirect) {
     redirect(product.dsers_url)
   }
+
+  // Memes prix/statut que partout ailleurs sur le site (fiche, panier) : sans
+  // cette fusion, le bloc "Completez votre routine" affichait le prix brut du
+  // catalogue statique et pouvait proposer un produit desactive.
+  const relatedProducts = (rawProduct.related ?? [])
+    .map((id) => PRODUCTS.find((p) => p.id === id))
+    .filter((p): p is (typeof PRODUCTS)[number] => !!p)
+    .map((p) => applyOverride(p, overrides))
+    .filter((p) => p.actif !== false)
 
   const productReviews  = await getProductReviews(product.id)
   const siteContent     = await getSiteContent()
@@ -151,7 +146,7 @@ export default async function ProductPage({ params }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbSchema) }}
       />
-      <ProductDetail product={product} reviews={productReviews} trustItems={trustItems} socialProof={socialProof} tondeuseContent={tondeuseContent} />
+      <ProductDetail product={product} relatedProducts={relatedProducts} reviews={productReviews} trustItems={trustItems} socialProof={socialProof} tondeuseContent={tondeuseContent} />
     </>
   )
 }

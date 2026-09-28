@@ -170,7 +170,7 @@ async function main() {
   const finListe = p.corps.indexOf('</section>', debutListe)
   const zoneListe = p.corps.slice(debutListe, finListe)
   verifie('Shampooing Noir absent de la liste (footer non concerne, hors perimetre)', !zoneListe.includes('shampooing-noir-colorant'))
-  verifie('Cire Cheveux (non touchee) toujours presente', zoneListe.includes('cire-cheveux-premium'))
+  verifie('Peigne Expert (non touche) toujours present', zoneListe.includes('peigne-texture-expert'))
 
   console.log('\n--- D. Accueil : Bestsellers configures en admin ---')
   overrides = {

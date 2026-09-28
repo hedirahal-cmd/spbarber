@@ -7,8 +7,8 @@ import {
 import { useState, useEffect, useRef } from 'react'
 import { PaymentLogos } from './PaymentLogos'
 import { formatPrice } from '@/lib/utils'
-import { PRODUCTS } from '@/lib/products'
 import { getSessionId } from '@/lib/session'
+import type { Product } from '@/types'
 
 const FREE_SHIP = 4900
 const FREE_GIFT = 7000
@@ -27,7 +27,7 @@ function CatIcon({ cat, size = 20 }: { cat: string; size?: number }) {
   return <Sparkles size={size} strokeWidth={sw} />
 }
 
-export function CartDrawer() {
+export function CartDrawer({ products = [] }: { products?: Product[] }) {
   const { items, isOpen, closeCart, removeItem, updateQuantity, addItem, total, itemCount } = useCart()
 
   const [loading, setLoading]             = useState(false)
@@ -104,8 +104,11 @@ export function CartDrawer() {
     progPct = (cartTotal / FREE_SHIP) * 100
   }
 
-  /* Suggestions (max 2, produits absents du panier) */
-  const available   = PRODUCTS.filter(p => !p.is_dropshipping && !items.find(i => i.product.id === p.id))
+  /* Suggestions (max 2, produits absents du panier) -- `products` arrive deja
+     fusionne avec product_overrides et filtre des produits desactives (voir
+     layout.tsx), sinon le prix affiche ici pouvait etre perime et un produit
+     desactive restait proposable. */
+  const available   = products.filter(p => !items.find(i => i.product.id === p.id))
   const suggestions = available.slice(0, 2)
 
   /* Checkout */

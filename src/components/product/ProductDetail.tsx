@@ -6,7 +6,6 @@ import { formatPrice } from '@/lib/utils'
 import { Product, ProductVariant } from '@/types'
 import { PaymentLogos } from '@/components/PaymentLogos'
 import { AddToCartButton } from '@/components/AddToCartButton'
-import { PRODUCTS } from '@/lib/products'
 import { Lock, Truck, RotateCcw, CheckCircle2, AlertTriangle, ShoppingCart, Dumbbell, Sparkles, Leaf, FlaskConical, Scissors, Droplets, User, Zap, Clock, Waves, AlignJustify, Package, Wind, Cog, Package2, ChevronLeft, ChevronRight } from 'lucide-react'
 import { BeforeAfterSlider } from './BeforeAfterSlider'
 import type { ReviewDisplay } from '@/lib/reviews'
@@ -59,7 +58,7 @@ const FREE_SHIP = 4900
 
 type TondeuseContent = { pourquoiMarque: SiteContentBlock; delaiLivraison: SiteContentBlock; livraisonSeparee: SiteContentBlock } | null
 
-export function ProductDetail({ product, reviews: productReviews, trustItems, socialProof, tondeuseContent = null }: { product: Product; reviews: ReviewDisplay[]; trustItems: TrustItem[]; socialProof: string | null; tondeuseContent?: TondeuseContent }) {
+export function ProductDetail({ product, relatedProducts = [], reviews: productReviews, trustItems, socialProof, tondeuseContent = null }: { product: Product; relatedProducts?: Product[]; reviews: ReviewDisplay[]; trustItems: TrustItem[]; socialProof: string | null; tondeuseContent?: TondeuseContent }) {
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | undefined>(
     product.variants?.[0]
   )
@@ -93,10 +92,6 @@ export function ProductDetail({ product, reviews: productReviews, trustItems, so
   const hasReviews = productReviews.length > 0
   const avgRating = hasReviews ? productReviews.reduce((s, r) => s + r.rating, 0) / productReviews.length : 0
   const avgRatingLabel = avgRating.toFixed(1).replace('.', ',')
-
-  const relatedProducts = product.related
-    ? PRODUCTS.filter((p) => product.related!.includes(p.id))
-    : []
 
   // Le catalogue statique pointe toujours vers un chemin local qui n'existe pas
   // encore sur disque (aucune photo n'a ete deployee en dur) -- le meme test
@@ -164,7 +159,6 @@ export function ProductDetail({ product, reviews: productReviews, trustItems, so
                 <small>Photo produit</small>
               </div>
             )}
-            {product.id === '1' && <span className="fi-tagg">Bestseller</span>}
             {product.stock <= 10 && product.stock > 0 && <span className="fi-tag">Dernières unités</span>}
             {hasGallery && product.images.length > 1 && (
               <>

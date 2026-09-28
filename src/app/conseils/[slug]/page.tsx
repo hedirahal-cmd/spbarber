@@ -114,8 +114,8 @@ const ARTICLES: Record<string, {
         <p>
           Une fois votre <strong>coupe dégradé homme</strong> terminée, le style se tient avec le bon
           produit coiffant. Pour une finition nette et structurée, notre{' '}
-          <Link href="/products/cire-cheveux-premium">Cire Cheveux Premium SP Barber</Link> offre
-          une fixation forte avec un effet naturel — exactement comme en salon. Pour les cheveux
+          <Link href="/products/poudre-texturante">Poudre Texturante SP Barber</Link> apporte
+          du grip et un effet mat — exactement comme en salon. Pour les cheveux
           bouclés, optez pour la{' '}
           <Link href="/products/creme-curl-control">Crème Curl Control</Link>.
         </p>
@@ -260,7 +260,7 @@ const ARTICLES: Record<string, {
         <ul>
           <li>
             <strong>Fixation forte, effet mat :</strong>{' '}
-            <Link href="/products/cire-cheveux-premium">Cire Cheveux Premium SP Barber</Link>{' '}
+            <Link href="/products/poudre-texturante">Poudre Texturante SP Barber</Link>{' '}
             — pour des coiffures nettes et structurées.
           </li>
           <li>
