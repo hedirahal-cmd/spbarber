@@ -7,7 +7,7 @@ import { Product, ProductVariant } from '@/types'
 import { PaymentLogos } from '@/components/PaymentLogos'
 import { AddToCartButton } from '@/components/AddToCartButton'
 import { PRODUCTS } from '@/lib/products'
-import { Lock, Truck, RotateCcw, CheckCircle2, AlertTriangle, ShoppingCart, Dumbbell, Sparkles, Leaf, FlaskConical, Scissors, Droplets, User, Zap, Clock, Waves, AlignJustify, Package, Wind, Cog, Package2 } from 'lucide-react'
+import { Lock, Truck, RotateCcw, CheckCircle2, AlertTriangle, ShoppingCart, Dumbbell, Sparkles, Leaf, FlaskConical, Scissors, Droplets, User, Zap, Clock, Waves, AlignJustify, Package, Wind, Cog, Package2, ChevronLeft, ChevronRight } from 'lucide-react'
 import { BeforeAfterSlider } from './BeforeAfterSlider'
 import type { ReviewDisplay } from '@/lib/reviews'
 import { ReviewsList } from '@/components/ReviewsList'
@@ -67,6 +67,7 @@ export function ProductDetail({ product, reviews: productReviews, trustItems, so
   const [added, setAdded] = useState(false)
   const [stickyVisible, setStickyVisible] = useState(false)
   const atcRef = useRef<HTMLButtonElement>(null)
+  const touchStartX = useRef<number | null>(null)
   const addItem = useCart((s) => s.addItem)
   const openCart = useCart((s) => s.openCart)
   const cartTotal = useCart((s) => s.total())
@@ -123,12 +124,35 @@ export function ProductDetail({ product, reviews: productReviews, trustItems, so
     setTimeout(() => setAdded(false), 1400)
   }
 
+  // Bouclent (dernier -> premier et inversement) : meme convention que la
+  // plupart des galeries e-commerce, evite une fleche visuellement "morte"
+  // aux extremites.
+  function photoPrecedente() {
+    setSelectedPhoto((i) => (i - 1 + product.images.length) % product.images.length)
+  }
+  function photoSuivante() {
+    setSelectedPhoto((i) => (i + 1) % product.images.length)
+  }
+
+  // Swipe tactile : seuil de 40px pour ignorer un simple tap/scroll vertical
+  // accidentel, pas de librairie -- un seul geste horizontal a interpreter.
+  function onTouchStart(e: React.TouchEvent) {
+    touchStartX.current = e.touches[0].clientX
+  }
+  function onTouchEnd(e: React.TouchEvent) {
+    if (touchStartX.current === null) return
+    const delta = e.changedTouches[0].clientX - touchStartX.current
+    touchStartX.current = null
+    if (Math.abs(delta) < 40) return
+    if (delta > 0) photoPrecedente(); else photoSuivante()
+  }
+
   return (
     <div className="fiche-page">
       <div className="fi-inner">
         {/* Galerie */}
         <div className="fi-gallery">
-          <div className="fi-img-main">
+          <div className="fi-img-main" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
             {hasGallery ? (
               <img
                 src={product.images[selectedPhoto]?.url ?? product.images[0].url}
@@ -142,6 +166,16 @@ export function ProductDetail({ product, reviews: productReviews, trustItems, so
             )}
             {product.id === '1' && <span className="fi-tagg">Bestseller</span>}
             {product.stock <= 10 && product.stock > 0 && <span className="fi-tag">Dernières unités</span>}
+            {hasGallery && product.images.length > 1 && (
+              <>
+                <button type="button" className="fi-gallery-arrow fi-gallery-arrow-prev" onClick={photoPrecedente} aria-label="Photo précédente">
+                  <ChevronLeft size={20} strokeWidth={2} />
+                </button>
+                <button type="button" className="fi-gallery-arrow fi-gallery-arrow-next" onClick={photoSuivante} aria-label="Photo suivante">
+                  <ChevronRight size={20} strokeWidth={2} />
+                </button>
+              </>
+            )}
           </div>
           {hasGallery && product.images.length > 1 && (
             <div className="fi-thumbs">

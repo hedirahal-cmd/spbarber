@@ -339,7 +339,7 @@ export default async function HomePage() {
               <p className="kit-desc">
                 Huile de barbe, brosse, peigne, cire et baume — tout pour une barbe impeccable dans un seul coffret premium.
               </p>
-              <span className="kit-price">49,90 €</span>
+              <span className="kit-price">{formatPrice(packBarbeProduit.price)}</span>
               <div className="kit-cta-row">
                 <span className="btn-gold">Voir le Pack →</span>
                 <div className="kit-badge-inline">

@@ -11,6 +11,7 @@ import {
   CheckCircle2, ShoppingCart, Clock, Truck,
   Dumbbell, Sparkles, Leaf, FlaskConical,
   Droplets, Scissors, Zap, Waves, AlignJustify, Package, Wind,
+  ChevronLeft, ChevronRight,
 } from 'lucide-react'
 import type { ReviewDisplay } from '@/lib/reviews'
 import { ReviewsList } from '@/components/ReviewsList'
@@ -49,6 +50,7 @@ export function ShampooingNoirPage({ product, reviews: productReviews, socialPro
   const [stickyVisible, setStickyVisible] = useState(false)
   const [selectedPhoto, setSelectedPhoto] = useState(0)
   const atcRef = useRef<HTMLButtonElement>(null)
+  const touchStartX = useRef<number | null>(null)
   const addItem = useCart((s) => s.addItem)
   const openCart = useCart((s) => s.openCart)
   const cartTotal = useCart((s) => s.total())
@@ -87,6 +89,25 @@ export function ShampooingNoirPage({ product, reviews: productReviews, socialPro
     setTimeout(() => setAdded(false), 1400)
   }
 
+  // Meme logique que ProductDetail.tsx : bouclage aux extremites, swipe
+  // tactile avec seuil de 40px.
+  function photoPrecedente() {
+    setSelectedPhoto((i) => (i - 1 + product.images.length) % product.images.length)
+  }
+  function photoSuivante() {
+    setSelectedPhoto((i) => (i + 1) % product.images.length)
+  }
+  function onTouchStart(e: React.TouchEvent) {
+    touchStartX.current = e.touches[0].clientX
+  }
+  function onTouchEnd(e: React.TouchEvent) {
+    if (touchStartX.current === null) return
+    const delta = e.changedTouches[0].clientX - touchStartX.current
+    touchStartX.current = null
+    if (Math.abs(delta) < 40) return
+    if (delta > 0) photoPrecedente(); else photoSuivante()
+  }
+
   return (
     <div className="sn-page">
 
@@ -96,7 +117,7 @@ export function ShampooingNoirPage({ product, reviews: productReviews, socialPro
         {/* Colonne gauche — photo + slider */}
         <div className="sn-hero-left">
           {/* Photo produit */}
-          <div className="sn-hero-photo">
+          <div className="sn-hero-photo" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
             {hasGallery ? (
               <img
                 src={product.images[selectedPhoto]?.url ?? product.images[0].url}
@@ -106,6 +127,16 @@ export function ShampooingNoirPage({ product, reviews: productReviews, socialPro
               <>
                 <Droplets size={56} strokeWidth={0.9} />
                 <span>Photo produit</span>
+              </>
+            )}
+            {hasGallery && product.images.length > 1 && (
+              <>
+                <button type="button" className="fi-gallery-arrow fi-gallery-arrow-prev" onClick={photoPrecedente} aria-label="Photo précédente">
+                  <ChevronLeft size={20} strokeWidth={2} />
+                </button>
+                <button type="button" className="fi-gallery-arrow fi-gallery-arrow-next" onClick={photoSuivante} aria-label="Photo suivante">
+                  <ChevronRight size={20} strokeWidth={2} />
+                </button>
               </>
             )}
           </div>
