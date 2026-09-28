@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { PRODUCTS } from '@/lib/products'
 import { SITE_CONTENT_KEYS, SITE_CONTENT_LABELS, SITE_CONTENT_DEFAULTS, type SiteContentBlock } from '@/lib/site-content-data'
 import { defaultSocialProofText } from '@/lib/social-proof'
@@ -687,13 +687,44 @@ function SalonFormCard({
   onMoveDown?: () => void
   onCancel?: () => void
 }) {
-  const [photoUrl, setPhotoUrl] = useState('')
+  const [uploadingPhoto, setUploadingPhoto] = useState(false)
+  const [photoErr, setPhotoErr] = useState('')
+  const photoInputRef = useRef<HTMLInputElement>(null)
 
-  function addPhoto() {
-    const url = photoUrl.trim()
-    if (!url) return
-    onField('photos', [...(form.photos ?? []), url])
-    setPhotoUrl('')
+  async function uploadPhoto(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files ?? [])
+    const slug = form.slug.trim()
+    if (!files.length || !slug) { e.target.value = ''; return }
+
+    setPhotoErr('')
+    setUploadingPhoto(true)
+    for (const file of files) {
+      const fd = new FormData()
+      fd.append('file', file)
+      fd.append('slug', slug)
+      try {
+        const res = await fetch('/api/admin/salons/upload', { method: 'POST', body: fd })
+        if (res.ok) {
+          const { url } = await res.json()
+          onField('photos', [...(form.photos ?? []), url])
+        } else {
+          const d = await res.json().catch(() => ({}))
+          setPhotoErr(d.error ?? 'Erreur upload photo')
+        }
+      } catch {
+        setPhotoErr('Erreur upload photo')
+      }
+    }
+    setUploadingPhoto(false)
+    e.target.value = ''
+  }
+
+  function removePhoto(idx: number) {
+    const url = (form.photos ?? [])[idx]
+    onField('photos', (form.photos ?? []).filter((_, i) => i !== idx))
+    if (url) {
+      fetch('/api/admin/salons/upload', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url }) }).catch(() => {})
+    }
   }
 
   return (
@@ -826,25 +857,26 @@ function SalonFormCard({
         <div style={{ borderTop: `1px solid ${S.border}`, paddingTop: 20, marginTop: 4 }}>
           <div style={{ fontSize: 13, fontWeight: 600, color: S.text, marginBottom: 12 }}>Photos du salon</div>
           {(form.photos ?? []).length === 0 && (
-            <div style={{ fontSize: 12, color: S.muted, marginBottom: 12, fontStyle: 'italic' }}>Aucune photo. Ajoutez des URLs ci-dessous.</div>
+            <div style={{ fontSize: 12, color: S.muted, marginBottom: 12, fontStyle: 'italic' }}>Aucune photo.</div>
           )}
           {(form.photos ?? []).map((url, idx) => (
             <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8, background: S.bg, borderRadius: 6, padding: '6px 10px' }}>
               <img src={url} alt="" style={{ width: 80, height: 45, objectFit: 'cover', borderRadius: 4, flexShrink: 0, background: '#e5e7eb' }} onError={(e) => { (e.currentTarget as HTMLImageElement).style.opacity = '0.3' }} />
               <span style={{ flex: 1, fontSize: 12, color: S.muted, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{url}</span>
-              <button onClick={() => onField('photos', (form.photos ?? []).filter((_, i) => i !== idx))} style={{ ...S.btnSecondary, padding: '4px 10px', fontSize: 12, color: '#b91c1c', borderColor: '#fca5a5', flexShrink: 0 }}>×</button>
+              <button onClick={() => removePhoto(idx)} style={{ ...S.btnSecondary, padding: '4px 10px', fontSize: 12, color: '#b91c1c', borderColor: '#fca5a5', flexShrink: 0 }}>×</button>
             </div>
           ))}
-          <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
-            <input
-              value={photoUrl}
-              onChange={e => setPhotoUrl(e.target.value)}
-              placeholder="https://exemple.com/photo.jpg"
-              style={{ ...S.input, flex: 1 }}
-              onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addPhoto() } }}
-            />
-            <button onClick={addPhoto} style={{ ...S.btnSecondary, flexShrink: 0 }}>Ajouter</button>
-          </div>
+          {photoErr && <div style={{ fontSize: 12, color: '#b91c1c', marginBottom: 8 }}>{photoErr}</div>}
+          <input ref={photoInputRef} type="file" accept=".jpg,.jpeg,.png,.webp" multiple style={{ display: 'none' }} onChange={uploadPhoto} />
+          <button
+            type="button"
+            disabled={uploadingPhoto || !form.slug.trim()}
+            onClick={() => photoInputRef.current?.click()}
+            style={{ ...S.btnSecondary, fontSize: 12, padding: '6px 12px', opacity: !form.slug.trim() ? 0.5 : 1 }}
+          >
+            {uploadingPhoto ? 'Envoi…' : '+ Ajouter des photos'}
+          </button>
+          {!form.slug.trim() && <div style={{ fontSize: 11, color: S.muted, marginTop: 6 }}>Renseignez le slug du salon ci-dessus avant d&apos;ajouter des photos.</div>}
         </div>
 
         {/* Avis Google */}

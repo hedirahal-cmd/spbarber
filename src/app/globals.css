@@ -1022,16 +1022,20 @@ button { font-family: var(--fb); }
   position: relative;
 }
 .kit-r-icon { display: flex; align-items: center; justify-content: center; opacity: 0.18; color: var(--w); }
-.kit-r-badge {
-  position: absolute;
-  bottom: 28px;
-  right: 28px;
+.kit-r-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+/* Badge "5 produits inclus" a cote du CTA, plutot que superpose a la photo --
+   une vraie photo produit porte souvent deja du texte integre (packshot),
+   qui entrait en collision avec le badge en position absolute sur .kit-r. */
+.kit-cta-row { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+.kit-badge-inline {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
   border: 1px solid rgba(184,144,58,.3);
-  padding: 16px 20px;
-  text-align: center;
+  padding: 8px 16px;
 }
-.kit-r-badge strong { display: block; font-family: var(--fd); font-size: 44px; color: var(--goldl); line-height: 1; }
-.kit-r-badge span { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: rgba(248,246,243,.3); }
+.kit-badge-inline strong { font-family: var(--fd); font-size: 28px; color: var(--goldl); line-height: 1; }
+.kit-badge-inline span { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: rgba(248,246,243,.4); }
 
 /* ═══ BOUTONS ═══ */
 .btn-gold {

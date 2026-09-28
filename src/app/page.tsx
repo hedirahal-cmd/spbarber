@@ -144,6 +144,8 @@ export default async function HomePage() {
     .slice(0, 3)
   const bestsellerIds = new Set(bestsellers.map(({ product }) => product.id))
   const featured = PRODUCTS.filter((p) => !bestsellerIds.has(p.id)).slice(0, 6).map(p => applyOverride(p, overrides)).filter((p) => p.actif !== false)
+  // Bandeau "PACK BARBE" : toujours affiche, independamment du statut Bestseller.
+  const packBarbeProduit = applyOverride(PRODUCTS.find((p) => p.id === '5')!, overrides)
 
   return (
     <>
@@ -338,14 +340,20 @@ export default async function HomePage() {
                 Huile de barbe, brosse, peigne, cire et baume — tout pour une barbe impeccable dans un seul coffret premium.
               </p>
               <span className="kit-price">49,90 €</span>
-              <span className="btn-gold">Voir le Pack →</span>
+              <div className="kit-cta-row">
+                <span className="btn-gold">Voir le Pack →</span>
+                <div className="kit-badge-inline">
+                  <strong>5</strong>
+                  <span>produits inclus</span>
+                </div>
+              </div>
             </div>
             <div className="kit-r">
-              <span className="kit-r-icon"><Gift size={80} strokeWidth={1} /></span>
-              <div className="kit-r-badge">
-                <strong>5</strong>
-                <span>produits inclus</span>
-              </div>
+              {packBarbeProduit.images[0]?.url.startsWith('http') ? (
+                <img src={packBarbeProduit.images[0].url} alt={packBarbeProduit.images[0].alt || packBarbeProduit.name} className="kit-r-img" />
+              ) : (
+                <span className="kit-r-icon"><Gift size={80} strokeWidth={1} /></span>
+              )}
             </div>
           </Link>
         </div>
