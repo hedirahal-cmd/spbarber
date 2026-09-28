@@ -35,6 +35,7 @@ type OverrideRow = {
   id: string
   name: null; price: null; description: null; stock: null; benefit: null
   images: { url: string; alt: string }[]
+  actif?: boolean
 }
 
 const URL_PHOTO_1 = 'https://fake-projet.supabase.co/storage/v1/object/public/products/cire-cheveux-premium-1.jpg'
