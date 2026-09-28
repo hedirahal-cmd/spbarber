@@ -40,8 +40,10 @@ export function CartDrawer() {
   const [couponApplied, setCouponApplied] = useState(false)
   const [couponError, setCouponError]     = useState('')
 
-  const cartTotal = total()
-  const count     = itemCount()
+  const cartTotal   = total()
+  const count       = itemCount()
+  const shippingFee = cartTotal >= FREE_SHIP ? 0 : 490
+  const grandTotal  = cartTotal + shippingFee
 
   /* Fermeture Échap */
   useEffect(() => {
@@ -296,7 +298,7 @@ export function CartDrawer() {
             {/* Total */}
             <div className="cdr-total">
               <span className="cdr-total-lbl">TOTAL</span>
-              <span className="cdr-total-val">{euros(cartTotal)}</span>
+              <span className="cdr-total-val">{euros(grandTotal)}</span>
             </div>
 
             {/* CTA — or, texte noir, 52px */}

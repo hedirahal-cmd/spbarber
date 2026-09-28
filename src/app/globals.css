@@ -4394,3 +4394,11 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
   .barbers-cta-sec { padding: 52px 20px; }
   .barbers-cta-title { font-size: 32px; }
 }
+
+/* Page panier (/cart) */
+.cart-page-grid { display: grid; grid-template-columns: 1fr auto; gap: 32px; align-items: start; }
+.cart-summary { width: 280px; position: sticky; top: 100px; }
+@media (max-width: 720px) {
+  .cart-page-grid { grid-template-columns: 1fr; }
+  .cart-summary { width: 100%; position: static; }
+}

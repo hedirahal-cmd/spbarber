@@ -11,6 +11,10 @@ export default function CartPage() {
   const [loading, setLoading] = useState(false)
   const [checkoutError, setCheckoutError] = useState('')
 
+  const cartTotal = total()
+  const isFreeShip = cartTotal >= 4900
+  const shippingFee = isFreeShip ? 0 : 490
+
   async function handleCheckout() {
     if (items.length === 0 || loading) return
     setLoading(true)
@@ -52,7 +56,7 @@ export default function CartPage() {
     <div style={{ maxWidth: 900, margin: '0 auto', padding: '80px 24px 60px' }}>
       <h1 style={{ fontFamily: 'var(--fs)', fontSize: 'clamp(28px,5vw,40px)', color: 'var(--b)', marginBottom: 40 }}>Votre panier</h1>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 32, alignItems: 'start' }}>
+      <div className="cart-page-grid">
         {/* Items */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           {items.map((item) => (
@@ -94,27 +98,27 @@ export default function CartPage() {
         </div>
 
         {/* Récapitulatif */}
-        <div style={{ width: 280, padding: 24, background: 'var(--g)', border: '1px solid var(--gm)', position: 'sticky', top: 100 }}>
+        <div className="cart-summary" style={{ padding: 24, background: 'var(--g)', border: '1px solid var(--gm)' }}>
           <h2 style={{ fontFamily: 'var(--fs)', fontSize: 20, color: 'var(--b)', marginBottom: 24 }}>Récapitulatif</h2>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontSize: 13, color: 'var(--gt)' }}>
             <span>Sous-total</span>
-            <span style={{ color: 'var(--b)' }}>{formatPrice(total())}</span>
+            <span style={{ color: 'var(--b)' }}>{formatPrice(cartTotal)}</span>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: total() < 4900 ? 8 : 24, fontSize: 13, color: 'var(--gt)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: isFreeShip ? 24 : 8, fontSize: 13, color: 'var(--gt)' }}>
             <span>Livraison</span>
-            {total() >= 4900
+            {isFreeShip
               ? <span style={{ color: 'var(--gold)' }}>Gratuite !</span>
-              : <span style={{ color: 'var(--b)' }}>4,90 €</span>
+              : <span style={{ color: 'var(--b)' }}>{formatPrice(shippingFee)}</span>
             }
           </div>
-          {total() < 4900 && (
+          {!isFreeShip && (
             <div style={{ fontSize: 11, color: 'var(--gt)', marginBottom: 24, padding: '8px 10px', background: 'var(--gm)', borderRadius: 2 }}>
-              Plus que <strong style={{ color: 'var(--b)' }}>{formatPrice(4900 - total())}</strong> pour la livraison offerte
+              Plus que <strong style={{ color: 'var(--b)' }}>{formatPrice(4900 - cartTotal)}</strong> pour la livraison offerte
             </div>
           )}
           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 16, fontWeight: 600, marginBottom: 24, paddingTop: 16, borderTop: '1px solid var(--gm)', color: 'var(--b)' }}>
             <span>Total</span>
-            <span style={{ color: 'var(--gold)' }}>{formatPrice(total())}</span>
+            <span style={{ color: 'var(--gold)' }}>{formatPrice(cartTotal + shippingFee)}</span>
           </div>
           <button
             onClick={handleCheckout}
