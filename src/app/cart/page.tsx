@@ -12,8 +12,8 @@ export default function CartPage() {
   const [checkoutError, setCheckoutError] = useState('')
 
   const cartTotal = total()
-  const isFreeShip = cartTotal >= 4900
-  const shippingFee = isFreeShip ? 0 : 490
+  const isFreeShip = cartTotal >= 6000
+  const shippingFee = isFreeShip ? 0 : 590
 
   async function handleCheckout() {
     if (items.length === 0 || loading) return
@@ -113,7 +113,7 @@ export default function CartPage() {
           </div>
           {!isFreeShip && (
             <div style={{ fontSize: 11, color: 'var(--gt)', marginBottom: 24, padding: '8px 10px', background: 'var(--gm)', borderRadius: 2 }}>
-              Plus que <strong style={{ color: 'var(--b)' }}>{formatPrice(4900 - cartTotal)}</strong> pour la livraison offerte
+              Plus que <strong style={{ color: 'var(--b)' }}>{formatPrice(6000 - cartTotal)}</strong> pour la livraison offerte
             </div>
           )}
           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 16, fontWeight: 600, marginBottom: 24, paddingTop: 16, borderTop: '1px solid var(--gm)', color: 'var(--b)' }}>

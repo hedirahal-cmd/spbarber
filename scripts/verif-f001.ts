@@ -29,7 +29,7 @@ const OVERRIDES = [
   { id: '1', name: null, price: 1990, description: null, stock: null, benefit: null, actif: true },
   { id: '2', name: null, price: 2890, description: null, stock: null, benefit: null },
   // Meme raison pour la Tondeuse Fade Pro (id 6, actif:false) : les cas 3 et 5
-  // testent la resolution slug/poids et la validation de variante, pas le
+  // testent la resolution du slug et la validation de variante, pas le
   // statut actif.
   { id: '6', name: null, price: null, description: null, stock: null, benefit: null, actif: true },
 ]
@@ -45,12 +45,6 @@ const serveur = http.createServer((req, res) => {
   res.writeHead(200, { 'Content-Type': 'application/json' })
   res.end(JSON.stringify(OVERRIDES))
 })
-
-const POIDS_PRODUIT: Record<string, number> = {
-  'cire-cheveux-premium': 150, 'shampooing-noir-colorant': 300,
-  'creme-curl-control': 200, 'peigne-texture-expert': 100,
-  'pack-barbe-complet': 600, 'tondeuse-fade-pro': 800,
-}
 
 let ok = 0
 let ko = 0
@@ -92,13 +86,11 @@ async function main() {
   ])
   verifie('prix statique', 2690, r[0].unitAmount)
 
-  console.log('\n--- 3. Slug falsifie pour alleger le port ---')
+  console.log('\n--- 3. Slug falsifie : le vrai slug fait foi cote serveur ---')
   r = await resolveCartItems([
-    // id = tondeuse (800 g) mais slug maquille en peigne (100 g)
     { product: { id: '6', slug: 'peigne-texture-expert', price: 7990 }, quantity: 1 },
   ])
   verifie('slug repris du serveur', 'tondeuse-fade-pro', r[0].product.slug)
-  verifie('poids reel', 800, POIDS_PRODUIT[r[0].product.slug])
 
   console.log('\n--- 4. Sous-total gonfle pour decrocher la livraison offerte ---')
   r = await resolveCartItems([
@@ -106,7 +98,7 @@ async function main() {
   ])
   const sousTotal = r.reduce((s, i) => s + i.unitAmount * i.quantity, 0)
   verifie('sous-total serveur', 1490, sousTotal)
-  verifie('livraison NON offerte', false, sousTotal >= 4900)
+  verifie('livraison NON offerte', false, sousTotal >= 6000)
 
   console.log('\n--- 5. Variantes ---')
   r = await resolveCartItems([

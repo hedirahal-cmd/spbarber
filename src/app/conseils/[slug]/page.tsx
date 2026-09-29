@@ -390,7 +390,7 @@ export default async function ArticlePage({ params }: Props) {
         {/* CTA */}
         <div className="article-cta-box">
           <p className="article-cta-txt">
-            Les produits mentionnés dans cet article sont disponibles dans notre boutique en ligne — livrés en 48h en France.
+            Les produits mentionnés dans cet article sont disponibles dans notre boutique en ligne — expédiés sous 48h en France.
           </p>
           <Link href="/products" className="article-cta-btn">
             Voir tous les produits <ArrowRight size={14} strokeWidth={2.5} />

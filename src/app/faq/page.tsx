@@ -45,7 +45,7 @@ const FAQS = [
       },
       {
         q: 'La livraison est-elle gratuite ?',
-        a: 'Oui, la livraison est offerte pour toute commande de 49 € ou plus. En dessous, les frais de port sont de 4,90 €.',
+        a: 'Oui, la livraison est offerte pour toute commande de 60 € ou plus. En dessous, les frais de port sont de 5,90 €.',
       },
       {
         q: 'Livrez-vous en dehors de France ?',

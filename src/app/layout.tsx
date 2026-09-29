@@ -39,11 +39,11 @@ const cormorantGaramond = Cormorant_Garamond({
 export const metadata: Metadata = {
   metadataBase: new URL('https://spbarber.fr'),
   title: {
-    default: 'SP Barber — Produits Capillaires Premium pour Hommes | Livraison 48h',
+    default: 'SP Barber — Produits Capillaires Premium pour Hommes | Expédition 48h',
     template: '%s | SP Barber',
   },
   description:
-    'SP Barber — les formules professionnelles des barbiers, livrées chez vous en 48h. Cire cheveux, shampooing colorant, pack barbe, tondeuse. Livraison offerte dès 49€.',
+    'SP Barber — les formules professionnelles des barbiers, expédiées sous 48h. Cire cheveux, shampooing colorant, pack barbe, tondeuse. Livraison offerte dès 60€.',
   keywords: [
     'produits capillaires homme',
     'cire cheveux homme',
@@ -64,7 +64,7 @@ export const metadata: Metadata = {
     siteName: 'SP Barber',
     title: 'SP Barber — Produits Capillaires Premium pour Hommes',
     description:
-      'Les formules professionnelles des barbiers, livrées chez vous en 48h. Livraison offerte dès 49€.',
+      'Les formules professionnelles des barbiers, expédiées sous 48h. Livraison offerte dès 60€.',
     images: [
       {
         url: 'https://spbarber.fr/og-default.jpg',
@@ -77,7 +77,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'SP Barber — Produits Capillaires Premium pour Hommes',
-    description: 'Les formules pro des barbiers, livrées en 48h. Livraison offerte dès 49€.',
+    description: 'Les formules pro des barbiers, expédiées sous 48h. Livraison offerte dès 60€.',
     images: ['https://spbarber.fr/og-default.jpg'],
   },
   robots: {

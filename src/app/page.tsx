@@ -209,7 +209,7 @@ export default async function HomePage() {
         {/* Trust checks */}
         <div className="hero-trust-checks">
           <span className="hero-check-item"><span className="hero-check-v">✓</span> Formules utilisées par les barbiers pros</span>
-          <span className="hero-check-item"><span className="hero-check-v">✓</span> Livraison offerte dès 49€</span>
+          <span className="hero-check-item"><span className="hero-check-v">✓</span> Livraison offerte dès 60€</span>
           <span className="hero-check-item"><span className="hero-check-v">✓</span> Retour 30 jours</span>
         </div>
 
@@ -302,9 +302,7 @@ export default async function HomePage() {
         </Link>
       </div>
       <div className="rea-compact">
-        <div className="rea-c-item"><Truck size={11} strokeWidth={1.8} /> Livraison offerte dès 49€</div>
-        <div className="rea-c-sep">|</div>
-        <div className="rea-c-item"><Gift size={11} strokeWidth={1.8} /> Cadeau dès 70€</div>
+        <div className="rea-c-item"><Truck size={11} strokeWidth={1.8} /> Livraison offerte dès 60€</div>
         <div className="rea-c-sep">|</div>
         <div className="rea-c-item"><RotateCcw size={11} strokeWidth={1.8} /> Retour 30j</div>
         <div className="rea-c-sep">|</div>

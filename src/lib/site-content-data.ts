@@ -15,12 +15,17 @@ export interface SiteContentBlock {
  * Contenu (meme principe que product_overrides pour les produits).
  */
 export const SITE_CONTENT_DEFAULTS: Record<string, SiteContentBlock> = {
-  announcement_bar: { text: 'Livraison offerte dès 49€ · Cadeau offert dès 70€ · Expédition 48h', visible: true },
+  // "Cadeau offert des 70e" retire (2026-09-29, decision Hedi) : mecanisme
+  // jamais reellement en place, reste de la construction du site.
+  announcement_bar: { text: 'Livraison offerte dès 60€ · Expédition 48h', visible: true },
   // "500+" retire (2026-09-28, decision Hedi) : chiffre invente, jamais
   // verifie. Texte neutre tant qu'aucun vrai chiffre n'est renseigne ici.
   home_cta_banner: { text: 'Rejoignez nos clients satisfaits', visible: true },
   trust_securise: { text: 'Sécurisé', visible: true },
-  trust_livraison: { text: 'Livraison 48h', visible: true },
+  // "48h" retire (2026-09-29, decision Hedi) : c'etait le delai d'EXPEDITION,
+  // pas de livraison reelle (3-5 jours ouvres) -- deja le cas pour les
+  // tondeuses, qui ont leur propre repere (tondeuse_delai_livraison).
+  trust_livraison: { text: 'Livraison 3-5 jours', visible: true },
   trust_retour: { text: 'Retour 30j', visible: true },
   trust_france: { text: 'France', visible: true },
   // Textes provisoires -- Hedi les remplacera lui-meme depuis l'onglet Contenu.
@@ -33,7 +38,7 @@ export const SITE_CONTENT_LABELS: Record<string, string> = {
   announcement_bar: 'Bandeau d’annonce (haut de toutes les pages)',
   home_cta_banner: 'Bannière CTA (accueil, "Rejoignez X clients satisfaits")',
   trust_securise: 'Repère fiche produit — Sécurisé',
-  trust_livraison: 'Repère fiche produit — Livraison 48h',
+  trust_livraison: 'Repère fiche produit — Livraison 3-5 jours',
   trust_retour: 'Repère fiche produit — Retour 30 jours',
   trust_france: 'Repère fiche produit — France',
   tondeuse_pourquoi_marque: 'Fiche tondeuse — Pourquoi cette marque',

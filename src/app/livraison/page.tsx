@@ -2,13 +2,13 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 
 export const metadata: Metadata = {
-  title: { absolute: 'Livraison Colissimo — SP Barber | Offerte dès 49€ | France, Belgique, Suisse' },
+  title: { absolute: 'Livraison Colissimo — SP Barber | Offerte dès 60€ | France, Belgique, Suisse' },
   description:
-    'Livraison Colissimo offerte dès 49€. Expédition sous 48h ouvrées, livraison 3-5 jours en France, Belgique, Suisse et Luxembourg. Suivi inclus.',
+    'Livraison Colissimo offerte dès 60€. Expédition sous 48h ouvrées, livraison 3-5 jours en France, Belgique, Suisse et Luxembourg. Suivi inclus.',
   alternates: { canonical: 'https://spbarber.fr/livraison' },
   openGraph: {
-    title: 'Livraison SP Barber — Colissimo Offerte dès 49€',
-    description: 'Livraison Colissimo 3-5 jours. Offerte dès 49€ en France et Belgique.',
+    title: 'Livraison SP Barber — Colissimo Offerte dès 60€',
+    description: 'Livraison Colissimo 3-5 jours. Offerte dès 60€ en France et Belgique.',
     url: 'https://spbarber.fr/livraison',
   },
 }
@@ -21,9 +21,9 @@ export default function LivraisonPage() {
         <h1 className="legal-h1">Livraison</h1>
 
         <section className="legal-section">
-          <h2>Livraison offerte dès 49 €</h2>
+          <h2>Livraison offerte dès 60 €</h2>
           <p>
-            La livraison est <strong>offerte pour toute commande égale ou supérieure à 49 €</strong>. En dessous de ce seuil, les frais de port s&apos;élèvent à 4,90 €.
+            La livraison est <strong>offerte pour toute commande égale ou supérieure à 60 €</strong>. En dessous de ce seuil, les frais de port s&apos;élèvent à 5,90 €, quel que soit le poids du colis.
           </p>
         </section>
 
@@ -35,6 +35,10 @@ export default function LivraisonPage() {
             <li><strong>Livraison :</strong> 3 à 5 jours ouvrés selon le transporteur et la destination.</li>
           </ul>
           <p>Un e-mail de confirmation d&apos;expédition avec numéro de suivi vous est envoyé dès la prise en charge par le transporteur.</p>
+          <p>
+            <strong>Exception tondeuses :</strong> nos tondeuses sont expédiées séparément par notre fournisseur
+            (délai indiqué sur chaque fiche produit, environ 2 semaines).
+          </p>
         </section>
 
         <section className="legal-section">

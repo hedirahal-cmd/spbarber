@@ -50,7 +50,7 @@ export default async function OGImage() {
 
         {/* Badges */}
         <div style={{ display: 'flex', gap: 24 }}>
-          {['Livraison 48h', 'Formules Pro', 'Retour 30j'].map((label) => (
+          {['Expédition 48h', 'Formules Pro', 'Retour 30j'].map((label) => (
             <div
               key={label}
               style={{

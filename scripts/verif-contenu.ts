@@ -160,7 +160,7 @@ async function main() {
 
   console.log('\n--- A. Valeurs par defaut (aucune ligne en base) = copie actuelle du site ---')
   const accueil = await page('/')
-  verifie('bandeau d annonce par defaut present', accueil.includes('Cadeau offert dès 70€'))
+  verifie('bandeau d annonce par defaut present', accueil.includes('Livraison offerte dès 60€ · Expédition 48h'))
   verifie('bannière CTA par defaut presente', accueil.includes('Rejoignez nos clients satisfaits'))
   verifie('ventes de la semaine retiree de la section Produits de l accueil (demande explicite)', !accueil.includes('12 personnes ont acheté cette semaine'))
 
@@ -170,7 +170,7 @@ async function main() {
   verifie('produit 7 (aucun defaut) n affiche aucune vente de la semaine', !zoneProduit7.includes('ont acheté cette semaine'))
 
   const ficheCurl = await page('/products/creme-curl-control')
-  verifie('les 4 reperes de confiance par defaut sont presents', ['Sécurisé', 'Livraison 48h', 'Retour 30j', 'France'].every((t) => ficheCurl.includes(t)))
+  verifie('les 4 reperes de confiance par defaut sont presents', ['Sécurisé', 'Livraison 3-5 jours', 'Retour 30j', 'France'].every((t) => ficheCurl.includes(t)))
   verifie('ventes de la semaine produit 3 (defaut 12) sur la fiche', ficheCurl.includes('12 personnes ont acheté cette semaine'))
 
   const ficheShampNoir = await page('/products/shampooing-noir-colorant')
@@ -181,7 +181,7 @@ async function main() {
   verifie('sauvegarde bandeau => 200', r.statut === 200, 'obtenu ' + r.statut)
   let accueil2 = await page('/')
   verifie('nouveau texte du bandeau applique', accueil2.includes('TEXTE PERSO BANDEAU'))
-  verifie('ancien texte du bandeau disparu', !accueil2.includes('Cadeau offert dès 70€'))
+  verifie('ancien texte du bandeau disparu', !accueil2.includes('Livraison offerte dès 60€ · Expédition 48h'))
 
   r = await putAdmin('/api/admin/site-content', { key: 'home_cta_banner', text: 'Peu importe', visible: false })
   verifie('masquage bannière CTA => 200', r.statut === 200, 'obtenu ' + r.statut)
@@ -219,7 +219,7 @@ async function main() {
   const ficheCire4 = await page('/products/cire-cheveux-premium')
   const zoneTrust = zoneEntre(ficheCire4, 'trust-row', 'fi-details')
   verifie('nouveau texte du repere Livraison applique dans la rangee', zoneTrust.includes('Livraison express 24h'))
-  verifie('ancien texte "Livraison 48h" disparu de la rangee', !zoneTrust.includes('Livraison 48h'))
+  verifie('ancien texte "Livraison 3-5 jours" disparu de la rangee', !zoneTrust.includes('Livraison 3-5 jours'))
   verifie('repere Sécurisé masque (absent de la rangee)', !zoneTrust.includes('Sécurisé'))
   verifie('les 2 reperes non touches restent presents', zoneTrust.includes('Retour 30j') && zoneTrust.includes('France'))
 

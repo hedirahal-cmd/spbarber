@@ -54,7 +54,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   tondeuse: 'Tondeuse',
 }
 
-const FREE_SHIP = 4900
+const FREE_SHIP = 6000
 
 type TondeuseContent = { pourquoiMarque: SiteContentBlock; delaiLivraison: SiteContentBlock; livraisonSeparee: SiteContentBlock } | null
 
@@ -188,12 +188,21 @@ export function ProductDetail({ product, relatedProducts = [], reviews: productR
           )}
           {trustItems.length > 0 && (
             <div className="trust-row">
-              {trustItems.map((item) => (
-                <div className="trust-i" key={item.key}>
-                  {TRUST_ICONS[item.key]}
-                  <span>{item.text}</span>
-                </div>
-              ))}
+              {trustItems.map((item) => {
+                // Le repere "Livraison" est un texte unique partage par tous
+                // les produits (3-5 jours ouvres) -- faux pour les tondeuses
+                // (dropshipping, ~2 semaines) : on le remplace par leur propre
+                // delai reel, deja edite depuis l'onglet Contenu.
+                const texte = item.key === 'trust_livraison' && tondeuseContent?.delaiLivraison.visible && tondeuseContent.delaiLivraison.text
+                  ? tondeuseContent.delaiLivraison.text
+                  : item.text
+                return (
+                  <div className="trust-i" key={item.key}>
+                    {TRUST_ICONS[item.key]}
+                    <span>{texte}</span>
+                  </div>
+                )
+              })}
             </div>
           )}
         </div>
@@ -230,7 +239,7 @@ export function ProductDetail({ product, relatedProducts = [], reviews: productR
 
           <div className="fi-price-block">
             <div className="fi-price">{formatPrice(price)}</div>
-            <div className="fi-price-note">Prix TTC · Livraison offerte dès 49€</div>
+            <div className="fi-price-note">Prix TTC · Livraison offerte dès 60€</div>
           </div>
 
           {/* Variants */}
@@ -296,7 +305,7 @@ export function ProductDetail({ product, relatedProducts = [], reviews: productR
               )}
               <div className="fi-urgence">
                 <Clock size={12} strokeWidth={2} />
-                Commandez avant 16h — livraison le <strong>{tomorrow}</strong>
+                Commandez avant 16h — expédié le <strong>{tomorrow}</strong>
               </div>
             </>
           )}

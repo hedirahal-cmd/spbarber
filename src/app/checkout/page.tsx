@@ -34,8 +34,8 @@ export default function CheckoutPage() {
 
   const cartTotal  = total()
   const count      = itemCount()
-  const isFreeShip = cartTotal >= 4900
-  const colissimo  = isFreeShip ? 0 : 690
+  const isFreeShip = cartTotal >= 6000
+  const colissimo  = isFreeShip ? 0 : 590
 
   function applyCoupon() {
     if (!couponCode.trim()) return
@@ -166,7 +166,7 @@ export default function CheckoutPage() {
             </div>
             {!isFreeShip && (
               <p className="chk-total-hint">
-                Plus que <strong>{euros(4900 - cartTotal)}</strong> pour la livraison offerte
+                Plus que <strong>{euros(6000 - cartTotal)}</strong> pour la livraison offerte
               </p>
             )}
             <div className="chk-total-row chk-total-row--grand">
@@ -202,7 +202,7 @@ export default function CheckoutPage() {
               <Lock size={12} strokeWidth={2} /> Paiement SSL securise
             </div>
             <div className="chk-trust-item">
-              <Truck size={12} strokeWidth={2} /> Colissimo 2-5 jours
+              <Truck size={12} strokeWidth={2} /> Colissimo 3-5 jours ouvrés
             </div>
             <div className="chk-trust-item">
               <RotateCcw size={12} strokeWidth={2} /> Retours 30 jours

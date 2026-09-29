@@ -8,21 +8,12 @@ function getBaseUrl(): string {
   return process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'
 }
 
-const POIDS_PRODUIT: Record<string, number> = {
-  'shampooing-noir-colorant': 300,
-  'creme-curl-control': 200,
-  'peigne-texture-expert': 100,
-  'pack-barbe-complet': 600,
-}
-
-function getColissimoPrice(poidsTotal: number): number {
-  if (poidsTotal <= 250) return 490
-  if (poidsTotal <= 500) return 590
-  if (poidsTotal <= 750) return 690
-  if (poidsTotal <= 1000) return 790
-  if (poidsTotal <= 2000) return 890
-  return 990
-}
+// Forfait fixe unique (2026-09-29, decision Hedi) : remplace l'ancien bareme
+// au poids (POIDS_PRODUIT + getColissimoPrice), qui divergeait du forfait
+// affiche sur le site (4,90e affiche partout, alors que Stripe facturait
+// jusqu'a 9,90e selon le poids reel du panier).
+const SEUIL_LIVRAISON_OFFERTE = 6000
+const FRAIS_PORT = 590
 
 export async function POST(req: NextRequest) {
   try {
@@ -47,15 +38,8 @@ export async function POST(req: NextRequest) {
       (sum, item) => sum + item.unitAmount * item.quantity,
       0,
     )
-    const isFreeShip = subtotal >= 4900
-
-    const poidsTotal = resolved.reduce((sum, item) => {
-      const poids = POIDS_PRODUIT[item.product.slug] ?? 200
-      return sum + poids * item.quantity
-    }, 0)
-
-    const prixStandard = isFreeShip ? 0 : getColissimoPrice(poidsTotal)
-    const prixRetrait = isFreeShip ? 0 : Math.max(0, prixStandard - 100)
+    const isFreeShip = subtotal >= SEUIL_LIVRAISON_OFFERTE
+    const fraisPort = isFreeShip ? 0 : FRAIS_PORT
 
     const libelle = (item: (typeof resolved)[number]) =>
       item.variant ? `${item.product.name} — ${item.variant.name}` : item.product.name
@@ -107,26 +91,13 @@ export async function POST(req: NextRequest) {
         {
           shipping_rate_data: {
             type: 'fixed_amount',
-            fixed_amount: { amount: prixStandard, currency: 'eur' },
+            fixed_amount: { amount: fraisPort, currency: 'eur' },
             display_name: isFreeShip
-              ? 'Colissimo Domicile — Offerte !'
-              : `Colissimo Domicile (2-3 jours ouvrés)`,
+              ? 'Colissimo — Offerte !'
+              : 'Colissimo (3-5 jours ouvrés)',
             delivery_estimate: {
-              minimum: { unit: 'business_day', value: 2 },
-              maximum: { unit: 'business_day', value: 3 },
-            },
-          },
-        },
-        {
-          shipping_rate_data: {
-            type: 'fixed_amount',
-            fixed_amount: { amount: prixRetrait, currency: 'eur' },
-            display_name: isFreeShip
-              ? 'Colissimo Point Retrait — Offert !'
-              : `Colissimo Point Retrait (2-4 jours ouvrés)`,
-            delivery_estimate: {
-              minimum: { unit: 'business_day', value: 2 },
-              maximum: { unit: 'business_day', value: 4 },
+              minimum: { unit: 'business_day', value: 3 },
+              maximum: { unit: 'business_day', value: 5 },
             },
           },
         },

@@ -13,11 +13,11 @@ import { resolveSocialProof } from '@/lib/social-proof'
 export const metadata: Metadata = {
   title: 'Boutique Produits Capillaires Homme — Cire, Shampooing, Kit Barbe',
   description:
-    'Découvrez la gamme complète SP Barber : cire cheveux fixation forte, shampooing colorant noir, crème curl, kit barbe et tondeuse dégradé. Livraison offerte dès 49€.',
+    'Découvrez la gamme complète SP Barber : cire cheveux fixation forte, shampooing colorant noir, crème curl, kit barbe et tondeuse dégradé. Livraison offerte dès 60€.',
   alternates: { canonical: 'https://spbarber.fr/products' },
   openGraph: {
     title: 'Boutique SP Barber — Produits Capillaires Homme Premium',
-    description: 'Cire cheveux, shampooing colorant, kit barbe complet. Formules pro livrées en 48h.',
+    description: 'Cire cheveux, shampooing colorant, kit barbe complet. Formules pro expédiées sous 48h.',
     url: 'https://spbarber.fr/products',
     type: 'website',
   },

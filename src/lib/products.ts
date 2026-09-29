@@ -17,11 +17,11 @@ export const PRODUCTS: Product[] = [
     // commandes deja passees (OrderItemsList resout le nom depuis PRODUCTS).
     actif: false,
     benefit: 'Fixation forte toute la journée',
-    trust: ['Fixation forte 24h', 'Effet naturel & brillance mat', 'Livraison sous 48h', 'Satisfait ou remboursé'],
+    trust: ['Fixation forte 24h', 'Effet naturel & brillance mat', 'Livraison 3-5 jours ouvrés', 'Satisfait ou remboursé'],
     related: ['3', '4'],
     seo_title: 'Cire Cheveux Homme Fixation Forte — SP Barber | Résultat Pro à la Maison',
     seo_description:
-      'Cire cheveux homme fixation forte et brillance naturelle. Formule professionnelle utilisée en salon. Tenue 24h. Livraison offerte dès 49€. Commander maintenant.',
+      'Cire cheveux homme fixation forte et brillance naturelle. Formule professionnelle utilisée en salon. Tenue 24h. Livraison offerte dès 60€. Commander maintenant.',
     created_at: new Date().toISOString(),
   },
   {
@@ -36,11 +36,11 @@ export const PRODUCTS: Product[] = [
     stock: 40,
     is_dropshipping: false,
     benefit: 'Cheveux noirs intenses dès 1 lavage',
-    trust: ['Couleur ravivée en 1 lavage', 'Sans ammoniaque ni peroxyde', 'Livraison sous 48h', 'Satisfait ou remboursé'],
+    trust: ['Couleur ravivée en 1 lavage', 'Sans ammoniaque ni peroxyde', 'Livraison 3-5 jours ouvrés', 'Satisfait ou remboursé'],
     related: ['1', '4'],
     seo_title: 'Shampooing Colorant Noir Homme — SP Barber | Masque les Cheveux Blancs',
     seo_description:
-      'Masquez vos cheveux blancs en quelques lavages. Shampooing colorant noir naturel pour homme. Résultat visible dès la 1ère utilisation. Sans ammoniaque. Livraison 48h.',
+      'Masquez vos cheveux blancs en quelques lavages. Shampooing colorant noir naturel pour homme. Résultat visible dès la 1ère utilisation. Sans ammoniaque. Expédition 48h.',
     created_at: new Date().toISOString(),
   },
   {
@@ -55,11 +55,11 @@ export const PRODUCTS: Product[] = [
     stock: 35,
     is_dropshipping: false,
     benefit: 'Boucles définies sans effet lourd',
-    trust: ['Boucles définies & hydratées', 'Sans résidu, sans alourdissement', 'Livraison sous 48h', 'Satisfait ou remboursé'],
+    trust: ['Boucles définies & hydratées', 'Sans résidu, sans alourdissement', 'Livraison 3-5 jours ouvrés', 'Satisfait ou remboursé'],
     related: ['2', '4'],
     seo_title: 'Crème Curl Cheveux Bouclés Homme — SP Barber | Boucles Définies Sans Résidu',
     seo_description:
-      'Crème coiffante curl pour cheveux bouclés et frisés homme. Boucles définies, hydratation longue durée, sans résidu ni alourdissement. Livraison offerte dès 49€.',
+      'Crème coiffante curl pour cheveux bouclés et frisés homme. Boucles définies, hydratation longue durée, sans résidu ni alourdissement. Livraison offerte dès 60€.',
     created_at: new Date().toISOString(),
   },
   {
@@ -74,11 +74,11 @@ export const PRODUCTS: Product[] = [
     stock: 80,
     is_dropshipping: false,
     benefit: 'Précision pro — dents anti-casse',
-    trust: ['Dents renforcées anti-casse', 'Idéal cheveux épais & texturés', 'Livraison sous 48h', 'Satisfait ou remboursé'],
+    trust: ['Dents renforcées anti-casse', 'Idéal cheveux épais & texturés', 'Livraison 3-5 jours ouvrés', 'Satisfait ou remboursé'],
     related: ['1', '3'],
     seo_title: 'Peigne Homme Professionnel SP Barber | Texture Expert Dents Anti-Casse',
     seo_description:
-      'Peigne texture expert professionnel pour homme. Dents larges anti-casse, idéal cheveux épais et texturés. Précision salon à la maison. Livraison offerte dès 49€.',
+      'Peigne texture expert professionnel pour homme. Dents larges anti-casse, idéal cheveux épais et texturés. Précision salon à la maison. Livraison offerte dès 60€.',
     created_at: new Date().toISOString(),
   },
   {
@@ -96,7 +96,7 @@ export const PRODUCTS: Product[] = [
     // des 5 articles du pack n'existe comme produit vendu separement dans le
     // catalogue, ce prix de reference n'a donc jamais ete reellement pratique.
     benefit: '5 essentiels pour une barbe impeccable',
-    trust: ['5 produits complémentaires inclus', 'Formulé par des barbiers pro', 'Livraison sous 48h', 'Satisfait ou remboursé'],
+    trust: ['5 produits complémentaires inclus', 'Formulé par des barbiers pro', 'Livraison 3-5 jours ouvrés', 'Satisfait ou remboursé'],
     related: ['1', '4'],
     seo_title: 'Pack Barbe Complet Homme — SP Barber | Kit 5 Produits Soin Barbe',
     seo_description:
@@ -122,7 +122,7 @@ export const PRODUCTS: Product[] = [
     actif: false,
     dsers_url: 'https://www.dsers.com',
     benefit: 'Dégradé pro — lames japonaises',
-    trust: ['Lames acier japonais inoxydables', 'Dégradé précis comme en salon', 'Livraison sous 48h', 'Satisfait ou remboursé'],
+    trust: ['Lames acier japonais inoxydables', 'Dégradé précis comme en salon', 'Livraison sous 2 semaines', 'Satisfait ou remboursé'],
     related: ['4', '1'],
     variants: [
       { id: '6a', name: 'Standard — 79,90€', price: 7990, stock: 999 },
@@ -146,11 +146,11 @@ export const PRODUCTS: Product[] = [
     stock: 45,
     is_dropshipping: false,
     benefit: 'Volume & grip instantanés',
-    trust: ['Volume instantané dès la racine', 'Effet mat naturel longue tenue', 'Livraison sous 48h', 'Satisfait ou remboursé'],
+    trust: ['Volume instantané dès la racine', 'Effet mat naturel longue tenue', 'Livraison 3-5 jours ouvrés', 'Satisfait ou remboursé'],
     related: ['1', '3'],
     seo_title: 'Poudre Texturante Cheveux Homme — SP Barber | Volume & Grip Mat',
     seo_description:
-      'Poudre texturante homme pour volume et grip mat instantanés. Formule légère, idéale cheveux fins. Résultat salon à la maison. Livraison offerte dès 49€.',
+      'Poudre texturante homme pour volume et grip mat instantanés. Formule légère, idéale cheveux fins. Résultat salon à la maison. Livraison offerte dès 60€.',
     created_at: new Date().toISOString(),
   },
   {
@@ -177,7 +177,7 @@ export const PRODUCTS: Product[] = [
     // seul, jamais a exposer publiquement : https://fr.aliexpress.com/item/1005006825951304.html
     actif: false,
     benefit: 'Lames titane, 90 min d\'autonomie',
-    trust: ['Lames titane précises', 'Usage à sec ou sous la douche', 'Livraison sous 48h', 'Satisfait ou remboursé'],
+    trust: ['Lames titane précises', 'Usage à sec ou sous la douche', 'Livraison sous 2 semaines', 'Satisfait ou remboursé'],
     seo_title: 'Tondeuse BRDCLIP FA1T — SP Barber | Lames Titane, Sans Fil',
     seo_description:
       'Tondeuse cheveux sans fil BRDCLIP FA1T. Lames titane, autonomie 90 min, usage sec ou humide. Embouts interchangeables 0,5 à 5 mm.',
@@ -203,7 +203,7 @@ export const PRODUCTS: Product[] = [
     // jamais a exposer publiquement : https://fr.aliexpress.com/item/1005008348243648.html
     actif: false,
     benefit: 'Lame DLC zéro écart, écran LED',
-    trust: ['Coupe nette sans tiraillement', 'Écran LED de charge', 'Livraison sous 48h', 'Satisfait ou remboursé'],
+    trust: ['Coupe nette sans tiraillement', 'Écran LED de charge', 'Livraison sous 2 semaines', 'Satisfait ou remboursé'],
     seo_title: 'Tondeuse Kemei KM-999 — SP Barber | Lame DLC, Écran LED',
     seo_description:
       'Tondeuse cheveux sans fil Kemei KM-999. Lame DLC zéro écart, écran LED de charge, batterie 1500 mAh. Recharge USB rapide.',

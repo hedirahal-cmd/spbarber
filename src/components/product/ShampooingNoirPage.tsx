@@ -19,7 +19,7 @@ import { ReviewForm } from '@/components/ReviewForm'
 
 type Product = (typeof PRODUCTS)[0]
 
-const FREE_SHIP = 4900
+const FREE_SHIP = 6000
 
 function ProductIcon({ productId, size = 40 }: { productId: string; size?: number }) {
   if (productId === '1') return <Scissors   size={size} strokeWidth={1.2} />
@@ -195,7 +195,7 @@ export function ShampooingNoirPage({ product, relatedProducts = [], reviews: pro
 
           <div className="sn-price-block">
             <div className="sn-price">{formatPrice(product.price)}</div>
-            <div className="sn-price-note">Prix TTC · Livraison offerte dès 49€</div>
+            <div className="sn-price-note">Prix TTC · Livraison offerte dès 60€</div>
           </div>
 
           <div className="sn-check-list">
@@ -209,7 +209,7 @@ export function ShampooingNoirPage({ product, relatedProducts = [], reviews: pro
 
           <div className="sn-stock">
             <CheckCircle2 size={13} strokeWidth={2} />
-            En stock — Commandez avant 16h, livraison {tomorrow}
+            En stock — Commandez avant 16h, expédié {tomorrow}
           </div>
 
           <button

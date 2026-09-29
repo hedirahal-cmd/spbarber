@@ -92,7 +92,7 @@ export default function ConseilsPage() {
       {/* CTA boutique */}
       <div className="blog-cta-strip">
         <p className="blog-cta-txt">
-          Les produits recommandés dans nos articles, livrés en 48h
+          Les produits recommandés dans nos articles, expédiés sous 48h
         </p>
         <Link href="/products" className="blog-cta-btn">
           Voir la boutique <ArrowRight size={14} strokeWidth={2.5} />

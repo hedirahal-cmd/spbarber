@@ -81,7 +81,7 @@ export default async function CGVPage() {
             Les prix sont indiqués en euros (€), toutes taxes comprises (TTC). La TVA applicable est la TVA française en vigueur au jour de la commande.
           </p>
           <p>
-            Les frais de livraison sont indiqués séparément lors du processus de commande et sont à la charge du Client, sauf offre promotionnelle en cours (livraison offerte à partir de 49 € d&apos;achat).
+            Les frais de livraison sont indiqués séparément lors du processus de commande et sont à la charge du Client, sauf offre promotionnelle en cours (livraison offerte à partir de 60 € d&apos;achat).
           </p>
           <p>
             Le Vendeur se réserve le droit de modifier ses prix à tout moment, étant entendu que le prix applicable est celui affiché sur le Site au moment de la validation de la commande par le Client.
@@ -134,7 +134,7 @@ export default async function CGVPage() {
             <strong>Délais :</strong> Les commandes sont traitées et expédiées sous 24 à 48 heures ouvrées après confirmation du paiement. La livraison est ensuite effectuée sous 3 à 5 jours ouvrés selon le transporteur.
           </p>
           <p>
-            <strong>Frais de livraison :</strong> Offerts pour toute commande égale ou supérieure à 49 €. En dessous de ce seuil, les frais de port sont indiqués lors de la commande.
+            <strong>Frais de livraison :</strong> Offerts pour toute commande égale ou supérieure à 60 €. En dessous de ce seuil, les frais de port sont indiqués lors de la commande.
           </p>
           <p>
             <strong>Suivi :</strong> Un e-mail de confirmation d&apos;expédition avec numéro de suivi est envoyé au Client dès l&apos;envoi du colis.

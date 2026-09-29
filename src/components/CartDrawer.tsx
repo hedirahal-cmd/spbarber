@@ -10,8 +10,8 @@ import { formatPrice } from '@/lib/utils'
 import { getSessionId } from '@/lib/session'
 import type { Product } from '@/types'
 
-const FREE_SHIP = 4900
-const FREE_GIFT = 7000
+const FREE_SHIP = 6000
+const SHIPPING_FEE = 590
 
 function euros(cents: number) {
   return (cents / 100).toFixed(2).replace('.', ',') + ' €'
@@ -42,7 +42,7 @@ export function CartDrawer({ products = [] }: { products?: Product[] }) {
 
   const cartTotal   = total()
   const count       = itemCount()
-  const shippingFee = cartTotal >= FREE_SHIP ? 0 : 490
+  const shippingFee = cartTotal >= FREE_SHIP ? 0 : SHIPPING_FEE
   const grandTotal  = cartTotal + shippingFee
 
   /* Fermeture Échap */
@@ -90,15 +90,11 @@ export function CartDrawer({ products = [] }: { products?: Product[] }) {
   let progDone = false
 
   if (count === 0) {
-    progMsg = <>Ajoutez un produit pour la <strong>livraison offerte dès 49 €</strong></>
+    progMsg = <>Ajoutez un produit pour la <strong>livraison offerte dès 60 €</strong></>
     progPct = 0
-  } else if (cartTotal >= FREE_GIFT) {
-    progMsg = <><strong>Livraison offerte + Cadeau inclus !</strong></>
-    progPct = 100; progDone = true
   } else if (cartTotal >= FREE_SHIP) {
-    progMsg = <><strong>Livraison offerte !</strong> Plus que <strong>{euros(FREE_GIFT - cartTotal)}</strong> pour un cadeau</>
-    progPct = ((cartTotal - FREE_SHIP) / (FREE_GIFT - FREE_SHIP)) * 100
-    progDone = true
+    progMsg = <><strong>Livraison offerte !</strong></>
+    progPct = 100; progDone = true
   } else {
     progMsg = <>Plus que <strong>{euros(FREE_SHIP - cartTotal)}</strong> pour la livraison offerte</>
     progPct = (cartTotal / FREE_SHIP) * 100
