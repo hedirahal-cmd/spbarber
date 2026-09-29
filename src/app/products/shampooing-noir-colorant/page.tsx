@@ -7,7 +7,7 @@ import { PRODUCTS } from '@/lib/products'
 import { ShampooingNoirPage } from '@/components/product/ShampooingNoirPage'
 import { schemaProduct, schemaBreadcrumb, jsonLd } from '@/lib/schema'
 import { supabase, supabaseAdmin } from '@/lib/supabase'
-import { toReviewDisplay, type ReviewDisplay } from '@/lib/reviews'
+import { toReviewDisplay, summarizeReviews, type ReviewDisplay } from '@/lib/reviews'
 import { resolveSocialProof } from '@/lib/social-proof'
 import type { BeforeAfterImage } from '@/components/product/BeforeAfterSlider'
 import { applyOverride } from '@/lib/product-overrides'
@@ -122,7 +122,7 @@ export default async function ShampooingNoirRoute() {
 
   const socialProof = resolveSocialProof('2', socialProofOverride)
   const productReviews = await getProductReviews('2')
-  const productSchema = schemaProduct(product)
+  const productSchema = schemaProduct(product, summarizeReviews(productReviews))
   const breadcrumbSchema = schemaBreadcrumb([
     { name: 'Accueil', url: 'https://spbarber.fr' },
     { name: 'Boutique', url: 'https://spbarber.fr/products' },

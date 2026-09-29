@@ -16,7 +16,9 @@ export interface SiteContentBlock {
  */
 export const SITE_CONTENT_DEFAULTS: Record<string, SiteContentBlock> = {
   announcement_bar: { text: 'Livraison offerte dès 49€ · Cadeau offert dès 70€ · Expédition 48h', visible: true },
-  home_cta_banner: { text: 'Rejoignez 500+ clients satisfaits', visible: true },
+  // "500+" retire (2026-09-28, decision Hedi) : chiffre invente, jamais
+  // verifie. Texte neutre tant qu'aucun vrai chiffre n'est renseigne ici.
+  home_cta_banner: { text: 'Rejoignez nos clients satisfaits', visible: true },
   trust_securise: { text: 'Sécurisé', visible: true },
   trust_livraison: { text: 'Livraison 48h', visible: true },
   trust_retour: { text: 'Retour 30j', visible: true },

@@ -86,18 +86,21 @@ export const PRODUCTS: Product[] = [
     name: 'Pack Barbe Complet',
     slug: 'pack-barbe-complet',
     description:
-      'Le Pack Barbe Complet SP Barber réunit tout ce qu\'il faut pour entretenir et sublimer sa barbe au quotidien. Ce kit barbe homme de 5 essentiels inclut huile de barbe nourrissante, baume de barbe coiffant, peigne barbe, ciseaux de précision et shampooing barbe. Formulés par des barbiers professionnels de Fougères, ces produits soin barbe homme offrent un résultat visible dès la première utilisation : barbe douce, hydratée, bien coiffée et parfaitement entretenue. Un cadeau idéal pour homme ou une mise à niveau complète de votre routine barbe. Valeur totale 85€, économisez 35€ avec ce pack exclusif.',
+      'Le Pack Barbe Complet SP Barber réunit tout ce qu\'il faut pour entretenir et sublimer sa barbe au quotidien. Ce kit barbe homme de 5 essentiels inclut huile de barbe nourrissante, baume de barbe coiffant, peigne barbe, ciseaux de précision et shampooing barbe. Formulés par des barbiers professionnels de Fougères, ces produits soin barbe homme offrent un résultat visible dès la première utilisation : barbe douce, hydratée, bien coiffée et parfaitement entretenue. Un cadeau idéal pour homme ou une mise à niveau complète de votre routine barbe.',
     price: 4990,
     images: [{ url: '/images/products/pack-barbe.jpg', alt: "Pack Barbe Complet SP Barber avec 5 produits d'entretien" }],
     category: 'barbe',
     stock: 25,
     is_dropshipping: false,
-    benefit: '5 essentiels barbe — économisez 35€',
-    trust: ['5 produits complémentaires inclus', 'Valeur 85€ — vous économisez 35€', 'Livraison sous 48h', 'Satisfait ou remboursé'],
+    // "Valeur 85e, economisez 35e" retire (2026-09-28, decision Hedi) : aucun
+    // des 5 articles du pack n'existe comme produit vendu separement dans le
+    // catalogue, ce prix de reference n'a donc jamais ete reellement pratique.
+    benefit: '5 essentiels pour une barbe impeccable',
+    trust: ['5 produits complémentaires inclus', 'Formulé par des barbiers pro', 'Livraison sous 48h', 'Satisfait ou remboursé'],
     related: ['1', '4'],
     seo_title: 'Pack Barbe Complet Homme — SP Barber | Kit 5 Produits Soin Barbe',
     seo_description:
-      'Kit barbe complet pour homme : 5 essentiels inclus. Valeur 85€, économisez 35€. Huile, baume, peigne, ciseaux, shampooing barbe. Livraison offerte. Idéal cadeau.',
+      'Kit barbe complet pour homme : 5 essentiels inclus. Huile, baume, peigne, ciseaux, shampooing barbe. Livraison offerte. Idéal cadeau.',
     created_at: new Date().toISOString(),
   },
   {

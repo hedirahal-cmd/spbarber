@@ -52,6 +52,17 @@ export function resolveProductNames(ids: unknown): string {
  * Un seul mappage, pour que les deux endroits restent coherents (etoiles
  * reelles, badge verifie reel -- pas les valeurs figees d'avant ce bloc).
  */
+/**
+ * Resume (note moyenne + total) calcule depuis de vrais avis, pour le JSON-LD
+ * AggregateRating -- jamais une valeur par defaut inventee. null si aucun
+ * avis, pour que l'appelant omette purement et simplement le champ.
+ */
+export function summarizeReviews(reviews: ReviewDisplay[]): { count: number; rating: string } | null {
+  if (reviews.length === 0) return null
+  const moyenne = reviews.reduce((s, r) => s + r.rating, 0) / reviews.length
+  return { count: reviews.length, rating: moyenne.toFixed(1) }
+}
+
 export function toReviewDisplay(r: Record<string, unknown>): ReviewDisplay {
   const author = (r.author as string) ?? ''
   const productIds = r.product_ids

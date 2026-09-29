@@ -7,7 +7,7 @@ import { PRODUCTS } from '@/lib/products'
 import { ProductDetail } from '@/components/product/ProductDetail'
 import { schemaProduct, schemaBreadcrumb, jsonLd } from '@/lib/schema'
 import { supabase, supabaseAdmin } from '@/lib/supabase'
-import { toReviewDisplay, type ReviewDisplay } from '@/lib/reviews'
+import { toReviewDisplay, summarizeReviews, type ReviewDisplay } from '@/lib/reviews'
 import { getSiteContent, getTrustItems } from '@/lib/site-content'
 import { resolveSocialProof } from '@/lib/social-proof'
 import { applyOverride } from '@/lib/product-overrides'
@@ -129,7 +129,7 @@ export default async function ProductPage({ params }: Props) {
     livraisonSeparee: siteContent.tondeuse_livraison_separee,
   } : null
   const socialProof     = resolveSocialProof(product.id, socialProofOverride)
-  const productSchema   = schemaProduct(product)
+  const productSchema   = schemaProduct(product, summarizeReviews(productReviews))
   const breadcrumbSchema = schemaBreadcrumb([
     { name: 'Accueil', url: 'https://spbarber.fr' },
     { name: 'Boutique', url: 'https://spbarber.fr/products' },

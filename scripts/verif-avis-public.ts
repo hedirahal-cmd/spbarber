@@ -173,12 +173,16 @@ async function main() {
   const zoneTotal = accueil.slice(accueil.indexOf('h-rev-total'), accueil.indexOf('h-rev-total') + 80)
   verifie('le compte reel (3) est affiche dans le resume, pas "500+"', zoneTotal.includes('-->3<!--') && !zoneTotal.includes('500'))
 
-  console.log('\n--- H. Accueil sans aucun vrai avis : repli sur les avis de secours ---')
+  console.log('\n--- H. Accueil sans aucun vrai avis : etat vide honnete, pas de repli fictif ---')
   reviews = []
   const accueilVide = await (await fetch(base() + '/')).text()
   verifie(
-    'repli sur les avis de secours (note 5,0, 5 avis)',
-    accueilVide.includes('5,0') && accueilVide.includes('Basé sur') && accueilVide.includes('-->5<!--'),
+    'aucune moyenne/total invente (pas de resume "Basé sur X avis")',
+    !accueilVide.includes('Basé sur'),
+  )
+  verifie(
+    'invitation a laisser le premier avis, pas de faux temoignage',
+    accueilVide.includes('premier') && !accueilVide.includes('Achat vérifié'),
   )
 
   console.log('\n=======================================')

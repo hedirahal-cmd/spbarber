@@ -178,8 +178,8 @@ const ARTICLES: Record<string, {
           Pour ceux qui souhaitent une solution clé en main, notre{' '}
           <Link href="/products/pack-barbe-complet">Pack Barbe Complet SP Barber</Link> regroupe
           les 5 essentiels sélectionnés par nos barbiers : huile, baume, shampooing, peigne et ciseaux
-          de précision. C&apos;est le <strong>kit barbe homme complet</strong> le mieux noté de notre
-          boutique, avec plus de 310 avis 5 étoiles.
+          de précision. C&apos;est le <strong>kit barbe homme complet</strong> le plus pratique de notre
+          boutique pour une routine barbe clé en main.
         </p>
 
         <h2>Tableau comparatif : quel produit choisir ?</h2>

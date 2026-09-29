@@ -1864,8 +1864,6 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
   .legal-table th, .legal-table td { padding: 7px 9px; }
 }
 
-/* ─ Badge Forte marge ─ */
-.pc-tag-fm { position: absolute; top: 12px; left: 12px; background: #c0392b; color: #fff; font-size: 8px; letter-spacing: 2px; text-transform: uppercase; font-weight: 700; padding: 4px 10px; }
 .best2-badge-fm { position: absolute; top: 14px; left: 14px; z-index: 2; background: #c0392b; color: var(--w); font-size: 8px; letter-spacing: 2px; text-transform: uppercase; font-weight: 700; padding: 5px 12px; }
 
 /* ─ Bestsellers duo ─ */

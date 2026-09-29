@@ -94,15 +94,13 @@ export function schemaOrganizationLocal() {
   }
 }
 
-const PRODUCT_REVIEWS: Record<string, { count: number; rating: string }> = {
-  '2': { count: 87, rating: '4.8' },
-  '3': { count: 53, rating: '4.7' },
-  '4': { count: 31, rating: '4.9' },
-  '5': { count: 312, rating: '5.0' },
-}
-
-export function schemaProduct(product: Product) {
-  const reviews = PRODUCT_REVIEWS[product.id] ?? { count: 12, rating: '4.8' }
+/**
+ * `reviewSummary` vient des vrais avis (table `reviews`), calcule par
+ * l'appelant -- jamais invente ici. Absent ou count:0, `aggregateRating` est
+ * omis plutot que rempli d'un chiffre par defaut (meme principe que
+ * schemaSalon ci-dessous pour note_google/nombre_avis).
+ */
+export function schemaProduct(product: Product, reviewSummary?: { count: number; rating: string } | null) {
   const price = ((product.variants?.[0]?.price ?? product.price) / 100).toFixed(2)
 
   return {
@@ -164,13 +162,15 @@ export function schemaProduct(product: Product) {
         },
       },
     },
-    aggregateRating: {
-      '@type': 'AggregateRating',
-      ratingValue: reviews.rating,
-      reviewCount: reviews.count,
-      bestRating: '5',
-      worstRating: '1',
-    },
+    ...(reviewSummary && reviewSummary.count > 0 ? {
+      aggregateRating: {
+        '@type': 'AggregateRating',
+        ratingValue: reviewSummary.rating,
+        reviewCount: reviewSummary.count,
+        bestRating: '5',
+        worstRating: '1',
+      },
+    } : {}),
   }
 }
 

@@ -17,6 +17,9 @@ export interface Barber {
   created_at?: string
 }
 
+// Karim M. et David L. retires (2026-09-28, decision Hedi) : contenu de
+// demonstration reste en base par erreur, jamais de vraies fiches. Samy P.
+// est le seul barbier reel a ce jour.
 export const DEFAULT_BARBERS: Barber[] = [
   {
     id: '1', slug: 'samy-p', nom: 'Samy P.', initiales: 'SP', couleur_avatar: '#1a3a5c', photo_url: null,
@@ -24,19 +27,5 @@ export const DEFAULT_BARBERS: Barber[] = [
     description: '"Le dégradé, c\'est ma signature — précision au millimètre, fini net à chaque coupe."',
     annees_experience: 8, produit_favori_slug: null, produit_favori_nom: null,
     actif: true, ordre: 1,
-  },
-  {
-    id: '2', slug: 'karim-m', nom: 'Karim M.', initiales: 'KM', couleur_avatar: '#4a1a6b', photo_url: null,
-    salon_slug: 'fougeres', ville: 'Fougères', specialite: 'Coupe Classique & Barbe',
-    description: '"Le Pack Barbe, c\'est exactement ce que je recommande à mes clients qui veulent entretenir leur barbe à la maison comme en salon."',
-    annees_experience: 5, produit_favori_slug: 'pack-barbe-complet', produit_favori_nom: 'Pack Barbe Complet',
-    actif: true, ordre: 2,
-  },
-  {
-    id: '3', slug: 'david-l', nom: 'David L.', initiales: 'DL', couleur_avatar: '#1a5c3a', photo_url: null,
-    salon_slug: 'ernee', ville: 'Ernée', specialite: 'Dégradé & Coloration',
-    description: '"Le Shampooing Noir est parfait pour raviver la couleur entre deux coupes. Aucun client ne revient sans vouloir en racheter."',
-    annees_experience: 4, produit_favori_slug: 'shampooing-noir-colorant', produit_favori_nom: 'Shampooing Noir Colorant',
-    actif: true, ordre: 3,
   },
 ]

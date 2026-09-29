@@ -17,7 +17,13 @@ export function ReviewsList({
   emptyMessage?: string
 }) {
   if (reviews.length === 0) {
-    return emptyMessage ? <p style={{ fontSize: 13, opacity: 0.6, margin: 0 }}>{emptyMessage}</p> : null
+    // variant "home" vit sur un fond sombre (.h-reviews) -- le texte par
+    // defaut (couleur du body, sombre) y serait quasi invisible ; ce chemin
+    // n'a jamais ete visuellement verifie avant que le repli sur de faux avis
+    // soit retire (reviews.length n'etait alors jamais vide sur l'accueil).
+    return emptyMessage
+      ? <p style={{ fontSize: 13, opacity: 0.6, margin: 0, color: variant === 'home' ? 'rgba(248,246,243,.9)' : undefined }}>{emptyMessage}</p>
+      : null
   }
 
   if (variant === 'product') {

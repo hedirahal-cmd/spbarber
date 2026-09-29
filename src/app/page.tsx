@@ -45,10 +45,11 @@ type TemoPro = {
   produit_favori_slug: string | null; produit_favori_nom: string | null
 }
 
+// Karim M. et David L. retires (2026-09-28, decision Hedi) : contenu de
+// demonstration reste en base par erreur, jamais de vraies fiches. Samy P.
+// est le seul temoignage reel a ce jour.
 const DEFAULT_TEMOS_PROS: TemoPro[] = [
   { id: '1', nom: 'Samy P.', initiales: 'SP', couleur_avatar: '#1a3a5c', photo_url: null, salon: 'SP Barber Shop', ville: 'Fougères', annees_experience: 8, citation: 'Le dégradé, c\'est ma signature — précision au millimètre, fini net à chaque coupe.', produit_favori_slug: null, produit_favori_nom: null },
-  { id: '2', nom: 'Karim M.', initiales: 'KM', couleur_avatar: '#4a1a6b', photo_url: null, salon: 'Barber King', ville: 'Fougères', annees_experience: 5, citation: 'Le Pack Barbe, c\'est exactement ce que je recommande à mes clients qui veulent entretenir leur barbe à la maison comme en salon.', produit_favori_slug: 'pack-barbe-complet', produit_favori_nom: 'Pack Barbe Complet' },
-  { id: '3', nom: 'David L.', initiales: 'DL', couleur_avatar: '#1a5c3a', photo_url: null, salon: 'SP Barbershop', ville: 'Ernée', annees_experience: 4, citation: 'Le Shampooing Noir est parfait pour raviver la couleur entre deux coupes. Aucun client ne revient sans vouloir en racheter.', produit_favori_slug: 'shampooing-noir-colorant', produit_favori_nom: 'Shampooing Noir Colorant' },
 ]
 
 async function getTemoignagesPros(): Promise<TemoPro[]> {
@@ -106,27 +107,14 @@ const CATEGORY_LABELS: Record<string, string> = {
   tondeuse: 'Tondeuse',
 }
 
-// Avis de secours affiches tant qu'il n'y a pas assez de vrais avis approuves
-// (bloc B) -- garde volontairement rating/verified explicites plutot que de
-// laisser ReviewsList inventer une valeur par defaut pour ce cas precis.
-const REVIEWS: ReviewDisplay[] = [
-  { id: 'seed-2', text: `"Le pack barbe est parfait. Qualité vraiment pro, rien à voir avec la grande surface."`, name: 'Amélie D.', initials: 'AD', color: '#8a3a5a', product: 'Pack Barbe Complet', date: 'Avr 2025', rating: 5, verified: true },
-  { id: 'seed-3', text: `"La crème curl définit mes boucles sans les alourdir. Enfin un vrai produit pour cheveux texturés !"`, name: 'Marcus T.', initials: 'MT', color: '#3a8a5a', product: 'Crème Curl', date: 'Mar 2025', rating: 5, verified: true },
-  { id: 'seed-4', text: `"Le shampooing noir a vraiment ravivé ma couleur. Résultat bluffant dès la première utilisation."`, name: 'Thierry M.', initials: 'TM', color: '#5a3a8a', product: 'Shampooing Noir', date: 'Mai 2025', rating: 5, verified: true },
-  { id: 'seed-5', text: `"Cadeau parfait pour mon frère. La présentation est soignée et les produits sont top qualité."`, name: 'Sarah L.', initials: 'SL', color: '#8a6a3a', product: 'Pack Barbe Complet', date: 'Avr 2025', rating: 5, verified: true },
-  { id: 'seed-6', text: `"J'utilise l'huile de barbe tous les matins. Ma barbe est beaucoup plus douce et brillante."`, name: 'Youssef A.', initials: 'YA', color: '#3a7a8a', product: 'Huile de Barbe', date: 'Mar 2025', rating: 5, verified: true },
-]
-
-
 export default async function HomePage() {
   const salons           = await getSalons()
   const temos            = await getTemoignagesPros()
-  const reviewsDb        = await getReviews()
-  const reviews          = reviewsDb.length > 0 ? reviewsDb : REVIEWS
-  // Meme logique que le resume par produit (ProductDetail) : calcule depuis
-  // les avis reellement affiches, plus de "4,9 / 500+ avis" invente. `reviews`
-  // n'est jamais vide ici (repli sur REVIEWS), donc pas d'etat vide a gerer.
-  const avgRating        = reviews.reduce((s, r) => s + r.rating, 0) / reviews.length
+  const reviews          = await getReviews()
+  // Calcule depuis les vrais avis affiches, plus de "4,9 / 500+ avis" invente.
+  // `reviews` peut etre vide (aucun repli fictif) : pas de division par zero.
+  const hasReviews       = reviews.length > 0
+  const avgRating        = hasReviews ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length : 0
   const avgRatingLabel   = avgRating.toFixed(1).replace('.', ',')
   const overrides        = await getProductOverrides()
   const siteContent      = await getSiteContent()
@@ -161,12 +149,16 @@ export default async function HomePage() {
 
         {/* Social proof */}
         <div className="hero-proof-bar">
-          <span className="hero-proof-item">
-            <span className="hero-proof-star">★★★★★</span> 4,9/5
-          </span>
-          <span className="hero-proof-sep">·</span>
-          <span className="hero-proof-item">+500 avis vérifiés</span>
-          <span className="hero-proof-sep">·</span>
+          {hasReviews && (
+            <>
+              <span className="hero-proof-item">
+                <span className="hero-proof-star">{'★'.repeat(Math.round(avgRating))}</span> {avgRatingLabel}/5
+              </span>
+              <span className="hero-proof-sep">·</span>
+              <span className="hero-proof-item">+{reviews.length} avis clients</span>
+              <span className="hero-proof-sep">·</span>
+            </>
+          )}
           <span className="hero-proof-item">Utilisé par les pros</span>
         </div>
 
@@ -414,14 +406,16 @@ export default async function HomePage() {
             <h2 className="sec-title">AVIS CLIENTS</h2>
           </div>
         </div>
-        <div className="h-rev-summary">
-          <div className="h-rev-avg">{avgRatingLabel}</div>
-          <div>
-            <div className="h-rev-stars-big">{'★'.repeat(Math.round(avgRating))}</div>
-            <div className="h-rev-total">Basé sur {reviews.length} avis</div>
+        {hasReviews && (
+          <div className="h-rev-summary">
+            <div className="h-rev-avg">{avgRatingLabel}</div>
+            <div>
+              <div className="h-rev-stars-big">{'★'.repeat(Math.round(avgRating))}</div>
+              <div className="h-rev-total">Basé sur {reviews.length} avis</div>
+            </div>
           </div>
-        </div>
-        <ReviewsList reviews={reviews} variant="home" />
+        )}
+        <ReviewsList reviews={reviews} variant="home" emptyMessage="Aucun avis pour le moment — soyez le premier à en laisser un." />
       </section>
 
       {/* ── STICKY MOBILE ── */}
