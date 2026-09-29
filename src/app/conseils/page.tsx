@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { ArrowRight, Clock, Scissors, User, Droplets } from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: 'Conseils Coiffure Homme — SP Barber | Guides et Astuces Barbier',
+  title: { absolute: 'Conseils Coiffure Homme — SP Barber | Guides et Astuces Barbier' },
   description:
     'Conseils coiffure homme, astuces barbe et guides produits par les barbiers SP Barber de Fougères. Apprenez à coiffer comme un pro à la maison.',
   alternates: { canonical: 'https://spbarber.fr/conseils' },

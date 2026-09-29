@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase'
 export const revalidate = 60
 
 export const metadata: Metadata = {
-  title: 'Conditions Générales de Vente — SP Barber',
+  title: { absolute: 'Conditions Générales de Vente — SP Barber' },
   description: 'Conditions générales de vente de la boutique en ligne SP Barber. Mentions légales, paiement, livraison et retours.',
   alternates: { canonical: 'https://spbarber.fr/cgv' },
   robots: { index: false },

@@ -302,7 +302,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const url = `https://spbarber.fr/conseils/${slug}`
   return {
-    title: article.seoTitle,
+    title: { absolute: article.seoTitle },
     description: article.description,
     alternates: { canonical: url },
     openGraph: {

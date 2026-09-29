@@ -45,7 +45,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const description = BASE_PRODUCT.seo_description ?? BASE_PRODUCT.description
 
   return {
-    title,
+    title: { absolute: title },
     description,
     alternates: { canonical: 'https://spbarber.fr/products/shampooing-noir-colorant' },
     openGraph: {

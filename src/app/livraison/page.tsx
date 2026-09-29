@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 
 export const metadata: Metadata = {
-  title: 'Livraison Colissimo — SP Barber | Offerte dès 49€ | France, Belgique, Suisse',
+  title: { absolute: 'Livraison Colissimo — SP Barber | Offerte dès 49€ | France, Belgique, Suisse' },
   description:
     'Livraison Colissimo offerte dès 49€. Expédition sous 48h ouvrées, livraison 3-5 jours en France, Belgique, Suisse et Luxembourg. Suivi inclus.',
   alternates: { canonical: 'https://spbarber.fr/livraison' },

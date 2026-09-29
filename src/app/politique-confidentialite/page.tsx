@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 
 export const metadata: Metadata = {
-  title: 'Politique de Confidentialité — SP Barber',
+  title: { absolute: 'Politique de Confidentialité — SP Barber' },
   description: 'Politique de confidentialité et RGPD de SP Barber.',
 }
 

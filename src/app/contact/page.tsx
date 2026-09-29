@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 
 export const metadata: Metadata = {
-  title: 'Contact SP Barber — Barbier Fougères 35300 | Réponse sous 24h',
+  title: { absolute: 'Contact SP Barber — Barbier Fougères 35300 | Réponse sous 24h' },
   description:
     'Contactez SP Barber : contact@spbarber.fr ou visitez notre salon barbier à Fougères (35300). Réponse sous 24h ouvrées, lundi au samedi.',
   alternates: { canonical: 'https://spbarber.fr/contact' },

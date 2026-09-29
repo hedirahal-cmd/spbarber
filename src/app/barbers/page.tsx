@@ -6,7 +6,7 @@ import { DEFAULT_BARBERS, type Barber } from '@/lib/barbers'
 export const revalidate = 60
 
 export const metadata: Metadata = {
-  title: 'Notre Équipe — SP Barber | Barbiers Fougères & Ernée',
+  title: { absolute: 'Notre Équipe — SP Barber | Barbiers Fougères & Ernée' },
   description: 'Rencontrez l\'équipe SP Barber : barbiers professionnels à Fougères et Ernée. Spécialistes coupes homme, dégradés fade et soins barbe.',
   alternates: { canonical: 'https://spbarber.fr/barbers' },
 }

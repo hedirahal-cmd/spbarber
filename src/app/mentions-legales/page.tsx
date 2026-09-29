@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase'
 export const revalidate = 60
 
 export const metadata: Metadata = {
-  title: 'Mentions Légales — SP Barber',
+  title: { absolute: 'Mentions Légales — SP Barber' },
   description: 'Mentions légales du site spbarber.fr.',
 }
 

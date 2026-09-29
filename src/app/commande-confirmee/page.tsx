@@ -6,7 +6,7 @@ import type { Metadata } from 'next'
 import { ClearCartOnMount } from '@/components/ClearCartOnMount'
 
 export const metadata: Metadata = {
-  title: 'Commande confirmée — SP Barber Shop',
+  title: { absolute: 'Commande confirmée — SP Barber Shop' },
   robots: 'noindex',
 }
 

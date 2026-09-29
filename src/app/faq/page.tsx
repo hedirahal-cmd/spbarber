@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { schemaFAQ, jsonLd } from '@/lib/schema'
 
 export const metadata: Metadata = {
-  title: 'FAQ — Questions Fréquentes SP Barber | Livraison, Retours, Produits',
+  title: { absolute: 'FAQ — Questions Fréquentes SP Barber | Livraison, Retours, Produits' },
   description:
     'Toutes les réponses à vos questions : commande, paiement, livraison Colissimo en 48h, retours 30 jours et informations produits SP Barber.',
   alternates: { canonical: 'https://spbarber.fr/faq' },
