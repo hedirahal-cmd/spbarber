@@ -4,6 +4,7 @@ import Link from 'next/link'
 export const metadata: Metadata = {
   title: { absolute: 'Politique de Confidentialité — SP Barber' },
   description: 'Politique de confidentialité et RGPD de SP Barber.',
+  alternates: { canonical: 'https://spbarber.fr/politique-confidentialite' },
 }
 
 export default function PolitiqueConfidentialitePage() {

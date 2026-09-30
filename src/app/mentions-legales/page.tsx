@@ -7,6 +7,7 @@ export const revalidate = 60
 export const metadata: Metadata = {
   title: { absolute: 'Mentions Légales — SP Barber' },
   description: 'Mentions légales du site spbarber.fr.',
+  alternates: { canonical: 'https://spbarber.fr/mentions-legales' },
 }
 
 export default async function MentionsLegalesPage() {

@@ -56,6 +56,29 @@ const CATEGORY_LABELS: Record<string, string> = {
 
 const FREE_SHIP = 6000
 
+// "Formule soignee", "Ingredients selectionnes"... n'a aucun sens sur un
+// peigne ou une tondeuse -- ce bloc de 4 benefices etait fige et identique
+// sur toutes les fiches produit, cosmetique ou non (2026-09-30, decision
+// Hedi). Categories cosmetiques (formulees) vs outils/accessoires.
+const CATEGORIES_COSMETIQUES = new Set(['coiffant', 'soin', 'barbe'])
+
+function beneficesPourCategorie(category: string): { icon: ReactNode; titre: string; texte: string }[] {
+  if (CATEGORIES_COSMETIQUES.has(category)) {
+    return [
+      { icon: <Dumbbell size={18} strokeWidth={1.6} />, titre: 'Qualité professionnelle', texte: "Les mêmes produits qu'en salon." },
+      { icon: <Sparkles size={18} strokeWidth={1.6} />, titre: 'Résultats visibles', texte: 'Efficacité prouvée dès la première utilisation.' },
+      { icon: <Leaf size={18} strokeWidth={1.6} />, titre: 'Formule soignée', texte: 'Ingrédients sélectionnés, sans compromis.' },
+      { icon: <FlaskConical size={18} strokeWidth={1.6} />, titre: 'Testé par des barbiers', texte: 'Formulé et validé par des professionnels.' },
+    ]
+  }
+  return [
+    { icon: <Dumbbell size={18} strokeWidth={1.6} />, titre: 'Qualité professionnelle', texte: 'Le même matériel utilisé en salon.' },
+    { icon: <Sparkles size={18} strokeWidth={1.6} />, titre: 'Résultats visibles', texte: 'Précision et efficacité dès la première utilisation.' },
+    { icon: <Cog size={18} strokeWidth={1.6} />, titre: 'Fabrication soignée', texte: 'Matériaux robustes, conçus pour durer.' },
+    { icon: <CheckCircle2 size={18} strokeWidth={1.6} />, titre: 'Testé par des barbiers', texte: 'Approuvé et utilisé par des professionnels.' },
+  ]
+}
+
 type TondeuseContent = { pourquoiMarque: SiteContentBlock; delaiLivraison: SiteContentBlock; livraisonSeparee: SiteContentBlock } | null
 
 export function ProductDetail({ product, relatedProducts = [], reviews: productReviews, trustItems, socialProof, tondeuseContent = null }: { product: Product; relatedProducts?: Product[]; reviews: ReviewDisplay[]; trustItems: TrustItem[]; socialProof: string | null; tondeuseContent?: TondeuseContent }) {
@@ -349,22 +372,12 @@ export function ProductDetail({ product, relatedProducts = [], reviews: productR
       {/* ── Bénéfices + Description — pour tous les produits, après le slider ── */}
       <div className="fi-post">
         <div className="fi-bens">
-          <div className="fi-ben">
-            <span><Dumbbell size={18} strokeWidth={1.6} /></span>
-            <div><b>Qualité professionnelle</b><p>Les mêmes produits qu&apos;en salon.</p></div>
-          </div>
-          <div className="fi-ben">
-            <span><Sparkles size={18} strokeWidth={1.6} /></span>
-            <div><b>Résultats visibles</b><p>Efficacité prouvée dès la première utilisation.</p></div>
-          </div>
-          <div className="fi-ben">
-            <span><Leaf size={18} strokeWidth={1.6} /></span>
-            <div><b>Formule soignée</b><p>Ingrédients sélectionnés, sans compromis.</p></div>
-          </div>
-          <div className="fi-ben">
-            <span><FlaskConical size={18} strokeWidth={1.6} /></span>
-            <div><b>Testé par des barbiers</b><p>Formulé et validé par des professionnels.</p></div>
-          </div>
+          {beneficesPourCategorie(product.category).map((b) => (
+            <div className="fi-ben" key={b.titre}>
+              <span>{b.icon}</span>
+              <div><b>{b.titre}</b><p>{b.texte}</p></div>
+            </div>
+          ))}
         </div>
         <div className="fi-desc-block">
           <div className="fi-desc-ttl">Description</div>
