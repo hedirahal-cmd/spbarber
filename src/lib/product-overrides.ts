@@ -13,6 +13,8 @@ export type ProductOverride = {
   social_proof_text?: string | null
   social_proof_visible?: boolean | null
   actif?: boolean | null
+  before_image_url?: string | null
+  after_image_url?: string | null
 }
 
 // Meme regle partout dans le code (pricing.ts, sitemap.ts, generateMetadata) :

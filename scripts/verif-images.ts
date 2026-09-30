@@ -158,8 +158,8 @@ async function main() {
 
   console.log('\n--- A. Fiche produit (id 1, avec override) : vraie galerie + og:image/alt ---')
   let html = await page('/products/cire-cheveux-premium')
-  verifie('image reelle affichee (fi-img-main)', html.includes(`src="${URL_PHOTO_1}"`) && html.includes(`alt="${ALT_PHOTO_1}"`))
-  verifie('le placeholder ne s affiche plus pour ce produit', !html.includes('fi-img-ph'))
+  verifie('image reelle affichee (sn-hero-photo)', html.includes(`src="${URL_PHOTO_1}"`) && html.includes(`alt="${ALT_PHOTO_1}"`))
+  verifie('le placeholder ne s affiche plus pour ce produit', !html.includes('Photo produit'))
   verifie('og:image pointe vers la vraie photo', metaContent(html, 'og:image') === URL_PHOTO_1,
     'obtenu ' + metaContent(html, 'og:image'))
   verifie('og:image:alt reprend le texte alternatif de l admin', metaContent(html, 'og:image:alt') === ALT_PHOTO_1,
@@ -167,7 +167,7 @@ async function main() {
 
   console.log('\n--- B. Fiche produit SANS override : aucune regression visuelle ---')
   html = await page('/products/peigne-texture-expert')
-  verifie('le placeholder s affiche toujours', html.includes('fi-img-ph'))
+  verifie('le placeholder s affiche toujours', html.includes('Photo produit'))
   verifie('og:image retombe sur le defaut du site', metaContent(html, 'og:image') === 'https://spbarber.fr/og-default.jpg',
     'obtenu ' + metaContent(html, 'og:image'))
   verifie('og:image:alt retombe sur le libelle generique', metaContent(html, 'og:image:alt') === 'Peigne Texture Expert — SP Barber',

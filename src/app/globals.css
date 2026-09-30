@@ -1259,31 +1259,8 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
 .sticky-mob-btn:hover { background: var(--goldl); }
 
 /* ═══ FICHE PRODUIT ═══ */
-.fi-inner {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 64px;
-  padding: 40px 48px 0;
-  max-width: 1400px;
-  margin: 0 auto;
-  align-items: start;
-}
-.fi-img-main { aspect-ratio: 1; background: var(--g); overflow: hidden; position: relative; }
-.fi-img-ph {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  background: linear-gradient(150deg, #eceae6, #d8d4cc);
-}
-.fi-img-ph span { display: flex; align-items: center; justify-content: center; opacity: 0.25; }
-.fi-img-ph small { font-family: var(--fd); font-size: 12px; letter-spacing: 5px; color: var(--gt); text-transform: uppercase; }
-.fi-img-main img { width: 100%; height: 100%; object-fit: cover; display: block; }
-/* Fleches de navigation galerie -- partagees entre .fi-img-main (ProductDetail)
-   et .sn-hero-photo (ShampooingNoirPage), toutes deux en position:relative. */
+/* Fleches de navigation galerie -- partagees par toutes les fiches produit
+   (design unifie sur .sn-hero-photo, 2026-09-30). */
 .fi-gallery-arrow {
   position: absolute;
   top: 50%;
@@ -1309,7 +1286,6 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
 .fi-thumb { width: 60px; height: 60px; padding: 0; border: 1px solid var(--gm); background: none; cursor: pointer; overflow: hidden; opacity: 0.55; transition: opacity .2s, border-color .2s; }
 .fi-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .fi-thumb-active { opacity: 1; border-color: var(--gold); }
-.fi-tagg { position: absolute; top: 14px; left: 14px; background: var(--gold); color: var(--w); font-size: 8px; letter-spacing: 2px; text-transform: uppercase; font-weight: 700; padding: 4px 10px; }
 .fi-tag { position: absolute; top: 14px; left: 14px; background: var(--b); color: var(--w); font-size: 8px; letter-spacing: 2px; text-transform: uppercase; font-weight: 700; padding: 4px 10px; }
 .trust-row {
   display: flex;
@@ -1337,29 +1313,12 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
   line-height: 1.2;
 }
 .trust-i svg { color: var(--gold); }
-.fi-bc { font-size: 11px; color: var(--gt); margin-bottom: 14px; letter-spacing: 0.3px; }
-.fi-bc span { cursor: pointer; transition: color 0.2s; }
-.fi-bc span:hover { color: var(--gold); }
-.fi-cat { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: rgba(12,12,12,.45); font-weight: 600; margin-bottom: 6px; }
-.fi-title { font-family: var(--fs); font-size: clamp(24px, 3vw, 38px); font-weight: 300; line-height: 1.1; margin-bottom: 10px; }
-.fi-title-secondary { font-family: var(--fb); font-size: 13px; font-weight: 400; color: var(--gt); margin-bottom: 14px; letter-spacing: 0.3px; }
-.fi-hook { font-size: 14px; color: var(--b); font-weight: 500; line-height: 1.5; margin-bottom: 14px; border-left: 3px solid var(--gold); padding-left: 12px; }
-.fi-hook-hero { font-family: var(--fs); font-size: clamp(22px, 3vw, 34px); font-weight: 300; line-height: 1.15; margin-bottom: 6px; color: var(--b); }
-.fi-stars-row { display: flex; align-items: center; gap: 8px; margin-bottom: 18px; flex-wrap: wrap; }
-.fi-stars { color: #9a7028; font-size: 16px; letter-spacing: 2px; }
-.fi-stars-lbl { font-size: 11px; color: rgba(12,12,12,.5); }
-.fi-stars-link { font-size: 11px; color: var(--b); border-bottom: 1px solid rgba(12,12,12,.3); padding-bottom: 1px; cursor: pointer; opacity: 0.6; transition: opacity 0.2s; }
-.fi-stars-link:hover { opacity: 1; }
-.fi-price-block { margin-bottom: 14px; }
-.fi-price { font-family: var(--fd); font-size: 40px; letter-spacing: 2px; line-height: 1; margin-bottom: 3px; }
-.fi-price-note { font-size: 11px; color: var(--gt); }
 .fi-var-lbl { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; font-weight: 600; margin-bottom: 8px; }
 .fi-var-btns { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
 .fi-var { background: var(--w); border: 1.5px solid var(--gm); padding: 10px 14px; font-family: var(--fb); font-size: 12px; cursor: pointer; transition: all 0.2s; display: flex; justify-content: space-between; align-items: center; text-align: left; }
 .fi-var:hover { border-color: var(--b); }
 .fi-vara { background: var(--b); border: 1.5px solid var(--b); color: var(--w); padding: 10px 14px; font-family: var(--fb); font-size: 12px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
 .stock-warn { background: #fff3cd; border: 1px solid #f5c842; padding: 9px 14px; font-size: 12px; font-weight: 600; margin-bottom: 14px; color: #856404; }
-.stock-ok { background: #d4edda; border: 1px solid #c3e6cb; padding: 9px 14px; font-size: 12px; font-weight: 500; margin-bottom: 14px; color: #155724; }
 .fi-atc-btn {
   width: 100%;
   background: var(--gold);
@@ -1380,36 +1339,11 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
   border-radius: 3px;
 }
 .fi-atc-btn:hover { background: var(--goldl); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(184,144,58,.3); }
-.mini-prog { padding: 10px 0 2px; }
-.mini-prog-msg { font-size: 11px; color: var(--gt); margin-bottom: 5px; letter-spacing: 0.3px; line-height: 1.4; }
-.mini-prog-msg strong { color: var(--gold); font-weight: 600; }
-.mini-prog-track { background: var(--gm); height: 3px; border-radius: 2px; overflow: hidden; }
-.mini-prog-fill { background: var(--gold); height: 100%; border-radius: 2px; transition: width 0.4s; }
-/* Section bénéfices + description — après slider, hors de la grille fi-inner */
-.fi-post {
-  max-width: 860px;
-  margin: 0 auto;
-  padding: 32px 48px 0;
-}
-@media (max-width: 900px) { .fi-post { padding: 24px 20px 0; } }
-@media (max-width: 640px) { .fi-post { padding: 20px 16px 0; } }
-.fi-bens { padding: 20px 0; border-top: 1px solid var(--gm); border-bottom: 1px solid var(--gm); display: flex; flex-direction: column; gap: 14px; margin-top: 6px; }
-.fi-ben { display: flex; gap: 14px; align-items: flex-start; }
-.fi-ben > span { display: flex; align-items: center; justify-content: center; flex-shrink: 0; width: 28px; margin-top: 1px; }
-.fi-ben b { display: block; font-size: 12px; font-weight: 600; margin-bottom: 2px; }
-.fi-ben p { font-size: 11px; color: var(--gt); line-height: 1.5; font-weight: 300; }
-.fi-desc-block, .fi-how-block { padding: 18px 0; border-bottom: 1px solid var(--gm); }
-.fi-desc-ttl { font-size: 11px; letter-spacing: 3px; text-transform: uppercase; font-weight: 600; margin-bottom: 12px; }
-.fi-desc-block p { font-size: 13px; color: var(--gt); line-height: 1.8; font-weight: 300; }
-.fi-how-block { display: flex; flex-direction: column; gap: 10px; }
-.fi-how { display: flex; gap: 12px; align-items: flex-start; font-size: 12px; color: var(--gt); font-weight: 300; line-height: 1.6; }
-.fi-how-n { font-family: var(--fd); font-size: 24px; color: rgba(184,144,58,.2); line-height: 1; flex-shrink: 0; min-width: 28px; }
 .fi-revs-sec { background: var(--b); padding: 60px 48px; margin-top: 40px; }
 .fi-revs-head { display: flex; align-items: center; gap: 48px; margin-bottom: 40px; flex-wrap: wrap; }
 .fi-score-n { font-family: var(--fd); font-size: 72px; color: var(--gold); line-height: 1; letter-spacing: 2px; }
 .fi-score-s { color: var(--gold); font-size: 18px; letter-spacing: 3px; margin-bottom: 4px; }
 .fi-score-c { font-size: 10px; color: rgba(248,246,243,.4); letter-spacing: 2px; text-transform: uppercase; }
-.fi-revs-title { font-family: var(--fd); font-size: clamp(26px, 3vw, 40px); color: var(--w); letter-spacing: 2px; line-height: 0.95; flex: 1; }
 .fi-rev-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: rgba(255,255,255,.05); }
 .fi-rev { background: var(--b); padding: 32px 28px; }
 .fi-rev-stars { color: var(--gold); font-size: 12px; letter-spacing: 3px; margin-bottom: 14px; }
@@ -1595,9 +1529,6 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
 .pc-benefit { font-family: var(--fs); font-size: 17px; font-weight: 500; color: var(--b); margin-bottom: 4px; line-height: 1.25; }
 
 /* ─ Product detail trust list ─ */
-.fi-trust-list { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 14px; }
-.fi-trust-item { display: flex; align-items: center; gap: 7px; background: var(--g); border: 1px solid var(--gm); padding: 9px 10px; font-size: 12px; font-weight: 500; color: var(--b); line-height: 1.2; }
-.fi-trust-v { color: var(--gold); font-weight: 800; font-size: 14px; flex-shrink: 0; }
 
 /* ─ Complétez votre routine ─ */
 .sac-sec { padding: 56px 0 0; }
@@ -1829,15 +1760,11 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
   .sac-hd { padding: 0 24px; }
   .sac-grid { padding: 0 24px; gap: 20px; }
 }
-@media (max-width: 768px) {
-  .fi-trust-list { grid-template-columns: 1fr 1fr; }
-}
 @media (max-width: 600px) {
   .prob-grid { grid-template-columns: 1fr 1fr; margin: 0 16px 36px; }
   .barbers-sec .barbers-grid { grid-template-columns: 1fr; }
 }
 @media (max-width: 480px) {
-  .fi-trust-list { grid-template-columns: 1fr; }
   .barbers-sec { padding: 32px 16px; }
   .barbers-sec .barbers-grid { grid-template-columns: 1fr; }
   .hero-trust-checks { gap: 10px; }
@@ -2327,7 +2254,6 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
 
 /* ── SOCIAL PROOF BADGE ── */
 .pc-social { font-size: 10px; font-weight: 700; color: var(--gold); background: rgba(184,144,58,0.08); padding: 4px 8px; margin-top: 6px; letter-spacing: 0.3px; border-left: 2px solid var(--gold); }
-.fi-social { display: inline-block; font-size: 11px; font-weight: 600; color: var(--gold); background: rgba(184,144,58,0.07); padding: 5px 10px; border-left: 2px solid var(--gold); margin-bottom: 10px; letter-spacing: 0.2px; }
 
 /* ── REVIEWS ENHANCED ── */
 .h-rev-summary { display: flex; align-items: center; gap: 20px; justify-content: center; margin-bottom: 36px; }
@@ -3234,7 +3160,7 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   SHAMPOOING NOIR — Page dédiée — préfixe sn-
+   FICHE PRODUIT — design unifié (toutes fiches) — préfixe sn-
 ═══════════════════════════════════════════════════════════════ */
 
 .sn-page { background: var(--w); }

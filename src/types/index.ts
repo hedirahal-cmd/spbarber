@@ -25,6 +25,15 @@ export interface Product {
   trust?: string[]
   related?: string[]
   actif?: boolean
+  /** Pastilles courtes sous la photo (ex. "Sans ammoniaque") -- propre a certains
+   * produits, absentes sinon : la rangee ne s'affiche simplement pas. */
+  pills?: string[]
+  /** Section "Comment ça fonctionne" -- propre a certains produits (mode d'emploi),
+   * absente sinon : la section ne s'affiche simplement pas. */
+  usageSteps?: { label: string; texte: string }[]
+  /** Slider avant/apres -- contenu (libelles, dessin CSS de repli) propre aux
+   * colorants capillaires, n'a aucun sens sur les autres categories. */
+  beforeAfterEnabled?: boolean
 }
 
 export interface ProductVariant {

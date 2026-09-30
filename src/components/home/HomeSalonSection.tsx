@@ -148,7 +148,7 @@ export function HomeSalonSection({
             <SalonAvisGrid
               avis={salon.avis_google ?? []}
               salonNom={salon.nom ?? salon.ville ?? ''}
-              googleMapsUrl={salon.lien_google_maps ?? undefined}
+              googleMapsUrl={salon.lien_avis_google ?? salon.lien_google_maps ?? undefined}
             />
           )}
         </Fragment>

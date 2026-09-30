@@ -217,7 +217,7 @@ async function main() {
   verifie('masquage repere Sécurisé => 200', r.statut === 200, 'obtenu ' + r.statut)
 
   const ficheCire4 = await page('/products/cire-cheveux-premium')
-  const zoneTrust = zoneEntre(ficheCire4, 'trust-row', 'fi-details')
+  const zoneTrust = zoneEntre(ficheCire4, 'trust-row', 'sn-hero-right')
   verifie('nouveau texte du repere Livraison applique dans la rangee', zoneTrust.includes('Livraison express 24h'))
   verifie('ancien texte "Livraison 3-5 jours" disparu de la rangee', !zoneTrust.includes('Livraison 3-5 jours'))
   verifie('repere Sécurisé masque (absent de la rangee)', !zoneTrust.includes('Sécurisé'))

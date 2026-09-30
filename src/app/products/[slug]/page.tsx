@@ -12,6 +12,7 @@ import { getSiteContent, getTrustItems } from '@/lib/site-content'
 import { resolveSocialProof } from '@/lib/social-proof'
 import { applyOverride } from '@/lib/product-overrides'
 import { getProductOverrides } from '@/lib/product-overrides-server'
+import type { BeforeAfterImage } from '@/components/product/BeforeAfterSlider'
 
 async function getProductReviews(productId: string): Promise<ReviewDisplay[]> {
   try {
@@ -128,6 +129,14 @@ export default async function ProductPage({ params }: Props) {
     delaiLivraison: siteContent.tondeuse_delai_livraison,
     livraisonSeparee: siteContent.tondeuse_livraison_separee,
   } : null
+  let beforeImage: BeforeAfterImage | null = null
+  let afterImage: BeforeAfterImage | null = null
+  if (typeof socialProofOverride?.before_image_url === 'string' && socialProofOverride.before_image_url) {
+    beforeImage = { url: socialProofOverride.before_image_url, alt: `${product.name} — avant` }
+  }
+  if (typeof socialProofOverride?.after_image_url === 'string' && socialProofOverride.after_image_url) {
+    afterImage = { url: socialProofOverride.after_image_url, alt: `${product.name} — après` }
+  }
   const socialProof     = resolveSocialProof(product.id, socialProofOverride)
   const productSchema   = schemaProduct(product, summarizeReviews(productReviews))
   const breadcrumbSchema = schemaBreadcrumb([
@@ -146,7 +155,7 @@ export default async function ProductPage({ params }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbSchema) }}
       />
-      <ProductDetail product={product} relatedProducts={relatedProducts} reviews={productReviews} trustItems={trustItems} socialProof={socialProof} tondeuseContent={tondeuseContent} />
+      <ProductDetail product={product} relatedProducts={relatedProducts} reviews={productReviews} trustItems={trustItems} socialProof={socialProof} tondeuseContent={tondeuseContent} beforeImage={beforeImage} afterImage={afterImage} />
     </>
   )
 }

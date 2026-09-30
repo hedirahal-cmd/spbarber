@@ -6,7 +6,7 @@ import type { ProductOverride } from '@/lib/product-overrides'
 // est pur et partageable.
 export async function getProductOverrides(): Promise<Record<string, ProductOverride>> {
   try {
-    const { data } = await supabaseAdmin.from('product_overrides').select('id,name,price,description,stock,benefit,images,social_proof_text,social_proof_visible,actif')
+    const { data } = await supabaseAdmin.from('product_overrides').select('id,name,price,description,stock,benefit,images,social_proof_text,social_proof_visible,actif,before_image_url,after_image_url')
     const map: Record<string, ProductOverride> = {}
     ;(data as ProductOverride[] | null)?.forEach((r) => { map[r.id] = r })
     return map

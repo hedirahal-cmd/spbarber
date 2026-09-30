@@ -10,6 +10,7 @@ export interface Salon {
   nombre_avis: string | null
   lien_planity: string | null
   lien_google_maps: string | null
+  lien_avis_google?: string | null
   actif: boolean
   ordre?: number | null
   photos?: string[] | null
@@ -58,6 +59,7 @@ export const DEFAULT_SALONS: Salon[] = [
     nombre_avis: '47',
     lien_planity: 'https://www.planity.com/sp-barber-shop-35300-fougeres',
     lien_google_maps: 'https://www.google.com/maps/dir/?api=1&destination=48+Boulevard+Jean+Jaur%C3%A8s+35300+Foug%C3%A8res',
+    lien_avis_google: 'https://www.google.com/search?q=SP+Barber+Shop+Fougeres',
     actif: true,
     ordre: 1,
     photos: [],
@@ -74,6 +76,7 @@ export const DEFAULT_SALONS: Salon[] = [
     nombre_avis: '',
     lien_planity: '',
     lien_google_maps: 'https://www.google.com/search?q=Sp+barbershop+ernee',
+    lien_avis_google: 'https://www.google.com/search?q=Sp+barbershop+ernee',
     actif: true,
     ordre: 2,
     photos: [],

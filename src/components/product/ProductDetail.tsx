@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect, useRef, type ReactNode } from 'react'
+import { useState, useEffect, useRef, Fragment, type ReactNode } from 'react'
 import Link from 'next/link'
 import { useCart } from '@/hooks/useCart'
 import { formatPrice } from '@/lib/utils'
@@ -7,7 +7,7 @@ import { Product, ProductVariant } from '@/types'
 import { PaymentLogos } from '@/components/PaymentLogos'
 import { AddToCartButton } from '@/components/AddToCartButton'
 import { Lock, Truck, RotateCcw, CheckCircle2, AlertTriangle, ShoppingCart, Dumbbell, Sparkles, Leaf, FlaskConical, Scissors, Droplets, User, Zap, Clock, Waves, AlignJustify, Package, Wind, Cog, Package2, ChevronLeft, ChevronRight } from 'lucide-react'
-import { BeforeAfterSlider } from './BeforeAfterSlider'
+import { BeforeAfterSlider, type BeforeAfterImage } from './BeforeAfterSlider'
 import type { ReviewDisplay } from '@/lib/reviews'
 import { ReviewsList } from '@/components/ReviewsList'
 import { ReviewForm } from '@/components/ReviewForm'
@@ -81,7 +81,7 @@ function beneficesPourCategorie(category: string): { icon: ReactNode; titre: str
 
 type TondeuseContent = { pourquoiMarque: SiteContentBlock; delaiLivraison: SiteContentBlock; livraisonSeparee: SiteContentBlock } | null
 
-export function ProductDetail({ product, relatedProducts = [], reviews: productReviews, trustItems, socialProof, tondeuseContent = null }: { product: Product; relatedProducts?: Product[]; reviews: ReviewDisplay[]; trustItems: TrustItem[]; socialProof: string | null; tondeuseContent?: TondeuseContent }) {
+export function ProductDetail({ product, relatedProducts = [], reviews: productReviews, trustItems, socialProof, tondeuseContent = null, beforeImage = null, afterImage = null }: { product: Product; relatedProducts?: Product[]; reviews: ReviewDisplay[]; trustItems: TrustItem[]; socialProof: string | null; tondeuseContent?: TondeuseContent; beforeImage?: BeforeAfterImage | null; afterImage?: BeforeAfterImage | null }) {
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | undefined>(
     product.variants?.[0]
   )
@@ -166,21 +166,24 @@ export function ProductDetail({ product, relatedProducts = [], reviews: productR
   }
 
   return (
-    <div className="fiche-page">
-      <div className="fi-inner">
-        {/* Galerie */}
-        <div className="fi-gallery">
-          <div className="fi-img-main" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+    <div className="sn-page">
+
+      {/* ── Hero 2 colonnes ── */}
+      <section className="sn-hero">
+
+        {/* Colonne gauche — photo + slider avant/apres + pastilles */}
+        <div className="sn-hero-left">
+          <div className="sn-hero-photo" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
             {hasGallery ? (
               <img
                 src={product.images[selectedPhoto]?.url ?? product.images[0].url}
                 alt={product.images[selectedPhoto]?.alt || product.name}
               />
             ) : (
-              <div className="fi-img-ph">
-                <span><CategoryIcon category={product.category} size={64} /></span>
-                <small>Photo produit</small>
-              </div>
+              <>
+                <CategoryIcon category={product.category} size={56} />
+                <span>Photo produit</span>
+              </>
             )}
             {product.stock <= 10 && product.stock > 0 && <span className="fi-tag">Dernières unités</span>}
             {hasGallery && product.images.length > 1 && (
@@ -209,6 +212,19 @@ export function ProductDetail({ product, relatedProducts = [], reviews: productR
               ))}
             </div>
           )}
+
+          {product.beforeAfterEnabled && (
+            <BeforeAfterSlider bare className="sn-hero-slider" before={beforeImage} after={afterImage} />
+          )}
+
+          {product.pills && product.pills.length > 0 && (
+            <div className="sn-pills">
+              {product.pills.map((p) => (
+                <span key={p} className="sn-pill">{p}</span>
+              ))}
+            </div>
+          )}
+
           {trustItems.length > 0 && (
             <div className="trust-row">
               {trustItems.map((item) => {
@@ -230,39 +246,41 @@ export function ProductDetail({ product, relatedProducts = [], reviews: productR
           )}
         </div>
 
-        {/* Détails */}
-        <div className="fi-details">
-          <div className="fi-bc">
-            <Link href="/" passHref legacyBehavior>
-              <span>Accueil</span>
-            </Link>
+        {/* Colonne droite — bloc achat */}
+        <div className="sn-hero-right">
+          <div className="sn-bc">
+            <Link href="/">Accueil</Link>
             {' › '}
             <span>{product.name}</span>
           </div>
-          <div className="fi-cat">{CATEGORY_LABELS[product.category] ?? product.category}</div>
-          {product.benefit && (
-            <div className="fi-hook-hero">{product.benefit}</div>
-          )}
-          <h1 className="fi-title-secondary">{product.name}</h1>
 
-          <div className="fi-stars-row">
+          <div className="sn-badge-cat">{CATEGORY_LABELS[product.category] ?? product.category}</div>
+
+          <h1 className="sn-h1">{product.name}</h1>
+          {product.benefit && <div className="sn-sub">{product.benefit}</div>}
+
+          <div className="sn-stars-row">
             {hasReviews ? (
               <>
-                <span className="fi-stars">{'★'.repeat(Math.round(avgRating))}</span>
-                <span className="fi-stars-lbl">{avgRatingLabel}/5 · {productReviews.length} avis</span>
-                <a href="#avis" className="fi-stars-link">Voir les avis →</a>
+                <span className="sn-stars">{'★'.repeat(Math.round(avgRating))}</span>
+                <span className="sn-stars-lbl">{avgRatingLabel}/5 · {productReviews.length} avis</span>
+                <a href="#avis" className="sn-stars-lbl">Voir les avis →</a>
               </>
             ) : (
-              <a href="#avis" className="fi-stars-link">Soyez le premier à donner votre avis →</a>
+              <a href="#avis" className="sn-stars-lbl">Soyez le premier à donner votre avis →</a>
             )}
           </div>
+
           {socialProof && (
-            <div className="fi-social">🔥 {socialProof}</div>
+            <div className="sn-social">
+              <Sparkles size={13} strokeWidth={2} />
+              {socialProof}
+            </div>
           )}
 
-          <div className="fi-price-block">
-            <div className="fi-price">{formatPrice(price)}</div>
-            <div className="fi-price-note">Prix TTC · Livraison offerte dès 60€</div>
+          <div className="sn-price-block">
+            <div className="sn-price">{formatPrice(price)}</div>
+            <div className="sn-price-note">Prix TTC · Livraison offerte dès 60€</div>
           </div>
 
           {/* Variants */}
@@ -284,12 +302,12 @@ export function ProductDetail({ product, relatedProducts = [], reviews: productR
             </div>
           )}
 
-          {/* Trust checklist — avant le CTA */}
+          {/* Check-list — avant le CTA */}
           {product.trust && product.trust.length > 0 && (
-            <div className="fi-trust-list">
+            <div className="sn-check-list">
               {product.trust.map((item, i) => (
-                <div key={i} className="fi-trust-item">
-                  <span className="fi-trust-v">✓</span>
+                <div key={i} className="sn-check">
+                  <CheckCircle2 size={14} strokeWidth={2} />
                   {item}
                 </div>
               ))}
@@ -300,7 +318,7 @@ export function ProductDetail({ product, relatedProducts = [], reviews: productR
               promesse 48h/lendemain, qui serait fausse pour ce produit. */}
           {tondeuseContent ? (
             <>
-              <div className="stock-ok" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <div className="sn-stock">
                 <CheckCircle2 size={13} strokeWidth={2} />Disponible
               </div>
               {tondeuseContent.delaiLivraison.visible && tondeuseContent.delaiLivraison.text && (
@@ -319,44 +337,41 @@ export function ProductDetail({ product, relatedProducts = [], reviews: productR
           ) : (
             <>
               {product.stock > 0 ? (
-                <div className="stock-ok" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <CheckCircle2 size={13} strokeWidth={2} />En stock — expédié sous 48h
+                <div className="sn-stock">
+                  <CheckCircle2 size={13} strokeWidth={2} />
+                  En stock — Commandez avant 16h, expédié {tomorrow}
                   {product.stock <= 10 && <span className="stock-urgent">Seulement {product.stock} restants</span>}
                 </div>
               ) : (
                 <div className="stock-warn" style={{ display: 'flex', alignItems: 'center', gap: 6 }}><AlertTriangle size={13} strokeWidth={2} />Stock limité</div>
               )}
-              <div className="fi-urgence">
-                <Clock size={12} strokeWidth={2} />
-                Commandez avant 16h — expédié le <strong>{tomorrow}</strong>
-              </div>
             </>
           )}
 
           <button
             ref={atcRef}
-            className="fi-atc-btn"
+            className={`sn-atc${added ? ' sn-atc-added' : ''}`}
             onClick={handleAddToCart}
             disabled={stockEpuise}
-            style={added ? { background: 'var(--green)' } : stockEpuise ? { opacity: 0.5, cursor: 'not-allowed' } : undefined}
+            style={stockEpuise && !added ? { opacity: 0.5, cursor: 'not-allowed' } : undefined}
           >
             {added
-              ? '✓ Ajouté au panier !'
+              ? <>✓ Ajouté au panier !</>
               : stockEpuise
                 ? 'Rupture de stock'
-                : <><ShoppingCart size={15} strokeWidth={2} style={{ marginRight: 6, verticalAlign: 'middle' }} />Ajouter au panier</>}
+                : <><ShoppingCart size={16} strokeWidth={2} />Ajouter au panier</>}
           </button>
 
           {/* Mini progress */}
-          <div className="mini-prog">
-            <div className="mini-prog-msg">
+          <div className="sn-prog">
+            <div className="sn-prog-msg">
               {remaining > 0
                 ? <>Plus que <strong>{(remaining / 100).toFixed(2).replace('.', ',')} €</strong> pour la livraison offerte</>
                 : <><strong>Livraison offerte !</strong></>
               }
             </div>
-            <div className="mini-prog-track">
-              <div className="mini-prog-fill" style={{ width: `${pct}%` }} />
+            <div className="sn-prog-track">
+              <div className="sn-prog-fill" style={{ width: `${pct}%` }} />
             </div>
           </div>
 
@@ -364,32 +379,57 @@ export function ProductDetail({ product, relatedProducts = [], reviews: productR
           <PaymentLogos />
 
         </div>
-      </div>
+      </section>
 
-      {/* ── AVANT / APRÈS — Shampooing Noir uniquement ── juste après le CTA ── */}
-      {product.id === '2' && <BeforeAfterSlider />}
-
-      {/* ── Bénéfices + Description — pour tous les produits, après le slider ── */}
-      <div className="fi-post">
-        <div className="fi-bens">
-          {beneficesPourCategorie(product.category).map((b) => (
-            <div className="fi-ben" key={b.titre}>
-              <span>{b.icon}</span>
-              <div><b>{b.titre}</b><p>{b.texte}</p></div>
-            </div>
-          ))}
-        </div>
-        <div className="fi-desc-block">
-          <div className="fi-desc-ttl">Description</div>
-          <p>{product.description}</p>
+      {/* ── Description + benefices ── */}
+      <section className="sn-pd-sec">
+        <div className="sn-pd-right">
+          <div className="sn-desc-ttl">Description</div>
+          <p className="sn-desc-txt">{product.description}</p>
           {tondeuseContent?.pourquoiMarque.visible && tondeuseContent.pourquoiMarque.text && (
             <>
-              <div className="fi-desc-ttl" style={{ marginTop: 20 }}>Pourquoi cette marque</div>
-              <p>{tondeuseContent.pourquoiMarque.text}</p>
+              <div className="sn-desc-ttl" style={{ marginTop: 20 }}>Pourquoi cette marque</div>
+              <p className="sn-desc-txt">{tondeuseContent.pourquoiMarque.text}</p>
             </>
           )}
+
+          <div className="sn-bens">
+            {beneficesPourCategorie(product.category).map((b) => (
+              <div className="sn-ben" key={b.titre}>
+                <div className="sn-ben-icon">{b.icon}</div>
+                <div>
+                  <div className="sn-ben-title">{b.titre}</div>
+                  <div className="sn-ben-sub">{b.texte}</div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
+      </section>
+
+      {/* ── Comment ça fonctionne — propre a certains produits ── */}
+      {product.usageSteps && product.usageSteps.length > 0 && (
+        <section className="sn-how">
+          <div className="sn-how-inner">
+            <div className="sn-how-eyebrow">— Mode d&apos;emploi —</div>
+            <h2 className="sn-how-title">COMMENT ÇA FONCTIONNE</h2>
+            <div className="sn-how-steps">
+              {product.usageSteps.map((step, i) => (
+                <Fragment key={step.label}>
+                  <div className="sn-step">
+                    <div className="sn-step-num">{i + 1}</div>
+                    <div className="sn-step-label">{step.label}</div>
+                    <div className="sn-step-desc">{step.texte}</div>
+                  </div>
+                  {i < product.usageSteps!.length - 1 && (
+                    <div className="sn-step-arrow" aria-hidden="true">&#8594;</div>
+                  )}
+                </Fragment>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Avis clients — filtres a ce produit */}
       <div id="avis" className="fi-revs-sec">

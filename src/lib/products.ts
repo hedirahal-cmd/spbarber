@@ -38,6 +38,13 @@ export const PRODUCTS: Product[] = [
     benefit: 'Cheveux noirs intenses dès 1 lavage',
     trust: ['Couleur ravivée en 1 lavage', 'Sans ammoniaque ni peroxyde', 'Livraison 3-5 jours ouvrés', 'Satisfait ou remboursé'],
     related: ['1', '4'],
+    beforeAfterEnabled: true,
+    pills: ['Sans ammoniaque', 'Résultat en 1 lavage', 'Tient 3–4 semaines'],
+    usageSteps: [
+      { label: 'Appliquez', texte: 'Utilisez comme un shampooing ordinaire sur cheveux mouillés' },
+      { label: 'Laissez poser', texte: 'Laissez agir 3 minutes — les pigments pénètrent en profondeur' },
+      { label: 'Rincez', texte: 'Rincez abondamment — couleur ravivée, cheveux brillants' },
+    ],
     seo_title: 'Shampooing Colorant Noir Homme — SP Barber | Masque les Cheveux Blancs',
     seo_description:
       'Masquez vos cheveux blancs en quelques lavages. Shampooing colorant noir naturel pour homme. Résultat visible dès la 1ère utilisation. Sans ammoniaque. Expédition 48h.',

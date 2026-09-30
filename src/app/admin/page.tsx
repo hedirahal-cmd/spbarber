@@ -634,7 +634,7 @@ type AvisGoogle = { texte: string; auteur: string; date: string; etoiles: number
 type SalonRow = {
   slug: string; nom: string; adresse: string; ville: string; code_postal: string
   telephone: string; horaires: string; note_google: string; nombre_avis: string
-  lien_planity: string; lien_google_maps: string; actif: boolean; photos: string[]
+  lien_planity: string; lien_google_maps: string; lien_avis_google: string; actif: boolean; photos: string[]
   avis_google: AvisGoogle[]; ordre: number
   description: string; seo_title: string; seo_description: string
   latitude: string; longitude: string
@@ -643,7 +643,7 @@ type SalonRow = {
 const EMPTY_SALON: SalonRow = {
   slug: '', nom: '', adresse: '', ville: '', code_postal: '',
   telephone: '', horaires: '', note_google: '', nombre_avis: '',
-  lien_planity: '', lien_google_maps: '', actif: false, photos: [], avis_google: [],
+  lien_planity: '', lien_google_maps: '', lien_avis_google: '', actif: false, photos: [], avis_google: [],
   ordre: 0, description: '', seo_title: '', seo_description: '', latitude: '', longitude: '',
 }
 
@@ -661,6 +661,7 @@ function toSalonRow(r: Record<string, unknown>): SalonRow {
     nombre_avis: String(r.nombre_avis ?? ''),
     lien_planity: String(r.lien_planity ?? ''),
     lien_google_maps: String(r.lien_google_maps ?? ''),
+    lien_avis_google: String(r.lien_avis_google ?? ''),
     actif: !!r.actif,
     photos: Array.isArray(r.photos) ? (r.photos as string[]) : [],
     avis_google: Array.isArray(r.avis_google) ? (r.avis_google as AvisGoogle[]) : [],
@@ -813,6 +814,11 @@ function SalonFormCard({
         <div>
           <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: S.text, marginBottom: 5 }}>Lien Google Maps (itinéraire)</label>
           <input value={form.lien_google_maps ?? ''} onChange={e => onField('lien_google_maps', e.target.value)} placeholder="https://www.google.com/maps/dir/…" style={S.input} />
+        </div>
+        <div>
+          <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: S.text, marginBottom: 5 }}>Lien avis Google (bouton &quot;Voir tous les avis&quot;)</label>
+          <input value={form.lien_avis_google ?? ''} onChange={e => onField('lien_avis_google', e.target.value)} placeholder="https://www.google.com/search?q=…" style={S.input} />
+          <div style={{ fontSize: 11, color: S.muted, marginTop: 4 }}>Si vide → utilise le lien itinéraire ci-dessus par défaut</div>
         </div>
 
         {/* Description */}

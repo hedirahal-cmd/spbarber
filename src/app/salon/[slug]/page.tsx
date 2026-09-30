@@ -210,7 +210,7 @@ export default async function SalonDetailPage({ params }: Props) {
           <SalonAvisGrid
             avis={salon.avis_google ?? []}
             salonNom={salon.nom ?? villeLabel}
-            googleMapsUrl={salon.lien_google_maps ?? undefined}
+            googleMapsUrl={salon.lien_avis_google ?? salon.lien_google_maps ?? undefined}
           />
         )}
 
