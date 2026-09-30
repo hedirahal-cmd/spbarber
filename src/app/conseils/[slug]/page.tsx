@@ -177,8 +177,8 @@ const ARTICLES: Record<string, {
         <p>
           Pour ceux qui souhaitent une solution clé en main, notre{' '}
           <Link href="/products/pack-barbe-complet">Pack Barbe Complet SP Barber</Link> regroupe
-          les 5 essentiels sélectionnés par nos barbiers : huile, baume, shampooing, peigne et ciseaux
-          de précision. C&apos;est le <strong>kit barbe homme complet</strong> le plus pratique de notre
+          les 6 essentiels sélectionnés par nos barbiers : huile, brosse, peigne, baume, coupe-chou
+          et dermaroller. C&apos;est le <strong>kit barbe homme complet</strong> le plus pratique de notre
           boutique pour une routine barbe clé en main.
         </p>
 
@@ -198,7 +198,7 @@ const ARTICLES: Record<string, {
           <li><strong>Matin :</strong> rincer la barbe à l&apos;eau tiède, appliquer quelques gouttes d&apos;huile.</li>
           <li><strong>Tous les 2–3 jours :</strong> laver au shampooing barbe.</li>
           <li><strong>Après le lavage :</strong> appliquer le baume sur barbe encore légèrement humide.</li>
-          <li><strong>Hebdomadaire :</strong> tailler les poindtes aux ciseaux pour maintenir la forme.</li>
+          <li><strong>Hebdomadaire :</strong> tailler les pointes aux ciseaux pour maintenir la forme.</li>
         </ol>
       </>
     ),

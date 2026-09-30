@@ -2,9 +2,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { PRODUCTS } from '@/lib/products'
 import { SITE_CONTENT_KEYS, SITE_CONTENT_LABELS, SITE_CONTENT_DEFAULTS, type SiteContentBlock } from '@/lib/site-content-data'
-import { defaultSocialProofText } from '@/lib/social-proof'
 
-type NavSection = 'produits' | 'commandes' | 'legal' | 'avis' | 'salons' | 'barbers' | 'temoignages-pros' | 'contenu'
+type NavSection = 'produits' | 'commandes' | 'retractations' | 'legal' | 'avis' | 'salons' | 'barbers' | 'temoignages-pros' | 'contenu'
 
 const ORDER_STATUSES = ['pending', 'paid', 'shipped', 'delivered', 'cancelled']
 const LEGAL_SLUGS = [
@@ -92,7 +91,7 @@ function LoginForm({ onLogin }: { onLogin: () => void }) {
 function Sidebar({ active, setActive, logout }: { active: NavSection; setActive: (s: NavSection) => void; logout: () => void }) {
   const sections = [
     { label: 'CATALOGUE', items: [{ id: 'produits' as NavSection, label: 'Produits' }] },
-    { label: 'VENTES', items: [{ id: 'commandes' as NavSection, label: 'Commandes' }] },
+    { label: 'VENTES', items: [{ id: 'commandes' as NavSection, label: 'Commandes' }, { id: 'retractations' as NavSection, label: 'Rétractations' }] },
     { label: 'SALONS', items: [{ id: 'salons' as NavSection, label: 'Salons' }, { id: 'barbers' as NavSection, label: 'Barbers' }, { id: 'temoignages-pros' as NavSection, label: 'Témoignages pros' }] },
     { label: 'CONTENU', items: [{ id: 'legal' as NavSection, label: 'Textes légaux' }, { id: 'avis' as NavSection, label: 'Avis clients' }, { id: 'contenu' as NavSection, label: 'Contenu' }] },
   ]
@@ -2123,33 +2122,115 @@ function TabAvis() {
   )
 }
 
+// ─── Tab Rétractations ──────────────────────────────────────────
+function TabRetractations() {
+  const [demandes, setDemandes] = useState<Array<Record<string, unknown>>>([])
+  const [loading, setLoading] = useState(true)
+  const [updating, setUpdating] = useState<string | null>(null)
+  const [rowErr, setRowErr] = useState('')
+
+  const load = useCallback(async () => {
+    setLoading(true)
+    const res = await fetch('/api/admin/retractations')
+    if (res.ok) setDemandes(await res.json())
+    setLoading(false)
+  }, [])
+  useEffect(() => { load() }, [load])
+
+  async function toggleStatut(d: Record<string, unknown>) {
+    const nouveauStatut = d.statut === 'traite' ? 'en_attente' : 'traite'
+    setUpdating(String(d.id)); setRowErr('')
+    try {
+      const res = await fetch('/api/admin/retractations', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: d.id, statut: nouveauStatut }) })
+      if (!res.ok) { const e = await res.json().catch(() => ({})); setRowErr(e.error ?? `Erreur ${res.status}`); return }
+    } catch {
+      setRowErr('Erreur réseau'); return
+    } finally {
+      setUpdating(null)
+    }
+    await load()
+  }
+
+  function formatDate(v: unknown): string {
+    if (typeof v !== 'string') return '—'
+    const d = new Date(v)
+    return Number.isNaN(d.getTime()) ? '—' : d.toLocaleDateString('fr-FR')
+  }
+
+  return (
+    <div style={{ padding: '20px 24px', maxWidth: 960, width: '100%', overflowY: 'auto' }}>
+      <div style={{ marginBottom: 20 }}>
+        <h1 style={{ fontSize: 20, fontWeight: 600, color: S.text, margin: '0 0 4px' }}>Rétractations</h1>
+        <p style={{ fontSize: 13, color: S.muted, margin: 0 }}>{demandes.length} demande{demandes.length !== 1 ? 's' : ''}</p>
+      </div>
+
+      {rowErr && <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 6, padding: '10px 14px', marginBottom: 16, fontSize: 13, color: '#b91c1c', fontWeight: 500 }}>Erreur : {rowErr}</div>}
+
+      {loading ? (
+        <div style={{ padding: '40px 0', textAlign: 'center', color: S.muted }}>Chargement…</div>
+      ) : !demandes.length ? (
+        <div style={{ ...S.card_, padding: '40px 24px', textAlign: 'center' }}>
+          <div style={{ fontSize: 13, color: S.muted }}>Aucune demande de rétractation.</div>
+        </div>
+      ) : (
+        <div style={S.card_}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
+            <thead>
+              <tr style={{ borderBottom: `1px solid ${S.border}` }}>
+                {['Nom', 'E-mail', 'Produit(s)', 'Commande', 'Date de la demande', 'Statut', ''].map(h => (
+                  <th key={h} style={{ padding: '11px 16px', textAlign: 'left', fontSize: 12, fontWeight: 600, color: S.muted }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {demandes.map(d => (
+                <tr key={String(d.id)} style={{ borderBottom: `1px solid ${S.border}` }}>
+                  <td style={{ padding: '12px 16px', fontWeight: 500, color: S.text, fontSize: 13 }}>{String(d.nom ?? '')}</td>
+                  <td style={{ padding: '12px 16px', color: S.muted, fontSize: 13 }}>{String(d.email ?? '')}</td>
+                  <td style={{ padding: '12px 16px', color: S.muted, fontSize: 13, maxWidth: 220 }}>
+                    <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{String(d.produits ?? '')}</div>
+                  </td>
+                  <td style={{ padding: '12px 16px', color: S.muted, fontSize: 13 }}>{String(d.numero_commande ?? '—')}</td>
+                  <td style={{ padding: '12px 16px', color: S.muted, fontSize: 13 }}>{formatDate(d.created_at)}</td>
+                  <td style={{ padding: '12px 16px' }}>
+                    <span style={{ fontSize: 12, fontWeight: 600, padding: '3px 10px', borderRadius: 20, background: d.statut === 'traite' ? '#f0fdf4' : '#fff7ed', color: d.statut === 'traite' ? '#15803d' : '#c2410c' }}>
+                      {d.statut === 'traite' ? 'Traité' : 'En attente'}
+                    </span>
+                  </td>
+                  <td style={{ padding: '12px 16px' }}>
+                    <button
+                      onClick={() => toggleStatut(d)}
+                      disabled={updating === String(d.id)}
+                      style={{ ...S.btnSecondary, padding: '5px 10px', fontSize: 12 }}
+                    >
+                      {d.statut === 'traite' ? 'Repasser en attente' : 'Marquer traité'}
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ─── Tab Contenu ────────────────────────────────────────────────
 function TabContenu() {
   const [blocks, setBlocks] = useState<Record<string, SiteContentBlock>>({})
-  const [socialOverrides, setSocialOverrides] = useState<Record<string, Record<string, unknown>>>({})
   const [drafts, setDrafts] = useState<Record<string, string>>({})
-  const [socialDrafts, setSocialDrafts] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(true)
   const [savingKey, setSavingKey] = useState<string | null>(null)
   const [err, setErr] = useState('')
 
   const load = useCallback(async () => {
     setLoading(true)
-    const [contentRes, productsRes] = await Promise.all([
-      fetch('/api/admin/site-content'),
-      fetch('/api/admin/products'),
-    ])
+    const contentRes = await fetch('/api/admin/site-content')
     if (contentRes.ok) {
       const data: Record<string, SiteContentBlock> = await contentRes.json()
       setBlocks(data)
       setDrafts(Object.fromEntries(SITE_CONTENT_KEYS.map(k => [k, data[k]?.text ?? SITE_CONTENT_DEFAULTS[k].text])))
-    }
-    if (productsRes.ok) {
-      const rows: Array<Record<string, unknown>> = await productsRes.json()
-      const map: Record<string, Record<string, unknown>> = {}
-      if (Array.isArray(rows)) rows.forEach(r => { map[r.id as string] = r })
-      setSocialOverrides(map)
-      setSocialDrafts(Object.fromEntries(PRODUCTS.map(p => [p.id, (map[p.id]?.social_proof_text as string) ?? defaultSocialProofText(p.id) ?? ''])))
     }
     setLoading(false)
   }, [])
@@ -2171,29 +2252,6 @@ function TabContenu() {
   async function toggleBlock(key: string) {
     const current = blocks[key] ?? SITE_CONTENT_DEFAULTS[key]
     await saveBlock(key, !current.visible)
-  }
-
-  async function saveSocial(productId: string, visible: boolean) {
-    setSavingKey('social:' + productId); setErr('')
-    try {
-      const res = await fetch('/api/admin/products', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: productId, social_proof_text: socialDrafts[productId], social_proof_visible: visible }),
-      })
-      if (!res.ok) { const d = await res.json().catch(() => ({})); setErr(d.error ?? `Erreur ${res.status}`); return }
-      await load()
-    } catch {
-      setErr('Erreur réseau')
-    } finally {
-      setSavingKey(null)
-    }
-  }
-
-  async function toggleSocial(productId: string) {
-    const current = socialOverrides[productId]
-    const visible = (current?.social_proof_visible as boolean | null | undefined) ?? true
-    await saveSocial(productId, !visible)
   }
 
   if (loading) return <div style={{ padding: 24, color: S.muted, fontSize: 13 }}>Chargement…</div>
@@ -2229,36 +2287,6 @@ function TabContenu() {
                 />
                 <button onClick={() => saveBlock(key, block.visible)} disabled={busy} style={S.btnSecondary}>Enregistrer</button>
                 <button onClick={() => toggleBlock(key)} disabled={busy} style={S.btnSecondary}>{block.visible ? 'Masquer' : 'Afficher'}</button>
-              </div>
-            </div>
-          )
-        })}
-      </div>
-
-      <div style={{ fontSize: 12, fontWeight: 600, color: S.muted, textTransform: 'uppercase', letterSpacing: .5, margin: '0 0 10px' }}>Ventes de la semaine (par produit)</div>
-      <div style={S.card_}>
-        {PRODUCTS.map((p, i) => {
-          const ov = socialOverrides[p.id]
-          const visible = (ov?.social_proof_visible as boolean | null | undefined) ?? true
-          const busy = savingKey === 'social:' + p.id
-          return (
-            <div key={p.id} style={{ padding: '16px 20px', borderBottom: i < PRODUCTS.length - 1 ? `1px solid ${S.border}` : 'none' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                <label style={{ fontSize: 13, fontWeight: 500, color: S.text }}>{p.name}</label>
-                <span style={{ fontSize: 12, fontWeight: 600, padding: '3px 10px', borderRadius: 20, background: visible ? '#f0fdf4' : '#f4f4f5', color: visible ? '#15803d' : '#71717a' }}>
-                  {visible ? 'Visible' : 'Masqué'}
-                </span>
-              </div>
-              <div style={{ display: 'flex', gap: 8 }}>
-                <input
-                  value={socialDrafts[p.id] ?? ''}
-                  onChange={e => setSocialDrafts(d => ({ ...d, [p.id]: e.target.value }))}
-                  style={{ ...S.input, flex: 1 }}
-                  maxLength={200}
-                  placeholder={defaultSocialProofText(p.id) ?? ''}
-                />
-                <button onClick={() => saveSocial(p.id, visible)} disabled={busy} style={S.btnSecondary}>Enregistrer</button>
-                <button onClick={() => toggleSocial(p.id)} disabled={busy} style={S.btnSecondary}>{visible ? 'Masquer' : 'Afficher'}</button>
               </div>
             </div>
           )
@@ -2652,6 +2680,7 @@ export default function AdminPage() {
         <div style={{ flex: 1, display: 'flex', overflow: 'hidden', position: 'relative' }}>
           {nav === 'produits' && <TabProduits />}
           {nav === 'commandes' && <TabCommandes />}
+          {nav === 'retractations' && <TabRetractations />}
           {nav === 'legal' && <TabLegal />}
           {nav === 'avis' && <TabAvis />}
           {nav === 'salons' && <TabSalons />}

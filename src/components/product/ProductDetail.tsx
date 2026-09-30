@@ -81,7 +81,7 @@ function beneficesPourCategorie(category: string): { icon: ReactNode; titre: str
 
 type TondeuseContent = { pourquoiMarque: SiteContentBlock; delaiLivraison: SiteContentBlock; livraisonSeparee: SiteContentBlock } | null
 
-export function ProductDetail({ product, relatedProducts = [], reviews: productReviews, trustItems, socialProof, tondeuseContent = null, beforeImage = null, afterImage = null }: { product: Product; relatedProducts?: Product[]; reviews: ReviewDisplay[]; trustItems: TrustItem[]; socialProof: string | null; tondeuseContent?: TondeuseContent; beforeImage?: BeforeAfterImage | null; afterImage?: BeforeAfterImage | null }) {
+export function ProductDetail({ product, relatedProducts = [], reviews: productReviews, trustItems, tondeuseContent = null, beforeImage = null, afterImage = null }: { product: Product; relatedProducts?: Product[]; reviews: ReviewDisplay[]; trustItems: TrustItem[]; tondeuseContent?: TondeuseContent; beforeImage?: BeforeAfterImage | null; afterImage?: BeforeAfterImage | null }) {
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | undefined>(
     product.variants?.[0]
   )
@@ -270,13 +270,6 @@ export function ProductDetail({ product, relatedProducts = [], reviews: productR
               <a href="#avis" className="sn-stars-lbl">Soyez le premier à donner votre avis →</a>
             )}
           </div>
-
-          {socialProof && (
-            <div className="sn-social">
-              <Sparkles size={13} strokeWidth={2} />
-              {socialProof}
-            </div>
-          )}
 
           <div className="sn-price-block">
             <div className="sn-price">{formatPrice(price)}</div>

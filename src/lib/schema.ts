@@ -131,9 +131,14 @@ export function schemaProduct(product: Product, reviewSummary?: { count: number;
       },
       shippingDetails: {
         '@type': 'OfferShippingDetails',
+        // schema.org n'a pas de notion native de "gratuit au-dessus d'un
+        // seuil" -- le forfait reel (5,90e, offert des 60e) est reduit au
+        // tarif facture le plus courant plutot que de declarer "0" comme si
+        // la livraison etait toujours gratuite, ce qui etait faux en dessous
+        // du seuil.
         shippingRate: {
           '@type': 'MonetaryAmount',
-          value: '0',
+          value: '5.90',
           currency: 'EUR',
         },
         shippingDestination: {
@@ -147,13 +152,27 @@ export function schemaProduct(product: Product, reviewSummary?: { count: number;
             dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
           },
           cutoffTime: '16:00',
-          handlingTime: {
+          // Tondeuses = dropshipping manuel, delai reel ~2 semaines -- tres
+          // different du reste du catalogue (2-5 jours). Categorie utilisee
+          // plutot qu'un id en dur pour rester correct si d'autres tondeuses
+          // rejoignent le catalogue.
+          handlingTime: product.category === 'tondeuse' ? {
+            '@type': 'QuantitativeValue',
+            minValue: 1,
+            maxValue: 3,
+            unitCode: 'DAY',
+          } : {
             '@type': 'QuantitativeValue',
             minValue: 1,
             maxValue: 2,
             unitCode: 'DAY',
           },
-          transitTime: {
+          transitTime: product.category === 'tondeuse' ? {
+            '@type': 'QuantitativeValue',
+            minValue: 10,
+            maxValue: 14,
+            unitCode: 'DAY',
+          } : {
             '@type': 'QuantitativeValue',
             minValue: 2,
             maxValue: 5,

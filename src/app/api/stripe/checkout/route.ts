@@ -41,6 +41,12 @@ export async function POST(req: NextRequest) {
     const isFreeShip = subtotal >= SEUIL_LIVRAISON_OFFERTE
     const fraisPort = isFreeShip ? 0 : FRAIS_PORT
 
+    // Les tondeuses (dropshipping manuel) ont un delai reel d'environ 2
+    // semaines, tres different du "3-5 jours ouvres" affiche par defaut -- un
+    // panier qui en contient une ne doit pas promettre le delai standard au
+    // moment le plus sensible (juste avant paiement).
+    const contientTondeuse = resolved.some((item) => item.product.category === 'tondeuse')
+
     const libelle = (item: (typeof resolved)[number]) =>
       item.variant ? `${item.product.name} — ${item.variant.name}` : item.product.name
 
@@ -92,13 +98,20 @@ export async function POST(req: NextRequest) {
           shipping_rate_data: {
             type: 'fixed_amount',
             fixed_amount: { amount: fraisPort, currency: 'eur' },
-            display_name: isFreeShip
-              ? 'Colissimo — Offerte !'
-              : 'Colissimo (3-5 jours ouvrés)',
-            delivery_estimate: {
-              minimum: { unit: 'business_day', value: 3 },
-              maximum: { unit: 'business_day', value: 5 },
-            },
+            display_name: contientTondeuse
+              ? `Livraison${isFreeShip ? ' — Offerte !' : ''} — délais variables selon produits (voir détail ci-dessus)`
+              : isFreeShip
+                ? 'Colissimo — Offerte !'
+                : 'Colissimo (3-5 jours ouvrés)',
+            delivery_estimate: contientTondeuse
+              ? {
+                  minimum: { unit: 'business_day', value: 3 },
+                  maximum: { unit: 'business_day', value: 15 },
+                }
+              : {
+                  minimum: { unit: 'business_day', value: 3 },
+                  maximum: { unit: 'business_day', value: 5 },
+                },
           },
         },
       ],

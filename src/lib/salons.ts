@@ -37,6 +37,15 @@ export interface AvisGoogle {
  * bizarrerie de ce depot -- src/app/salon/[slug]/page.tsx (Server Component)
  * en a besoin au meme titre que HomeSalonSection ('use client').
  */
+/**
+ * "de Fougères" mais "d'Ernée" -- une ville commencant par une voyelle exige
+ * l'elision en francais. Fougeres passait inapercu (consonne), Ernee non.
+ */
+export function deVille(ville: string | null | undefined): string {
+  if (!ville) return 'de votre ville'
+  return /^[aeiouyàâäéèêëîïôöùûü]/i.test(ville) ? `d'${ville}` : `de ${ville}`
+}
+
 export function buildEmbedUrl(salon: Salon): string {
   const parts = salon.adresse
     ? [salon.adresse, salon.code_postal, salon.ville]
@@ -67,7 +76,7 @@ export const DEFAULT_SALONS: Salon[] = [
   {
     slug: 'ernee',
     nom: 'SP Barbershop Ernée',
-    adresse: '',
+    adresse: '5 rue nationale',
     ville: 'Ernée',
     code_postal: '53500',
     telephone: '',
@@ -75,7 +84,7 @@ export const DEFAULT_SALONS: Salon[] = [
     note_google: '',
     nombre_avis: '',
     lien_planity: '',
-    lien_google_maps: 'https://www.google.com/search?q=Sp+barbershop+ernee',
+    lien_google_maps: 'https://www.google.com/maps/dir/?api=1&destination=5+rue+nationale+53500+Ern%C3%A9e',
     lien_avis_google: 'https://www.google.com/search?q=Sp+barbershop+ernee',
     actif: true,
     ordre: 2,

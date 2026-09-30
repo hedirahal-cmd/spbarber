@@ -4,16 +4,29 @@ import { Menu, X, ShoppingBag } from 'lucide-react'
 import { useState } from 'react'
 import { usePathname } from 'next/navigation'
 import { useCart } from '@/hooks/useCart'
+import { PRODUCTS } from '@/lib/products'
 
 interface HeaderProps {
   announcement: { text: string; visible: boolean }
 }
+
+// Le bandeau d'annonce (site_content.announcement_bar) promet "Expedition 48h"
+// -- vrai pour tout le catalogue sauf les tondeuses (dropshipping manuel,
+// ~2 semaines). Sur leurs fiches specifiquement, ce texte generique est
+// remplace par un message neutre plutot que d'afficher une promesse fausse.
+const PRODUIT_PAR_SLUG: Record<string, string> = Object.fromEntries(
+  PRODUCTS.map((p) => [`/products/${p.slug}`, p.category]),
+)
+const ANNONCE_TONDEUSE = 'Tondeuse : expédition sous ~2 semaines (import) · Livraison offerte dès 60€'
 
 export function Header({ announcement }: HeaderProps) {
   const [menuOpen, setMenuOpen] = useState(false)
   const openCart = useCart((s) => s.openCart)
   const count = useCart((s) => s.itemCount())
   const pathname = usePathname()
+  const estFicheTondeuse = PRODUIT_PAR_SLUG[pathname] === 'tondeuse'
+  const annonceAffichee = estFicheTondeuse ? ANNONCE_TONDEUSE : announcement.text
+  const annonceVisible = estFicheTondeuse ? true : announcement.visible
 
   function handleSalonsClick(e: React.MouseEvent) {
     e.preventDefault()
@@ -37,8 +50,8 @@ export function Header({ announcement }: HeaderProps) {
 
   return (
     <>
-      {announcement.visible && (
-        <div className="ann">{announcement.text}</div>
+      {annonceVisible && (
+        <div className="ann">{annonceAffichee}</div>
       )}
 
       <nav className="site-nav">

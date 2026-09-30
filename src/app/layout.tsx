@@ -44,10 +44,10 @@ export const metadata: Metadata = {
     template: '%s | SP Barber',
   },
   description:
-    'SP Barber — les formules professionnelles des barbiers, expédiées sous 48h. Cire cheveux, shampooing colorant, pack barbe, tondeuse. Livraison offerte dès 60€.',
+    'SP Barber — les formules professionnelles des barbiers, expédiées sous 48h. Shampooing colorant, crème curl, pack barbe, tondeuse. Livraison offerte dès 60€.',
   keywords: [
     'produits capillaires homme',
-    'cire cheveux homme',
+    'crème curl cheveux bouclés',
     'shampooing colorant noir homme',
     'pack barbe complet',
     'tondeuse dégradé',

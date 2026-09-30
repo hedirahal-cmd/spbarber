@@ -294,6 +294,13 @@ export function CartDrawer({ products = [] }: { products?: Product[] }) {
               {couponError && <p className="cdr-coupon-err">{couponError}</p>}
             </div>
 
+            {/* Détail livraison — avant le total, pour que le saut au montant
+                combine ne cache pas les frais de port au client. */}
+            <div className="cdr-ship-row">
+              <span>Livraison</span>
+              <span>{shippingFee === 0 ? 'Offerte' : euros(shippingFee)}</span>
+            </div>
+
             {/* Total */}
             <div className="cdr-total">
               <span className="cdr-total-lbl">TOTAL</span>

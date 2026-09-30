@@ -1790,10 +1790,46 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
 .legal-table th { background: var(--b); color: var(--w); font-weight: 600; letter-spacing: 0.5px; }
 .legal-table tr:nth-child(even) td { background: rgba(0,0,0,.02); }
 .legal-contact { margin-top: 40px; padding: 18px 22px; background: #f4f2ef; border-left: 3px solid var(--gold); font-size: 13px; color: #333; }
+
+/* ── Formulaire de rétractation — thème clair (page .legal-page) ── */
+.rtn-form { display: flex; flex-direction: column; gap: 16px; max-width: 560px; }
+.rtn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.rtn-label { display: block; font-size: 12px; font-weight: 600; color: var(--b); margin-bottom: 5px; }
+.rtn-optional { font-weight: 400; color: var(--gt); text-transform: none; letter-spacing: 0; }
+.rtn-input, .rtn-textarea {
+  width: 100%;
+  background: var(--w);
+  border: 1.5px solid var(--gm);
+  padding: 10px 12px;
+  font-family: var(--fb);
+  font-size: 13px;
+  color: var(--b);
+  transition: border-color 0.2s;
+}
+.rtn-input:focus, .rtn-textarea:focus { outline: none; border-color: var(--gold); }
+.rtn-textarea { resize: vertical; }
+.rtn-btn {
+  background: var(--gold);
+  color: var(--b);
+  border: none;
+  padding: 14px;
+  font-family: var(--fb);
+  font-size: 12px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.rtn-btn:hover { background: var(--goldl); }
+.rtn-btn:disabled { opacity: .6; cursor: wait; }
+.rtn-err { color: #b91c1c; font-size: 12px; }
+.rtn-done { color: #15803d; font-size: 14px; background: #f0fdf4; border: 1px solid #bbf7d0; padding: 16px 18px; max-width: 560px; }
 @media (max-width: 600px) {
   .legal-inner { padding: 0 18px; }
   .legal-table { font-size: 11px; }
   .legal-table th, .legal-table td { padding: 7px 9px; }
+  .rtn-row { grid-template-columns: 1fr; }
 }
 
 .best2-badge-fm { position: absolute; top: 14px; left: 14px; z-index: 2; background: #c0392b; color: var(--w); font-size: 8px; letter-spacing: 2px; text-transform: uppercase; font-weight: 700; padding: 5px 12px; }
@@ -2474,12 +2510,19 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
 .cdr-coupon-ok { font-size: 11px; color: #219653; margin-top: 4px; }
 .cdr-coupon-err { font-size: 11px; color: #e74c3c; margin-top: 4px; }
 
+/* Détail livraison */
+.cdr-ship-row {
+  display: flex; justify-content: space-between; align-items: baseline;
+  padding-top: 10px;
+  border-top: 1px solid var(--gm);
+  margin-top: 10px;
+  font-size: 12px; color: var(--gt);
+}
+
 /* Total */
 .cdr-total {
   display: flex; justify-content: space-between; align-items: baseline;
   padding: 10px 0 10px;
-  border-top: 1px solid var(--gm);
-  margin-top: 10px;
 }
 .cdr-total-lbl {
   font-size: 10px; font-weight: 700; letter-spacing: 2.5px;

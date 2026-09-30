@@ -9,7 +9,6 @@ import { schemaProduct, schemaBreadcrumb, jsonLd } from '@/lib/schema'
 import { supabase, supabaseAdmin } from '@/lib/supabase'
 import { toReviewDisplay, summarizeReviews, type ReviewDisplay } from '@/lib/reviews'
 import { getSiteContent, getTrustItems } from '@/lib/site-content'
-import { resolveSocialProof } from '@/lib/social-proof'
 import { applyOverride } from '@/lib/product-overrides'
 import { getProductOverrides } from '@/lib/product-overrides-server'
 import type { BeforeAfterImage } from '@/components/product/BeforeAfterSlider'
@@ -102,7 +101,7 @@ export default async function ProductPage({ params }: Props) {
 
   const overrides = await getProductOverrides()
   const product = applyOverride(rawProduct, overrides)
-  const socialProofOverride = overrides[rawProduct.id] ?? null
+  const productOverride = overrides[rawProduct.id] ?? null
 
   if (product.actif === false) notFound()
 
@@ -131,13 +130,12 @@ export default async function ProductPage({ params }: Props) {
   } : null
   let beforeImage: BeforeAfterImage | null = null
   let afterImage: BeforeAfterImage | null = null
-  if (typeof socialProofOverride?.before_image_url === 'string' && socialProofOverride.before_image_url) {
-    beforeImage = { url: socialProofOverride.before_image_url, alt: `${product.name} — avant` }
+  if (typeof productOverride?.before_image_url === 'string' && productOverride.before_image_url) {
+    beforeImage = { url: productOverride.before_image_url, alt: `${product.name} — avant` }
   }
-  if (typeof socialProofOverride?.after_image_url === 'string' && socialProofOverride.after_image_url) {
-    afterImage = { url: socialProofOverride.after_image_url, alt: `${product.name} — après` }
+  if (typeof productOverride?.after_image_url === 'string' && productOverride.after_image_url) {
+    afterImage = { url: productOverride.after_image_url, alt: `${product.name} — après` }
   }
-  const socialProof     = resolveSocialProof(product.id, socialProofOverride)
   const productSchema   = schemaProduct(product, summarizeReviews(productReviews))
   const breadcrumbSchema = schemaBreadcrumb([
     { name: 'Accueil', url: 'https://spbarber.fr' },
@@ -155,7 +153,7 @@ export default async function ProductPage({ params }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbSchema) }}
       />
-      <ProductDetail product={product} relatedProducts={relatedProducts} reviews={productReviews} trustItems={trustItems} socialProof={socialProof} tondeuseContent={tondeuseContent} beforeImage={beforeImage} afterImage={afterImage} />
+      <ProductDetail product={product} relatedProducts={relatedProducts} reviews={productReviews} trustItems={trustItems} tondeuseContent={tondeuseContent} beforeImage={beforeImage} afterImage={afterImage} />
     </>
   )
 }

@@ -25,7 +25,6 @@ import { getSiteContent } from '@/lib/site-content'
 type ProdOverride = {
   id: string; name?: string | null; price?: number | null; description?: string | null; stock?: number | null
   benefit?: string | null; images?: { url: string; alt: string }[] | null
-  social_proof_text?: string | null; social_proof_visible?: boolean | null
   actif?: boolean | null; is_bestseller?: boolean | null; bestseller_ordre?: number | null
   bestseller_badge?: string | null; bestseller_cat?: string | null
 }
@@ -66,7 +65,7 @@ async function getTemoignagesPros(): Promise<TemoPro[]> {
 
 async function getProductOverrides(): Promise<Record<string, ProdOverride>> {
   try {
-    const { data } = await supabaseAdmin.from('product_overrides').select('id,name,price,description,stock,benefit,images,social_proof_text,social_proof_visible,actif,is_bestseller,bestseller_ordre,bestseller_badge,bestseller_cat')
+    const { data } = await supabaseAdmin.from('product_overrides').select('id,name,price,description,stock,benefit,images,actif,is_bestseller,bestseller_ordre,bestseller_badge,bestseller_cat')
     if (!data) return {}
     const map: Record<string, ProdOverride> = {}
     ;(data as ProdOverride[]).forEach(r => { map[r.id] = r })
@@ -200,7 +199,7 @@ export default async function HomePage() {
           <Link href="/products" className="hq-btn">
             <span className="hq-icon"><Zap size={22} strokeWidth={1.6} /></span>
             <span className="hq-txt">
-              <span className="hq-main">Je veux une routine complete</span>
+              <span className="hq-main">Je veux une routine complète</span>
               <span className="hq-sub">Voir tous les produits</span>
             </span>
           </Link>
@@ -325,13 +324,13 @@ export default async function HomePage() {
                 SP Barber<em>Pack Barbe</em>
               </h2>
               <p className="kit-desc">
-                Huile de barbe, brosse, peigne, cire et baume — tout pour une barbe impeccable dans un seul coffret premium.
+                Huile de barbe, brosse, peigne, baume, coupe-chou et dermaroller — tout pour une barbe impeccable dans un seul coffret premium.
               </p>
               <span className="kit-price">{formatPrice(packBarbeProduit.price)}</span>
               <div className="kit-cta-row">
                 <span className="btn-gold">Voir le Pack →</span>
                 <div className="kit-badge-inline">
-                  <strong>5</strong>
+                  <strong>6</strong>
                   <span>produits inclus</span>
                 </div>
               </div>

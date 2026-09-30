@@ -1,8 +1,7 @@
 /**
- * Banc de verification du bloc Contenu -- nouvel onglet admin pour editer/
- * masquer les bandeaux marketing du site (bandeau d'annonce, bannière CTA
- * accueil, 4 reperes de confiance fiche produit) et le texte "ventes de la
- * semaine" par produit.
+ * Banc de verification du bloc Contenu -- onglet admin pour editer/masquer
+ * les bandeaux marketing du site (bandeau d'annonce, bannière CTA accueil,
+ * 4 reperes de confiance fiche produit).
  *
  * A lancer depuis la racine du depot :
  *     npx tsx scripts/verif-contenu.ts
@@ -17,9 +16,9 @@
  *
  * Eprouve pour echouer (2 regressions distinctes) :
  * 1. En revenant a un upsert "aveugle" dans PUT /api/admin/products (sans
- *    relire la ligne existante avant d'ecrire), le cas C echoue : editer le
- *    texte "ventes de la semaine" depuis l'onglet Contenu efface le nom
- *    personnalise du produit deja enregistre par l'onglet Produits.
+ *    relire la ligne existante avant d'ecrire), le cas C echoue : editer un
+ *    champ isole (before_image_url) efface le nom personnalise du produit
+ *    deja enregistre par l'onglet Produits.
  * 2. En retirant la liste blanche de cles dans PUT /api/admin/site-content,
  *    le cas B echoue : une cle inconnue est acceptee et enregistree.
  */
@@ -162,19 +161,9 @@ async function main() {
   const accueil = await page('/')
   verifie('bandeau d annonce par defaut present', accueil.includes('Livraison offerte dès 60€ · Expédition 48h'))
   verifie('bannière CTA par defaut presente', accueil.includes('Rejoignez nos clients satisfaits'))
-  verifie('ventes de la semaine retiree de la section Produits de l accueil (demande explicite)', !accueil.includes('12 personnes ont acheté cette semaine'))
-
-  const listing = await page('/products')
-  verifie('ventes de la semaine produit 3 (defaut 12) sur le catalogue', listing.includes('12 personnes ont acheté cette semaine'))
-  const zoneProduit7 = zoneEntre(listing, '/products/poudre-texturante', 'prod-card')
-  verifie('produit 7 (aucun defaut) n affiche aucune vente de la semaine', !zoneProduit7.includes('ont acheté cette semaine'))
 
   const ficheCurl = await page('/products/creme-curl-control')
   verifie('les 4 reperes de confiance par defaut sont presents', ['Sécurisé', 'Livraison 3-5 jours', 'Retour 30j', 'France'].every((t) => ficheCurl.includes(t)))
-  verifie('ventes de la semaine produit 3 (defaut 12) sur la fiche', ficheCurl.includes('12 personnes ont acheté cette semaine'))
-
-  const ficheShampNoir = await page('/products/shampooing-noir-colorant')
-  verifie('ventes de la semaine produit 2 (defaut 51) sur la page shampooing noir', ficheShampNoir.includes('51 personnes ont acheté cette semaine'))
 
   console.log('\n--- B. Edition des bandeaux du site (site_content) ---')
   let r = await putAdmin('/api/admin/site-content', { key: 'announcement_bar', text: 'TEXTE PERSO BANDEAU', visible: true })
@@ -192,23 +181,16 @@ async function main() {
   verifie('cle de bandeau inconnue rejetee => 400', r.statut === 400, 'obtenu ' + r.statut)
   verifie('rien enregistre pour cette cle inconnue', !('cle_qui_nexiste_pas' in siteContent))
 
-  console.log('\n--- C. Edition "ventes de la semaine" ne doit PAS ecraser le reste de la fiche produit ---')
+  console.log('\n--- C. Edition partielle (avant/apres) ne doit PAS ecraser le reste de la fiche produit ---')
   r = await putAdmin('/api/admin/products', { id: '1', name: 'Cire Custom Test', price: 1999, description: 'd', stock: 5, benefit: 'b', images: [] })
   verifie('sauvegarde complete (onglet Produits) => 200', r.statut === 200, 'obtenu ' + r.statut)
-  r = await putAdmin('/api/admin/products', { id: '1', social_proof_text: 'ÉDITION SOCIALE TEST', social_proof_visible: true })
-  verifie('sauvegarde partielle (onglet Contenu) => 200', r.statut === 200, 'obtenu ' + r.statut)
+  r = await putAdmin('/api/admin/products', { id: '1', before_image_url: 'https://exemple.test/avant.jpg' })
+  verifie('sauvegarde partielle (champ isole) => 200', r.statut === 200, 'obtenu ' + r.statut)
   verifie('le nom personnalise du produit 1 n a PAS ete efface', overrides['1']?.name === 'Cire Custom Test', 'obtenu ' + JSON.stringify(overrides['1']?.name))
-  verifie('le texte ventes de la semaine a bien ete enregistre', overrides['1']?.social_proof_text === 'ÉDITION SOCIALE TEST')
+  verifie('le champ isole a bien ete enregistre', overrides['1']?.before_image_url === 'https://exemple.test/avant.jpg')
 
   const ficheCire2 = await page('/products/cire-cheveux-premium')
   verifie('nom personnalise toujours affiche sur la fiche', ficheCire2.includes('Cire Custom Test'))
-  verifie('nouveau texte ventes de la semaine affiche sur la fiche', ficheCire2.includes('ÉDITION SOCIALE TEST'))
-
-  r = await putAdmin('/api/admin/products', { id: '1', social_proof_visible: false })
-  verifie('masquage ventes de la semaine => 200', r.statut === 200, 'obtenu ' + r.statut)
-  const ficheCire3 = await page('/products/cire-cheveux-premium')
-  verifie('ventes de la semaine masquees sur la fiche', !ficheCire3.includes('ÉDITION SOCIALE TEST'))
-  verifie('nom personnalise toujours intact apres ce masquage', ficheCire3.includes('Cire Custom Test'))
 
   console.log('\n--- D. Edition des reperes de confiance, un par un ---')
   r = await putAdmin('/api/admin/site-content', { key: 'trust_livraison', text: 'Livraison express 24h', visible: true })

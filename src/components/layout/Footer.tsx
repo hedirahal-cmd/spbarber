@@ -29,6 +29,7 @@ export function Footer() {
           <ul>
             <li><Link href="/livraison">Livraison</Link></li>
             <li><Link href="/retours">Retours</Link></li>
+            <li><Link href="/retractation">Rétractation</Link></li>
             <li><Link href="/faq">FAQ</Link></li>
             <li><Link href="/contact">Contact</Link></li>
           </ul>

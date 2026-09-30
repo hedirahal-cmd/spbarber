@@ -9,7 +9,7 @@ import { SalonCarousel } from '@/components/salon/SalonCarousel'
 import { SalonAvisGrid } from '@/components/salon/SalonAvisGrid'
 import { GoogleMapEmbed } from '@/components/GoogleMapEmbed'
 import { supabase } from '@/lib/supabase'
-import { type Salon, DEFAULT_SALONS, buildEmbedUrl } from '@/lib/salons'
+import { type Salon, DEFAULT_SALONS, buildEmbedUrl, deVille } from '@/lib/salons'
 import { schemaSalon, jsonLd } from '@/lib/schema'
 
 const BASE = 'https://spbarber.fr'
@@ -92,7 +92,7 @@ export default async function SalonDetailPage({ params }: Props) {
             <div className="salon-hero-ey">Barbier {salon.ville} {salon.code_postal ? `— ${salon.code_postal}` : ''}</div>
             <h1 className="salon-hero-title">{(salon.nom ?? 'SP BARBER').toUpperCase()}</h1>
             <p className="salon-hero-sub">
-              {salon.description || `Votre salon de coiffure barbier professionnel au cœur de ${salon.ville ?? 'votre ville'}. Coupes homme, dégradés fade, soins barbe.`}
+              {salon.description || `Votre salon de coiffure barbier professionnel au cœur ${deVille(salon.ville)}. Coupes homme, dégradés fade, soins barbe.`}
             </p>
             <div className="salon-hero-badges">
               {hasRating && (
@@ -242,7 +242,7 @@ export default async function SalonDetailPage({ params }: Props) {
             <div className="salon-sec-ey">— Emportez le salon chez vous —</div>
             <h2 className="salon-sec-title">NOS PRODUITS EN LIGNE</h2>
             <p className="salon-sec-sub">
-              Les mêmes produits que nos barbiers utilisent en salon, disponibles en livraison 48h partout en France.
+              Les mêmes produits que nos barbiers utilisent en salon, expédiés sous 48h partout en France (livraison 3-5 jours ouvrés, offerte dès 60€ — sauf tondeuses, ~2 semaines).
             </p>
             <Link href="/products" className="salon-shop-cta">
               Voir tous les produits <ArrowRight size={14} strokeWidth={2.5} />

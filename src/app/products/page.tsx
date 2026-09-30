@@ -8,16 +8,15 @@ import { supabaseAdmin } from '@/lib/supabase'
 import { formatPrice } from '@/lib/utils'
 import { AddToCartButton } from '@/components/AddToCartButton'
 import { Scissors, Droplets, User, Zap, Sparkles, Cog } from 'lucide-react'
-import { resolveSocialProof } from '@/lib/social-proof'
 
 export const metadata: Metadata = {
-  title: 'Boutique Produits Capillaires Homme — Cire, Shampooing, Kit Barbe',
+  title: 'Boutique Produits Capillaires Homme — Shampooing, Soins & Tondeuses',
   description:
-    'Découvrez la gamme complète SP Barber : cire cheveux fixation forte, shampooing colorant noir, crème curl, kit barbe et tondeuse dégradé. Livraison offerte dès 60€.',
+    'Découvrez la gamme complète SP Barber : shampooing colorant noir, crème curl, poudre texturante, kit barbe complet et tondeuses professionnelles. Livraison offerte dès 60€.',
   alternates: { canonical: 'https://spbarber.fr/products' },
   openGraph: {
     title: 'Boutique SP Barber — Produits Capillaires Homme Premium',
-    description: 'Cire cheveux, shampooing colorant, kit barbe complet. Formules pro expédiées sous 48h.',
+    description: 'Shampooing colorant, crème curl, kit barbe complet, tondeuses pro. Formules pro expédiées sous 48h.',
     url: 'https://spbarber.fr/products',
     type: 'website',
   },
@@ -45,12 +44,12 @@ function getBadge(id: string) {
   return null
 }
 
-type ProdOv = { id: string; name?: string | null; price?: number | null; description?: string | null; stock?: number | null; benefit?: string | null; images?: { url: string; alt: string }[] | null; social_proof_text?: string | null; social_proof_visible?: boolean | null; actif?: boolean | null }
+type ProdOv = { id: string; name?: string | null; price?: number | null; description?: string | null; stock?: number | null; benefit?: string | null; images?: { url: string; alt: string }[] | null; actif?: boolean | null }
 
 export default async function ProductsPage() {
   let overrides: Record<string, ProdOv> = {}
   try {
-    const { data, error } = await supabaseAdmin.from('product_overrides').select('id,name,price,description,stock,benefit,images,social_proof_text,social_proof_visible,actif')
+    const { data, error } = await supabaseAdmin.from('product_overrides').select('id,name,price,description,stock,benefit,images,actif')
     console.log('[products-page] overrides count:', data?.length ?? 0, '| error:', error?.message ?? null)
     if (data) (data as ProdOv[]).forEach(r => { overrides[r.id] = r })
   } catch (e) {
@@ -127,10 +126,6 @@ export default async function ProductsPage() {
                     </Link>
                   )}
                 </div>
-                {(() => {
-                  const socialProof = resolveSocialProof(product.id, overrides[product.id])
-                  return socialProof && <div className="pc-social">🔥 {socialProof}</div>
-                })()}
               </div>
             </div>
           ))}

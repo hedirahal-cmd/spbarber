@@ -25,7 +25,10 @@ export default function RetoursPage() {
         <section className="legal-section">
           <h2>Comment faire un retour ?</h2>
           <ol>
-            <li>Envoyez un e-mail à <strong>contact@spbarber.fr</strong> avec votre numéro de commande.</li>
+            <li>
+              Faites votre demande de rétractation <Link href="/retractation">directement en ligne</Link> (sans
+              compte ni connexion), ou par e-mail à <strong>contact@spbarber.fr</strong> avec votre numéro de commande.
+            </li>
             <li>Nous vous communiquons les instructions de retour sous 24h.</li>
             <li>Renvoyez le produit dans son emballage d&apos;origine.</li>
             <li>Dès réception, nous procédons au remboursement sous 5 à 10 jours ouvrés.</li>

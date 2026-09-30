@@ -93,21 +93,24 @@ export const PRODUCTS: Product[] = [
     name: 'Pack Barbe Complet',
     slug: 'pack-barbe-complet',
     description:
-      'Le Pack Barbe Complet SP Barber réunit tout ce qu\'il faut pour entretenir et sublimer sa barbe au quotidien. Ce kit barbe homme de 5 essentiels inclut huile de barbe nourrissante, baume de barbe coiffant, peigne barbe, ciseaux de précision et shampooing barbe. Formulés par des barbiers professionnels de Fougères, ces produits soin barbe homme offrent un résultat visible dès la première utilisation : barbe douce, hydratée, bien coiffée et parfaitement entretenue. Un cadeau idéal pour homme ou une mise à niveau complète de votre routine barbe.',
+      'Le Pack Barbe Complet SP Barber réunit tout ce qu\'il faut pour entretenir et sublimer sa barbe au quotidien. Ce kit barbe homme de 6 essentiels inclut huile de barbe nourrissante, brosse à barbe, peigne barbe, baume de barbe coiffant, coupe-chou et dermaroller. Sélectionnés par des barbiers professionnels de Fougères, ces produits soin barbe homme offrent un résultat visible dès la première utilisation : barbe douce, hydratée, bien coiffée et parfaitement entretenue. Un cadeau idéal pour homme ou une mise à niveau complète de votre routine barbe.',
     price: 4990,
-    images: [{ url: '/images/products/pack-barbe.jpg', alt: "Pack Barbe Complet SP Barber avec 5 produits d'entretien" }],
+    images: [{ url: '/images/products/pack-barbe.jpg', alt: "Pack Barbe Complet SP Barber avec 6 produits d'entretien" }],
     category: 'barbe',
     stock: 25,
     is_dropshipping: false,
     // "Valeur 85e, economisez 35e" retire (2026-09-28, decision Hedi) : aucun
-    // des 5 articles du pack n'existe comme produit vendu separement dans le
+    // des articles du pack n'existe comme produit vendu separement dans le
     // catalogue, ce prix de reference n'a donc jamais ete reellement pratique.
-    benefit: '5 essentiels pour une barbe impeccable',
-    trust: ['5 produits complémentaires inclus', 'Formulé par des barbiers pro', 'Livraison 3-5 jours ouvrés', 'Satisfait ou remboursé'],
+    // Composition reelle et definitive (2026-09-30, decision Hedi) : huile de
+    // barbe, brosse, peigne, baume, coupe-chou, dermaroller -- plus de
+    // shampooing ni ciseaux, qui ne font pas partie du pack.
+    benefit: '6 essentiels pour une barbe magnifique',
+    trust: ['6 produits complémentaires inclus', 'Formulé par des barbiers pro', 'Livraison 3-5 jours ouvrés', 'Satisfait ou remboursé'],
     related: ['1', '4'],
-    seo_title: 'Pack Barbe Complet Homme — SP Barber | Kit 5 Produits Soin Barbe',
+    seo_title: 'Pack Barbe Complet Homme — SP Barber | Kit 6 Produits Soin Barbe',
     seo_description:
-      'Kit barbe complet pour homme : 5 essentiels inclus. Huile, baume, peigne, ciseaux, shampooing barbe. Livraison offerte. Idéal cadeau.',
+      'Kit barbe complet pour homme : 6 essentiels inclus. Huile, brosse, peigne, baume, coupe-chou, dermaroller. Livraison offerte. Idéal cadeau.',
     created_at: new Date().toISOString(),
   },
   {
@@ -170,7 +173,7 @@ export const PRODUCTS: Product[] = [
     name: 'Tondeuse BRDCLIP FA1T',
     slug: 'tondeuse-brdclip-fa1t',
     description:
-      'La Tondeuse BRDCLIP FA1T embarque des lames en titane pour une coupe précise et durable, sans faux mouvement. Sa batterie Li-ion offre environ 90 minutes d\'autonomie pour une recharge complète d\'environ 2 heures sur son support de charge inclus. Conçue pour un usage à sec ou sous la douche, ses lames se rincent facilement à l\'eau. Livrée avec plusieurs embouts interchangeables (de 0,5 à 5 mm), elle s\'adapte à toutes les longueurs de coupe, du dégradé le plus court à la finition la plus fournie.',
+      'La Tondeuse BRDCLIP FA1T embarque des lames en titane pour une coupe précise et durable, sans faux mouvement. Sa batterie Li-ion offre environ 90 minutes d\'autonomie pour une recharge complète d\'environ 2 heures sur son support de charge inclus. Conçue pour un usage à sec, ses lames se rincent facilement à l\'eau pour un entretien simple. Livrée avec plusieurs embouts interchangeables (de 0,5 à 5 mm), elle s\'adapte à toutes les longueurs de coupe, du dégradé le plus court à la finition la plus fournie.',
     price: 2739,
     images: [{ url: '/images/products/tondeuse-brdclip-fa1t.jpg', alt: 'Tondeuse BRDCLIP FA1T SP Barber, lames titane' }],
     category: 'tondeuse',
@@ -184,10 +187,10 @@ export const PRODUCTS: Product[] = [
     // seul, jamais a exposer publiquement : https://fr.aliexpress.com/item/1005006825951304.html
     actif: false,
     benefit: 'Lames titane, 90 min d\'autonomie',
-    trust: ['Lames titane précises', 'Usage à sec ou sous la douche', 'Livraison sous 2 semaines', 'Satisfait ou remboursé'],
+    trust: ['Lames titane précises', 'Usage à sec', 'Livraison sous 2 semaines', 'Satisfait ou remboursé'],
     seo_title: 'Tondeuse BRDCLIP FA1T — SP Barber | Lames Titane, Sans Fil',
     seo_description:
-      'Tondeuse cheveux sans fil BRDCLIP FA1T. Lames titane, autonomie 90 min, usage sec ou humide. Embouts interchangeables 0,5 à 5 mm.',
+      'Tondeuse cheveux sans fil BRDCLIP FA1T. Lames titane, autonomie 90 min, usage à sec. Embouts interchangeables 0,5 à 5 mm.',
     created_at: new Date().toISOString(),
   },
   {

@@ -5,7 +5,7 @@ import { schemaFAQ, jsonLd } from '@/lib/schema'
 export const metadata: Metadata = {
   title: { absolute: 'FAQ — Questions Fréquentes SP Barber | Livraison, Retours, Produits' },
   description:
-    'Toutes les réponses à vos questions : commande, paiement, livraison Colissimo en 48h, retours 30 jours et informations produits SP Barber.',
+    'Toutes les réponses à vos questions : commande, paiement, expédition sous 48h, retours 30 jours et informations produits SP Barber.',
   alternates: { canonical: 'https://spbarber.fr/faq' },
   openGraph: {
     title: 'FAQ SP Barber — Questions Fréquentes',
@@ -41,7 +41,7 @@ const FAQS = [
     items: [
       {
         q: 'Quel est le délai de livraison ?',
-        a: 'Vos commandes sont expédiées sous 24-48h ouvrées. La livraison prend ensuite 3 à 5 jours ouvrés selon votre adresse.',
+        a: 'Vos commandes sont expédiées sous 24-48h ouvrées. La livraison prend ensuite 3 à 5 jours ouvrés selon votre adresse. Exception : les tondeuses (envoyées directement par notre fournisseur) comptent environ 2 semaines.',
       },
       {
         q: 'La livraison est-elle gratuite ?',

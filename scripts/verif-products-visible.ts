@@ -1,6 +1,6 @@
 /**
  * Banc de verification du correctif "null explicite vs champ absent" sur
- * social_proof_visible dans PUT /api/admin/products.
+ * is_bestseller dans PUT /api/admin/products.
  *
  * A lancer depuis la racine du depot :
  *     npx tsx scripts/verif-products-visible.ts
@@ -118,28 +118,28 @@ async function main() {
   }
   console.log('  OK    trafic Supabase detourne vers le faux serveur')
 
-  console.log('\n--- A. Un produit visible ("true") ne doit pas basculer a false sur un null explicite ---')
-  overrides = { p1: { id: 'p1', name: 'Produit Un', social_proof_text: 'Texte existant', social_proof_visible: true } }
-  let r = await putAdmin({ id: 'p1', name: 'Produit Un', price: 1000, description: 'd', stock: 5, benefit: 'b', images: [], social_proof_visible: null })
+  console.log('\n--- A. Un produit "bestseller" (true) ne doit pas basculer a false sur un null explicite ---')
+  overrides = { p1: { id: 'p1', name: 'Produit Un', is_bestseller: true } }
+  let r = await putAdmin({ id: 'p1', name: 'Produit Un', price: 1000, description: 'd', stock: 5, benefit: 'b', images: [], is_bestseller: null })
   verifie('sauvegarde => 200', r.statut === 200, 'obtenu ' + r.statut)
-  verifie('social_proof_visible reste true (pas ecrase par le null explicite)', overrides.p1?.social_proof_visible === true, 'obtenu ' + JSON.stringify(overrides.p1?.social_proof_visible))
+  verifie('is_bestseller reste true (pas ecrase par le null explicite)', overrides.p1?.is_bestseller === true, 'obtenu ' + JSON.stringify(overrides.p1?.is_bestseller))
   verifie('les autres champs ont bien ete mis a jour', overrides.p1?.price === 1000)
 
   console.log('\n--- B. Une vraie valeur (false) continue de s ecrire ---')
-  r = await putAdmin({ id: 'p1', social_proof_visible: false })
+  r = await putAdmin({ id: 'p1', is_bestseller: false })
   verifie('sauvegarde => 200', r.statut === 200, 'obtenu ' + r.statut)
-  verifie('social_proof_visible passe bien a false', overrides.p1?.social_proof_visible === false, 'obtenu ' + JSON.stringify(overrides.p1?.social_proof_visible))
+  verifie('is_bestseller passe bien a false', overrides.p1?.is_bestseller === false, 'obtenu ' + JSON.stringify(overrides.p1?.is_bestseller))
 
   console.log('\n--- C. Une vraie valeur (true) continue de s ecrire ---')
-  r = await putAdmin({ id: 'p1', social_proof_visible: true })
+  r = await putAdmin({ id: 'p1', is_bestseller: true })
   verifie('sauvegarde => 200', r.statut === 200, 'obtenu ' + r.statut)
-  verifie('social_proof_visible passe bien a true', overrides.p1?.social_proof_visible === true, 'obtenu ' + JSON.stringify(overrides.p1?.social_proof_visible))
+  verifie('is_bestseller passe bien a true', overrides.p1?.is_bestseller === true, 'obtenu ' + JSON.stringify(overrides.p1?.is_bestseller))
 
   console.log('\n--- D. Champ absent (jamais envoye) : non-regression, deja correct avant ---')
-  overrides.p1.social_proof_visible = true
+  overrides.p1.is_bestseller = true
   r = await putAdmin({ id: 'p1', name: 'Nom change seul' })
   verifie('sauvegarde => 200', r.statut === 200, 'obtenu ' + r.statut)
-  verifie('social_proof_visible inchange (true) quand le champ est absent', overrides.p1?.social_proof_visible === true, 'obtenu ' + JSON.stringify(overrides.p1?.social_proof_visible))
+  verifie('is_bestseller inchange (true) quand le champ est absent', overrides.p1?.is_bestseller === true, 'obtenu ' + JSON.stringify(overrides.p1?.is_bestseller))
   verifie('le nom a bien ete mis a jour', overrides.p1?.name === 'Nom change seul')
 
   console.log('\n=======================================')

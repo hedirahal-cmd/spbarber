@@ -10,8 +10,6 @@ export type ProductOverride = {
   stock?: number | null
   benefit?: string | null
   images?: ProductImage[] | null
-  social_proof_text?: string | null
-  social_proof_visible?: boolean | null
   actif?: boolean | null
   before_image_url?: string | null
   after_image_url?: string | null
