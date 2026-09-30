@@ -28,13 +28,13 @@ const ARTICLES = [
   },
   {
     slug: 'meilleurs-produits-barbe-impeccable-2025',
-    title: 'Les meilleurs produits pour une barbe impeccable en 2025',
+    title: 'Les meilleurs produits pour une barbe impeccable',
     excerpt:
       'Huile, baume, cire ou gel — quel produit choisir pour entretenir sa barbe ? Notre guide complet sélectionné par nos barbiers pros pour chaque type de barbe.',
     category: 'Soin Barbe',
     readTime: '6 min',
     icon: <User size={20} strokeWidth={1.5} />,
-    keywords: ['soin barbe homme', 'produit barbe 2025', 'huile barbe'],
+    keywords: ['soin barbe homme', 'produit barbe', 'huile barbe'],
   },
   {
     slug: 'routine-capillaire-homme-5-etapes-essentielles',

@@ -124,10 +124,10 @@ const ARTICLES: Record<string, {
   },
 
   'meilleurs-produits-barbe-impeccable-2025': {
-    title: 'Les meilleurs produits pour une barbe impeccable en 2025',
-    seoTitle: 'Meilleurs Produits Barbe Homme 2025 — Guide Complet SP Barber',
+    title: 'Les meilleurs produits pour une barbe impeccable',
+    seoTitle: 'Meilleurs Produits Barbe Homme — Guide Complet SP Barber',
     description:
-      'Quel produit soin barbe choisir en 2025 ? Huile, baume, cire ou gel : notre guide complet par les barbiers SP Barber pour une barbe parfaitement entretenue.',
+      'Quel produit soin barbe choisir ? Huile, baume, cire ou gel : notre guide complet par les barbiers SP Barber pour une barbe parfaitement entretenue.',
     category: 'Soin Barbe',
     readTime: '6 min',
     date: '2025-06-05',
@@ -136,7 +136,7 @@ const ARTICLES: Record<string, {
         <p>
           Entretenir sa barbe ne se résume pas à la tailler de temps en temps. Une{' '}
           <strong>barbe impeccable</strong> nécessite une routine adaptée, avec les bons{' '}
-          <strong>produits soin barbe homme</strong>. En 2025, l&apos;offre est vaste — et choisir
+          <strong>produits soin barbe homme</strong>. L&apos;offre est vaste — et choisir
           entre huile, baume, cire et gel peut sembler complexe. Nos barbiers de Fougères démêlent
           tout pour vous.
         </p>
@@ -173,7 +173,7 @@ const ARTICLES: Record<string, {
           les huiles naturelles protectrices.
         </p>
 
-        <h2>Notre sélection 2025 : le kit barbe complet SP Barber</h2>
+        <h2>Notre sélection : le kit barbe complet SP Barber</h2>
         <p>
           Pour ceux qui souhaitent une solution clé en main, notre{' '}
           <Link href="/products/pack-barbe-complet">Pack Barbe Complet SP Barber</Link> regroupe
