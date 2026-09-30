@@ -1213,9 +1213,14 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
 .ft-soc a:hover .ft-soc-i { border-color: var(--gold); }
 .ft-bottom { display: flex; justify-content: space-between; align-items: center; padding-top: 24px; border-top: 1px solid rgba(255,255,255,.04); }
 .ft-copy { font-size: 10px; color: rgba(248,246,243,.12); letter-spacing: 2px; text-transform: uppercase; }
-.ft-legal { display: flex; gap: 20px; }
+.ft-legal { display: flex; gap: 20px; flex-wrap: wrap; }
 .ft-legal a { font-size: 10px; color: rgba(248,246,243,.16); letter-spacing: 1px; transition: color 0.2s; cursor: pointer; }
 .ft-legal a:hover { color: var(--goldl); }
+.ft-legal-cookies {
+  background: none; border: none; padding: 0; margin: 0; font-family: inherit;
+  font-size: 10px; color: rgba(248,246,243,.16); letter-spacing: 1px; transition: color 0.2s; cursor: pointer;
+}
+.ft-legal-cookies:hover { color: var(--goldl); }
 
 /* ═══ STICKY MOBILE ═══ */
 .sticky-mob {
@@ -4399,4 +4404,48 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
 @media (max-width: 720px) {
   .cart-page-grid { grid-template-columns: 1fr; }
   .cart-summary { width: 100%; position: static; }
+}
+
+/* Bandeau de consentement cookies RGPD */
+.cookie-banner {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  z-index: 8000;
+  background: var(--b);
+  color: var(--w);
+  padding: 18px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  border-top: 1px solid rgba(255,255,255,.1);
+}
+.cookie-banner-txt {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.6;
+  color: rgba(248,246,243,.75);
+  flex: 1;
+  min-width: 240px;
+}
+.cookie-banner-txt a { color: var(--goldl); text-decoration: underline; }
+.cookie-banner-actions { display: flex; gap: 10px; flex-shrink: 0; }
+.cookie-banner-btn {
+  font-family: var(--fb);
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  padding: 10px 20px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.cookie-banner-btn--refuse { background: none; border: 1px solid rgba(255,255,255,.25); color: var(--w); }
+.cookie-banner-btn--refuse:hover { border-color: var(--w); }
+.cookie-banner-btn--accept { background: var(--gold); border: 1px solid var(--gold); color: var(--b); font-weight: 700; }
+.cookie-banner-btn--accept:hover { background: var(--goldl); border-color: var(--goldl); }
+@media (max-width: 560px) {
+  .cookie-banner { padding: 16px; flex-direction: column; align-items: stretch; }
+  .cookie-banner-actions { justify-content: stretch; }
+  .cookie-banner-btn { flex: 1; }
 }

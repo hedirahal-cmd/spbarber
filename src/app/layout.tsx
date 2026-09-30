@@ -5,6 +5,7 @@ import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
 import { CartDrawer } from '@/components/CartDrawer'
 import { SessionInit } from '@/components/SessionInit'
+import { CookieConsent } from '@/components/CookieConsent'
 import { getSiteContent } from '@/lib/site-content'
 import { getProductOverrides } from '@/lib/product-overrides-server'
 import { applyOverride } from '@/lib/product-overrides'
@@ -115,6 +116,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <Footer />
         <CartDrawer products={cartProducts} />
         <SessionInit />
+        <CookieConsent />
       </body>
     </html>
   )

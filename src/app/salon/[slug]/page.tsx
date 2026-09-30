@@ -7,6 +7,7 @@ import Link from 'next/link'
 import { MapPin, Clock, Phone, Scissors, Star, ArrowRight } from 'lucide-react'
 import { SalonCarousel } from '@/components/salon/SalonCarousel'
 import { SalonAvisGrid } from '@/components/salon/SalonAvisGrid'
+import { GoogleMapEmbed } from '@/components/GoogleMapEmbed'
 import { supabase } from '@/lib/supabase'
 import { type Salon, DEFAULT_SALONS, buildEmbedUrl } from '@/lib/salons'
 import { schemaSalon, jsonLd } from '@/lib/schema'
@@ -171,14 +172,11 @@ export default async function SalonDetailPage({ params }: Props) {
 
         {/* ── GOOGLE MAPS EMBED ── */}
         <section className="salon-map-sec">
-          <iframe
+          <GoogleMapEmbed
             title={`${salon.nom} — ${villeLabel}`}
             src={embedSrc}
             className="salon-map"
-            loading="lazy"
-            allowFullScreen
-            referrerPolicy="no-referrer-when-downgrade"
-            aria-label={`Carte Google Maps — ${salon.nom}`}
+            routeHref={salon.lien_google_maps}
           />
         </section>
 

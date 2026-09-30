@@ -1,4 +1,6 @@
+'use client'
 import Link from 'next/link'
+import { resetConsent } from '@/lib/cookie-consent'
 
 export function Footer() {
   return (
@@ -71,6 +73,9 @@ export function Footer() {
           <Link href="/politique-confidentialite">Confidentialité</Link>
           <Link href="/cgv">CGV</Link>
           <Link href="/mentions-legales">Mentions légales</Link>
+          <button type="button" className="ft-legal-cookies" onClick={resetConsent}>
+            Gérer les cookies
+          </button>
         </div>
       </div>
     </footer>

@@ -5,6 +5,7 @@ import { MapPin, Clock, Phone } from 'lucide-react'
 import { type Salon, DEFAULT_SALONS, buildEmbedUrl } from '@/lib/salons'
 import { SalonCarousel } from '@/components/salon/SalonCarousel'
 import { SalonAvisGrid } from '@/components/salon/SalonAvisGrid'
+import { GoogleMapEmbed } from '@/components/GoogleMapEmbed'
 
 export type { Salon }
 export { DEFAULT_SALONS }
@@ -76,14 +77,11 @@ function SalonBlock({ salon }: { salon: Salon }) {
         </div>
 
         <div className="hs-salon-right">
-          <iframe
+          <GoogleMapEmbed
             title={`${salon.nom} — ${villeLabel}`}
             src={embedSrc}
             className="hs-salon-map"
-            loading="lazy"
-            allowFullScreen
-            referrerPolicy="no-referrer-when-downgrade"
-            aria-label={`Carte Google Maps — ${salon.nom}`}
+            routeHref={salon.lien_google_maps}
           />
         </div>
       </div>
