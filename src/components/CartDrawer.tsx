@@ -40,6 +40,14 @@ export function CartDrawer({ products = [] }: { products?: Product[] }) {
   const [couponCode, setCouponCode]       = useState('')
   const [couponApplied, setCouponApplied] = useState(false)
   const [couponError, setCouponError]     = useState('')
+  // Confirmation propre au complement recommande -- distincte de la jauge
+  // "plus que X€" juste au-dessus, pour que le client associe clairement son
+  // clic a un resultat, plutot qu'une invitation a depenser encore plus sans
+  // lien avec ce qu'il vient de faire (2026-10-01, retour Hedi). Le nom est
+  // conserve a part (et non relu depuis `suggestions`) car l'ajout retire
+  // aussitot ce produit de la liste des disponibles.
+  const [addedSuggestionId, setAddedSuggestionId] = useState<string | null>(null)
+  const [addedSuggestionName, setAddedSuggestionName] = useState('')
 
   const cartTotal   = total()
   const count       = itemCount()
@@ -90,7 +98,13 @@ export function CartDrawer({ products = [] }: { products?: Product[] }) {
   let progPct: number
   let progDone = false
 
-  if (count === 0) {
+  if (addedSuggestionName) {
+    // Confirmation du complement recommande -- prioritaire sur la jauge
+    // generique pendant sa courte fenetre d'affichage (voir onClick plus bas),
+    // pour ne jamais faire suivre un ajout cible d'une relance generique.
+    progMsg = <>✓ <strong>{addedSuggestionName}</strong> ajouté — ça complète bien votre commande</>
+    progPct = 100; progDone = true
+  } else if (count === 0) {
     progMsg = <>Ajoutez un produit pour la <strong>livraison offerte dès 59 €</strong></>
     progPct = 0
   } else if (cartTotal >= FREE_SHIP) {
@@ -368,11 +382,21 @@ export function CartDrawer({ products = [] }: { products?: Product[] }) {
                           <div className="cdr-sugg-price">{formatPrice(p.price)}</div>
                         </div>
                         <button
-                          className="cdr-sugg-btn"
-                          onClick={() => { addItem(p); setSuggOpen(false) }}
+                          className={`cdr-sugg-btn${addedSuggestionId === p.id ? ' cdr-sugg-btn-added' : ''}`}
+                          onClick={() => {
+                            addItem(p)
+                            setAddedSuggestionId(p.id)
+                            setAddedSuggestionName(p.name)
+                            setTimeout(() => {
+                              setAddedSuggestionId(null)
+                              setAddedSuggestionName('')
+                              setSuggOpen(false)
+                            }, 1800)
+                          }}
+                          disabled={addedSuggestionId === p.id}
                           aria-label={`Ajouter ${p.name}`}
                         >
-                          + Ajouter
+                          {addedSuggestionId === p.id ? '✓ Ajouté' : '+ Ajouter'}
                         </button>
                       </li>
                     ))}

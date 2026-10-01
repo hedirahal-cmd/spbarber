@@ -55,7 +55,12 @@ export default function CartPage() {
 
   return (
     <div style={{ maxWidth: 900, margin: '0 auto', padding: '80px 24px 60px' }}>
-      <h1 style={{ fontFamily: 'var(--fs)', fontSize: 'clamp(28px,5vw,40px)', color: 'var(--b)', marginBottom: 40 }}>Votre panier</h1>
+      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 40 }}>
+        <h1 style={{ fontFamily: 'var(--fs)', fontSize: 'clamp(28px,5vw,40px)', color: 'var(--b)', margin: 0 }}>Votre panier</h1>
+        <Link href="/products" style={{ fontSize: 12, color: 'var(--gt)', textDecoration: 'underline' }}>
+          ← Continuer mes achats
+        </Link>
+      </div>
 
       <div className="cart-page-grid">
         {/* Items */}
@@ -64,15 +69,20 @@ export default function CartPage() {
             const photo = imagesPourVariante(item.product.images, item.variant)[0]
             return (
             <div key={`${item.product.id}-${item.variant?.id}`} style={{ display: 'flex', gap: 16, padding: 16, background: 'var(--g)', border: '1px solid var(--gm)' }}>
-              <div style={{ width: 72, height: 72, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--gm)', flexShrink: 0, overflow: 'hidden' }}>
+              <Link
+                href={`/products/${item.product.slug}`}
+                style={{ width: 72, height: 72, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--gm)', flexShrink: 0, overflow: 'hidden' }}
+              >
                 {photo?.url.startsWith('http') ? (
                   <img src={photo.url} alt={photo.alt || item.product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 ) : (
                   <span style={{ color: 'var(--gold)', opacity: 0.5, fontFamily: 'var(--fd)', fontSize: 14 }}>SP</span>
                 )}
-              </div>
+              </Link>
               <div style={{ flex: 1 }}>
-                <p style={{ fontFamily: 'var(--fs)', fontSize: 16, color: 'var(--b)', marginBottom: 2 }}>{item.product.name}</p>
+                <Link href={`/products/${item.product.slug}`} style={{ textDecoration: 'none' }}>
+                  <p style={{ fontFamily: 'var(--fs)', fontSize: 16, color: 'var(--b)', marginBottom: 2 }}>{item.product.name}</p>
+                </Link>
                 {item.variant && <p style={{ fontSize: 12, color: 'var(--gt)', marginBottom: 4 }}>{item.variant.name}</p>}
                 <p style={{ color: 'var(--gold)', fontWeight: 600, fontSize: 14 }}>{formatPrice((item.variant?.price ?? item.product.price) * item.quantity)}</p>
               </div>

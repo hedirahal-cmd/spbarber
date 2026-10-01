@@ -41,6 +41,15 @@ export interface Product {
    * la galerie photo) plutot que le selecteur de modele/prix existant. Absent
    * ou 'model' = comportement inchange. */
   variantKind?: 'model' | 'color'
+  /** Resume court (type de cheveux concerne, effet recherche ou usage
+   * principal) affiche sur la carte catalogue pour comparer en un coup
+   * d'oeil -- redige a partir du contenu reel de la description, pas une
+   * nouvelle promesse. */
+  usageTag?: string
+  /** true = pas de recommandation fixe dans "Completez votre routine" --
+   * pioche plutot parmi les autres produits actifs du catalogue (hors
+   * tondeuses, cf. related). */
+  genericRecommendations?: boolean
 }
 
 export interface ProductVariant {

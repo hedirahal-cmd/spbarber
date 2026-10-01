@@ -112,11 +112,22 @@ export default async function ProductPage({ params }: Props) {
   // Memes prix/statut que partout ailleurs sur le site (fiche, panier) : sans
   // cette fusion, le bloc "Completez votre routine" affichait le prix brut du
   // catalogue statique et pouvait proposer un produit desactive.
-  const relatedProducts = (rawProduct.related ?? [])
-    .map((id) => PRODUCTS.find((p) => p.id === id))
-    .filter((p): p is (typeof PRODUCTS)[number] => !!p)
-    .map((p) => applyOverride(p, overrides))
-    .filter((p) => p.actif !== false)
+  //
+  // genericRecommendations (2026-10-01, decision Hedi) : plus de paire fixe
+  // pour certains produits -- on pioche plutot parmi les autres produits
+  // actifs du catalogue (hors tondeuses, qui attendent un chantier separe
+  // avant d'apparaitre en recommandation ailleurs sur le site).
+  const relatedProducts = rawProduct.genericRecommendations
+    ? PRODUCTS
+        .filter((p) => p.id !== rawProduct.id && p.category !== 'tondeuse')
+        .map((p) => applyOverride(p, overrides))
+        .filter((p) => p.actif !== false)
+        .slice(0, 3)
+    : (rawProduct.related ?? [])
+        .map((id) => PRODUCTS.find((p) => p.id === id))
+        .filter((p): p is (typeof PRODUCTS)[number] => !!p)
+        .map((p) => applyOverride(p, overrides))
+        .filter((p) => p.actif !== false)
 
   const productReviews  = await getProductReviews(product.id)
   const siteContent     = await getSiteContent()

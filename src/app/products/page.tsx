@@ -2,12 +2,9 @@ export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
 import type { Metadata } from 'next'
-import Link from 'next/link'
 import { PRODUCTS } from '@/lib/products'
 import { supabaseAdmin } from '@/lib/supabase'
-import { formatPrice } from '@/lib/utils'
-import { AddToCartButton } from '@/components/AddToCartButton'
-import { Scissors, Droplets, User, Zap, Sparkles, Cog } from 'lucide-react'
+import { ProductsGrid } from '@/components/product/ProductsGrid'
 
 export const metadata: Metadata = {
   title: 'Boutique Produits Capillaires Homme — Shampooing, Soins & Tondeuses',
@@ -20,28 +17,6 @@ export const metadata: Metadata = {
     url: 'https://spbarber.fr/products',
     type: 'website',
   },
-}
-
-function CategoryIcon({ category, size = 50 }: { category: string; size?: number }) {
-  if (category === 'coiffant') return <Scissors size={size} strokeWidth={1.2} />
-  if (category === 'soin') return <Droplets size={size} strokeWidth={1.2} />
-  if (category === 'barbe') return <User size={size} strokeWidth={1.2} />
-  if (category === 'accessoire') return <Zap size={size} strokeWidth={1.2} />
-  if (category === 'tondeuse') return <Cog size={size} strokeWidth={1.2} />
-  return <Sparkles size={size} strokeWidth={1.2} />
-}
-
-const CATEGORY_LABELS: Record<string, string> = {
-  coiffant: 'Coiffant',
-  soin: 'Soin',
-  barbe: 'Barbe',
-  accessoire: 'Accessoire',
-  tondeuse: 'Tondeuse',
-}
-
-function getBadge(id: string) {
-  if (id === '5') return <span className="pc-tagg">Meilleure vente</span>
-  return null
 }
 
 type ProdOv = { id: string; name?: string | null; price?: number | null; description?: string | null; stock?: number | null; benefit?: string | null; images?: { url: string; alt: string }[] | null; actif?: boolean | null }
@@ -86,53 +61,7 @@ export default async function ProductsPage() {
             <h1 className="sec-title">LA BOUTIQUE</h1>
           </div>
         </div>
-        <div className="prod-grid">
-          {sorted.map((product) => (
-            <div key={product.id} className="prod-card">
-              <Link href={`/products/${product.slug}`}>
-                <div className="pc-img">
-                  {product.images[0]?.url.startsWith('http') ? (
-                    <img src={product.images[0].url} alt={product.images[0].alt || product.name} />
-                  ) : (
-                    <div className="pc-ph">
-                      <span className="pc-icon"><CategoryIcon category={product.category} size={50} /></span>
-                    </div>
-                  )}
-                  {getBadge(product.id)}
-                  {product.stock <= 10 && product.stock > 0 && (
-                    <span className="pc-tag">Dernières unités</span>
-                  )}
-                  <div className="pc-overlay">Voir le produit</div>
-                </div>
-              </Link>
-              <div className="pc-info">
-                <div className="pc-cat">{CATEGORY_LABELS[product.category] ?? product.category}</div>
-                {product.benefit && <div className="pc-benefit">{product.benefit}</div>}
-                <Link href={`/products/${product.slug}`}>
-                  <div className="pc-name">{product.name}</div>
-                </Link>
-                <div className="pc-bottom">
-                  <div className="pc-price">
-                    {/* variantKind 'color' = meme prix pour tous les choix, "a partir
-                        de" n'aurait pas de sens ; seuls de vrais modeles a prix
-                        differents affichent une fourchette. */}
-                    {product.variants && product.variantKind !== 'color'
-                      ? `À partir de ${formatPrice(Math.min(...product.variants.map((v) => v.price ?? product.price)))}`
-                      : formatPrice(product.price)}
-                  </div>
-                  {!product.is_dropshipping && (
-                    <AddToCartButton product={product} className="pc-atc" label="Ajouter" />
-                  )}
-                  {product.is_dropshipping && (
-                    <Link href={`/products/${product.slug}`} className="pc-atc" style={{ display: 'block', textAlign: 'center', textDecoration: 'none' }}>
-                      {product.variants && product.variants.length > 0 ? 'Voir les options →' : 'Voir le produit →'}
-                    </Link>
-                  )}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
+        <ProductsGrid products={sorted} />
       </section>
     </>
   )

@@ -48,8 +48,11 @@ export const PRODUCTS: Product[] = [
     stock: 40,
     is_dropshipping: false,
     benefit: 'Cheveux noirs intenses dès 1 lavage',
+    usageTag: 'Cheveux blancs ou gris à camoufler',
     trust: ['Couleur ravivée en 1 lavage', 'Sans ammoniaque ni peroxyde', 'Livraison 3-5 jours ouvrés', 'Satisfait ou remboursé'],
-    related: ['1', '4'],
+    // Plus de recommandation fixe (2026-10-01, decision Hedi) : carrousel
+    // generique a la place (voir genericRecommendations dans [slug]/page.tsx).
+    genericRecommendations: true,
     beforeAfterEnabled: true,
     pills: ['Sans ammoniaque', 'Résultat en 1 lavage', 'Tient 3–4 semaines'],
     usageSteps: [
@@ -74,8 +77,11 @@ export const PRODUCTS: Product[] = [
     stock: 35,
     is_dropshipping: false,
     benefit: 'Boucles définies sans effet lourd',
+    usageTag: 'Cheveux bouclés, frisés ou ondulés',
     trust: ['Boucles définies & hydratées', 'Sans résidu, sans alourdissement', 'Livraison 3-5 jours ouvrés', 'Satisfait ou remboursé'],
-    related: ['2', '4'],
+    // Plus de recommandation fixe (2026-10-01, decision Hedi) : carrousel
+    // generique a la place (voir genericRecommendations dans [slug]/page.tsx).
+    genericRecommendations: true,
     seo_title: 'Crème Curl Cheveux Bouclés Homme — SP Barber | Boucles Définies Sans Résidu',
     seo_description:
       'Crème coiffante curl pour cheveux bouclés et frisés homme. Boucles définies, hydratation longue durée, sans résidu ni alourdissement. Livraison offerte dès 59€.',
@@ -93,6 +99,7 @@ export const PRODUCTS: Product[] = [
     stock: 80,
     is_dropshipping: false,
     benefit: 'Précision pro — dents anti-casse',
+    usageTag: 'Cheveux épais, texturés ou bouclés',
     trust: ['Dents renforcées anti-casse', 'Idéal cheveux épais & texturés', 'Livraison 3-5 jours ouvrés', 'Satisfait ou remboursé'],
     related: ['1', '3'],
     seo_title: 'Peigne Homme Professionnel SP Barber | Texture Expert Dents Anti-Casse',
@@ -118,8 +125,11 @@ export const PRODUCTS: Product[] = [
     // barbe, brosse, peigne, baume, coupe-chou, dermaroller -- plus de
     // shampooing ni ciseaux, qui ne font pas partie du pack.
     benefit: '6 essentiels pour une barbe magnifique',
+    usageTag: 'Toutes densités de barbe',
     trust: ['6 produits complémentaires inclus', 'Formulé par des barbiers pro', 'Livraison 3-5 jours ouvrés', 'Satisfait ou remboursé'],
-    related: ['1', '4'],
+    // Recommande les deux tondeuses (2026-10-01, decision Hedi) -- une barbe
+    // bien entretenue va avec une coupe nette.
+    related: ['8', '9'],
     seo_title: 'Pack Barbe Complet Homme — SP Barber | Kit 6 Produits Soin Barbe',
     seo_description:
       'Kit barbe complet pour homme : 6 essentiels inclus. Huile, brosse, peigne, baume, coupe-chou, dermaroller. Livraison offerte. Idéal cadeau.',
@@ -168,8 +178,11 @@ export const PRODUCTS: Product[] = [
     stock: 45,
     is_dropshipping: false,
     benefit: 'Volume & grip instantanés',
+    usageTag: 'Cheveux fins, sans tenue',
     trust: ['Volume instantané dès la racine', 'Effet mat naturel longue tenue', 'Livraison 3-5 jours ouvrés', 'Satisfait ou remboursé'],
-    related: ['1', '3'],
+    // Une seule recommandation pertinente (2026-10-01, decision Hedi) : le
+    // peigne, pas de carrousel generique ici.
+    related: ['4'],
     seo_title: 'Poudre Texturante Cheveux Homme — SP Barber | Volume & Grip Mat',
     seo_description:
       'Poudre texturante homme pour volume et grip mat instantanés. Formule légère, idéale cheveux fins. Résultat salon à la maison. Livraison offerte dès 59€.',
@@ -200,6 +213,7 @@ export const PRODUCTS: Product[] = [
     // seul, jamais a exposer publiquement : https://fr.aliexpress.com/item/1005006825951304.html
     actif: false,
     benefit: 'Lames titane, 90 min d\'autonomie',
+    usageTag: 'Finitions précises et dégradés',
     trust: ['Lames titane précises', 'Usage à sec', 'Livraison sous 2 semaines', 'Satisfait ou remboursé'],
     // Coloris (2026-10-01, decision Hedi) : meme prix et meme stock pour les
     // deux (dropshipping manuel, hors systeme de stock -- cf. pricing.ts), le
@@ -237,6 +251,7 @@ export const PRODUCTS: Product[] = [
     // jamais a exposer publiquement : https://fr.aliexpress.com/item/1005008348243648.html
     actif: false,
     benefit: 'Lame DLC zéro écart, écran LED',
+    usageTag: 'Coupe complète à la maison',
     trust: ['Coupe nette sans tiraillement', 'Écran LED de charge', 'Livraison sous 2 semaines', 'Satisfait ou remboursé'],
     // Coloris (2026-10-01, decision Hedi) : meme principe que la BRDCLIP FA1T
     // ci-dessus. Photos deja presentes dans product_overrides.images :

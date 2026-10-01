@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { PRODUCTS } from '@/lib/products'
 import { AddToCartButton } from '@/components/AddToCartButton'
 import { formatPrice } from '@/lib/utils'
-import { Scissors, Droplets, User, Zap, Sparkles, Truck, Gift, RotateCcw, Wind, Cog } from 'lucide-react'
+import { Scissors, Droplets, User, Zap, Sparkles, Truck, Gift, RotateCcw, Wind, Cog, Waves } from 'lucide-react'
 import { HomeSalonSection } from '@/components/home/HomeSalonSection'
 import { DEFAULT_SALONS, type Salon } from '@/lib/salons'
 import { supabase, supabaseAdmin } from '@/lib/supabase'
@@ -173,7 +173,7 @@ export default async function HomePage() {
         <div className="hq-label">Trouvez votre produit en 30 secondes</div>
         <div className="hq-title">Quel est votre objectif&nbsp;?</div>
 
-        {/* Grille 2×2 */}
+        {/* Grille 3×2 */}
         <div className="hq-grid">
           <Link href="/products/shampooing-noir-colorant" className="hq-btn">
             <span className="hq-icon"><Sparkles size={22} strokeWidth={1.6} /></span>
@@ -196,10 +196,24 @@ export default async function HomePage() {
               <span className="hq-sub">Pack Barbe Complet</span>
             </span>
           </Link>
+          <Link href="/products/creme-curl-control" className="hq-btn">
+            <span className="hq-icon"><Waves size={22} strokeWidth={1.6} /></span>
+            <span className="hq-txt">
+              <span className="hq-main">Je veux définir mes boucles</span>
+              <span className="hq-sub">Crème Curl Control</span>
+            </span>
+          </Link>
+          <Link href="/products/tondeuse-brdclip-fa1t" className="hq-btn">
+            <span className="hq-icon"><Cog size={22} strokeWidth={1.6} /></span>
+            <span className="hq-txt">
+              <span className="hq-main">Je cherche une tondeuse</span>
+              <span className="hq-sub">Voir les tondeuses</span>
+            </span>
+          </Link>
           <Link href="/products" className="hq-btn">
             <span className="hq-icon"><Zap size={22} strokeWidth={1.6} /></span>
             <span className="hq-txt">
-              <span className="hq-main">Je veux une routine complète</span>
+              <span className="hq-main">Découvrir la gamme</span>
               <span className="hq-sub">Voir tous les produits</span>
             </span>
           </Link>

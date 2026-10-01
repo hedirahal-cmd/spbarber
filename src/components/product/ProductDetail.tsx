@@ -98,6 +98,11 @@ export function ProductDetail({ product, relatedProducts = [], reviews: productR
 
   const price = selectedVariant?.price ?? product.price
   const remaining = Math.max(0, FREE_SHIP - cartTotal)
+  // Ce produit, pris seul, declenche-t-il deja la livraison offerte ? Vrai
+  // independamment du reste du panier (ex. Pack Barbe a 59,90e) -- message
+  // distinct de la jauge generale, qui ne regarde que le panier vide a
+  // l'affichage de la fiche (2026-10-01, retour Hedi).
+  const produitSeulSuffit = price >= FREE_SHIP
 
   // Confort d'affichage, pas la garantie : la vraie limite est revalidee cote
   // serveur au checkout (pricing.ts). Dropshipping (la Tondeuse) est hors de
@@ -298,7 +303,9 @@ export function ProductDetail({ product, relatedProducts = [], reviews: productR
 
           <div className="sn-price-block">
             <div className="sn-price">{formatPrice(price)}</div>
-            <div className="sn-price-note">Prix TTC · Livraison offerte dès 59€</div>
+            <div className="sn-price-note">
+              Prix TTC · {produitSeulSuffit ? 'Livraison offerte dès 59€' : 'Livraison 5,90€ — offerte dès 59€'}
+            </div>
           </div>
 
           {/* Variants modele/prix -- pas pour un coloris, qui a son propre
@@ -384,18 +391,28 @@ export function ProductDetail({ product, relatedProducts = [], reviews: productR
           {/* Mini progress */}
           <div className="sn-prog">
             <div className="sn-prog-msg">
-              {remaining > 0
-                ? <>Plus que <strong>{(remaining / 100).toFixed(2).replace('.', ',')} €</strong> pour la livraison offerte</>
-                : <><strong>Livraison offerte !</strong></>
+              {produitSeulSuffit
+                ? <><strong>Livraison offerte avec ce produit</strong></>
+                : remaining > 0
+                  ? <>Plus que <strong>{(remaining / 100).toFixed(2).replace('.', ',')} €</strong> pour la livraison offerte</>
+                  : <><strong>Livraison offerte !</strong></>
               }
             </div>
             <div className="sn-prog-track">
-              <div className="sn-prog-fill" style={{ width: `${pct}%` }} />
+              <div className="sn-prog-fill" style={{ width: `${produitSeulSuffit ? 100 : pct}%` }} />
             </div>
           </div>
 
           {/* Logos paiement */}
           <PaymentLogos />
+
+          {/* Contact contextualise -- objet pre-rempli avec le nom du produit */}
+          <a
+            href={`mailto:contact@spbarber.fr?subject=${encodeURIComponent(`Question sur ${product.name}`)}`}
+            className="sn-contact-link"
+          >
+            Une question sur ce produit ? →
+          </a>
 
         </div>
       </section>
