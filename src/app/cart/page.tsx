@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useCart } from '@/hooks/useCart'
 import { formatPrice } from '@/lib/utils'
 import { getSessionId } from '@/lib/session'
+import { imagesPourVariante } from '@/lib/products'
 import { Trash2, Plus, Minus, Lock } from 'lucide-react'
 
 export default function CartPage() {
@@ -59,11 +60,13 @@ export default function CartPage() {
       <div className="cart-page-grid">
         {/* Items */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          {items.map((item) => (
+          {items.map((item) => {
+            const photo = imagesPourVariante(item.product.images, item.variant)[0]
+            return (
             <div key={`${item.product.id}-${item.variant?.id}`} style={{ display: 'flex', gap: 16, padding: 16, background: 'var(--g)', border: '1px solid var(--gm)' }}>
               <div style={{ width: 72, height: 72, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--gm)', flexShrink: 0, overflow: 'hidden' }}>
-                {item.product.images[0]?.url.startsWith('http') ? (
-                  <img src={item.product.images[0].url} alt={item.product.images[0].alt || item.product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                {photo?.url.startsWith('http') ? (
+                  <img src={photo.url} alt={photo.alt || item.product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 ) : (
                   <span style={{ color: 'var(--gold)', opacity: 0.5, fontFamily: 'var(--fd)', fontSize: 14 }}>SP</span>
                 )}
@@ -107,7 +110,7 @@ export default function CartPage() {
                 </div>
               </div>
             </div>
-          ))}
+          )})}
         </div>
 
         {/* Récapitulatif */}

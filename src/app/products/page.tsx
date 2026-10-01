@@ -113,8 +113,11 @@ export default async function ProductsPage() {
                 </Link>
                 <div className="pc-bottom">
                   <div className="pc-price">
-                    {product.variants
-                      ? `À partir de ${formatPrice(Math.min(...product.variants.map((v) => v.price)))}`
+                    {/* variantKind 'color' = meme prix pour tous les choix, "a partir
+                        de" n'aurait pas de sens ; seuls de vrais modeles a prix
+                        differents affichent une fourchette. */}
+                    {product.variants && product.variantKind !== 'color'
+                      ? `À partir de ${formatPrice(Math.min(...product.variants.map((v) => v.price ?? product.price)))}`
                       : formatPrice(product.price)}
                   </div>
                   {!product.is_dropshipping && (

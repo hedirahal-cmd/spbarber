@@ -8,6 +8,7 @@ import { useState, useEffect, useRef } from 'react'
 import { PaymentLogos } from './PaymentLogos'
 import { formatPrice } from '@/lib/utils'
 import { getSessionId } from '@/lib/session'
+import { imagesPourVariante } from '@/lib/products'
 import type { Product } from '@/types'
 
 const FREE_SHIP = 5900
@@ -207,12 +208,13 @@ export function CartDrawer({ products = [] }: { products?: Product[] }) {
               {items.map(item => {
                 const price = item.variant?.price ?? item.product.price
                 const key   = `${item.product.id}-${item.variant?.id ?? ''}`
+                const photo = imagesPourVariante(item.product.images, item.variant)[0]
                 return (
                   <li key={key} className="cdr-item">
 
                     <div className="cdr-item-thumb">
-                      {item.product.images[0]?.url.startsWith('http') ? (
-                        <img src={item.product.images[0].url} alt="" />
+                      {photo?.url.startsWith('http') ? (
+                        <img src={photo.url} alt="" />
                       ) : (
                         <CatIcon cat={item.product.category} size={22} />
                       )}

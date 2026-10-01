@@ -1,4 +1,16 @@
-import { Product } from '@/types'
+import { Product, ProductImage, ProductVariant } from '@/types'
+
+/**
+ * Sous-ensemble de `images` qui correspond au coloris choisi (matching sur
+ * une sous-chaine d'URL, ex. nom de fichier) -- repli sur la galerie complete
+ * si rien ne correspond, pour ne jamais vider la galerie a cause d'une photo
+ * renommee/re-uploadee cote admin.
+ */
+export function imagesPourVariante(images: ProductImage[], variant?: ProductVariant): ProductImage[] {
+  if (!variant?.imageMatch || variant.imageMatch.length === 0) return images
+  const filtrees = images.filter((img) => variant.imageMatch!.some((m) => img.url.includes(m)))
+  return filtrees.length > 0 ? filtrees : images
+}
 
 export const PRODUCTS: Product[] = [
   {
@@ -189,6 +201,16 @@ export const PRODUCTS: Product[] = [
     actif: false,
     benefit: 'Lames titane, 90 min d\'autonomie',
     trust: ['Lames titane précises', 'Usage à sec', 'Livraison sous 2 semaines', 'Satisfait ou remboursé'],
+    // Coloris (2026-10-01, decision Hedi) : meme prix et meme stock pour les
+    // deux (dropshipping manuel, hors systeme de stock -- cf. pricing.ts), le
+    // coloris est une preference visuelle, pas un critere de disponibilite.
+    // Photos deja presentes dans product_overrides.images (4 au total) :
+    // -2 = vert, -3/-4/-5 = blanc (identifiees visuellement).
+    variantKind: 'color',
+    variants: [
+      { id: 'blanc', name: 'Blanc', stock: 999, colorSwatch: '#f5f3ef', imageMatch: ['-3.png', '-4.png', '-5.png'] },
+      { id: 'vert', name: 'Vert', stock: 999, colorSwatch: '#5a9c3f', imageMatch: ['-2.png'] },
+    ],
     seo_title: 'Tondeuse BRDCLIP FA1T — SP Barber | Lames Titane, Sans Fil',
     seo_description:
       'Tondeuse cheveux sans fil BRDCLIP FA1T. Lames titane, autonomie 90 min, usage à sec. Embouts interchangeables 0,5 à 5 mm.',
@@ -216,6 +238,14 @@ export const PRODUCTS: Product[] = [
     actif: false,
     benefit: 'Lame DLC zéro écart, écran LED',
     trust: ['Coupe nette sans tiraillement', 'Écran LED de charge', 'Livraison sous 2 semaines', 'Satisfait ou remboursé'],
+    // Coloris (2026-10-01, decision Hedi) : meme principe que la BRDCLIP FA1T
+    // ci-dessus. Photos deja presentes dans product_overrides.images :
+    // -1/-4/-5 = noir, -3 = rouge (identifiees visuellement).
+    variantKind: 'color',
+    variants: [
+      { id: 'noir', name: 'Noir', stock: 999, colorSwatch: '#1a1a1a', imageMatch: ['-1.png', '-4.png', '-5.png'] },
+      { id: 'rouge', name: 'Rouge', stock: 999, colorSwatch: '#b91c1c', imageMatch: ['-3.png'] },
+    ],
     seo_title: 'Tondeuse Kemei KM-999 — SP Barber | Lame DLC, Écran LED',
     seo_description:
       'Tondeuse cheveux sans fil Kemei KM-999. Lame DLC zéro écart, écran LED de charge, batterie 1500 mAh. Recharge USB rapide.',

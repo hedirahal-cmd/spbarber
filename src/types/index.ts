@@ -37,13 +37,26 @@ export interface Product {
   /** Marque reelle du fabricant, pour les produits dropshippes qui n'en portent
    * pas -- absent = "SP Barber" (produits de la marque propre). */
   brand?: string
+  /** 'color' affiche un selecteur de pastilles de couleur pres du titre (change
+   * la galerie photo) plutot que le selecteur de modele/prix existant. Absent
+   * ou 'model' = comportement inchange. */
+  variantKind?: 'model' | 'color'
 }
 
 export interface ProductVariant {
   id: string
   name: string
-  price: number
+  /** Absent = meme prix que le produit de base (overrides admin inclus) --
+   * un coloris n'a pas de prix propre. Seuls les variants qui en ont vraiment
+   * un (ex. modeles/tailles a prix differents) le renseignent. */
+  price?: number
   stock: number
+  /** Couleur CSS de la pastille, pour variantKind:'color' uniquement. */
+  colorSwatch?: string
+  /** Sous-ensemble de product.images reserve a ce coloris -- sous-chaines a
+   * retrouver dans les URL (ex. noms de fichiers). Absent ou aucune
+   * correspondance = galerie complete affichee (repli sans danger). */
+  imageMatch?: string[]
 }
 
 export interface CartItem {

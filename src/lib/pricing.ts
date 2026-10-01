@@ -156,7 +156,10 @@ function resoudreLigne(
   // donc PAS les variantes de la tondeuse, qui gardent leur prix en dur dans
   // PRODUCTS. On reproduit ici le comportement existant sans le modifier :
   // le corriger demande une decision produit, pas un correctif de securite.
-  const unitAmount = variant ? variant.price : prixProduit
+  // variant.price absent (ex. un coloris) = meme prix que le produit de base,
+  // overrides admin inclus -- pas une copie figee comme pour un modele/taille
+  // qui a vraiment son propre prix.
+  const unitAmount = variant ? (variant.price ?? prixProduit) : prixProduit
 
   if (!estMontantEntierPositif(unitAmount)) {
     console.error('[pricing] prix inexploitable pour le produit', base.id, ':', unitAmount)

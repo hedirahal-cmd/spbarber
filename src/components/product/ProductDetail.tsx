@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useCart } from '@/hooks/useCart'
 import { formatPrice } from '@/lib/utils'
 import { Product, ProductVariant } from '@/types'
+import { imagesPourVariante } from '@/lib/products'
 import { PaymentLogos } from '@/components/PaymentLogos'
 import { AddToCartButton } from '@/components/AddToCartButton'
 import { Lock, Truck, RotateCcw, CheckCircle2, AlertTriangle, ShoppingCart, Dumbbell, Sparkles, Leaf, FlaskConical, Scissors, Droplets, User, Zap, Clock, Waves, AlignJustify, Package, Wind, Cog, Package2, ChevronLeft, ChevronRight } from 'lucide-react'
@@ -120,11 +121,15 @@ export function ProductDetail({ product, relatedProducts = [], reviews: productR
   // encore sur disque (aucune photo n'a ete deployee en dur) -- le meme test
   // que Stripe/JSON-LD distingue donc ici une vraie photo uploadee (URL
   // Supabase Storage, absolue) du placeholder statique.
-  const hasGallery = product.images[0]?.url.startsWith('http') ?? false
+  // Coloris (variantKind 'color') : la galerie se reduit aux photos de ce
+  // coloris -- repli automatique sur la galerie complete si aucune ne
+  // correspond (voir imagesPourVariante).
+  const displayedImages = imagesPourVariante(product.images, selectedVariant)
+  const hasGallery = displayedImages[0]?.url.startsWith('http') ?? false
 
   useEffect(() => {
     setSelectedPhoto(0)
-  }, [product.id])
+  }, [product.id, selectedVariant?.id])
 
   useEffect(() => {
     const el = atcRef.current
@@ -146,10 +151,10 @@ export function ProductDetail({ product, relatedProducts = [], reviews: productR
   // plupart des galeries e-commerce, evite une fleche visuellement "morte"
   // aux extremites.
   function photoPrecedente() {
-    setSelectedPhoto((i) => (i - 1 + product.images.length) % product.images.length)
+    setSelectedPhoto((i) => (i - 1 + displayedImages.length) % displayedImages.length)
   }
   function photoSuivante() {
-    setSelectedPhoto((i) => (i + 1) % product.images.length)
+    setSelectedPhoto((i) => (i + 1) % displayedImages.length)
   }
 
   // Swipe tactile : seuil de 40px pour ignorer un simple tap/scroll vertical
@@ -176,8 +181,8 @@ export function ProductDetail({ product, relatedProducts = [], reviews: productR
           <div className="sn-hero-photo" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
             {hasGallery ? (
               <img
-                src={product.images[selectedPhoto]?.url ?? product.images[0].url}
-                alt={product.images[selectedPhoto]?.alt || product.name}
+                src={displayedImages[selectedPhoto]?.url ?? displayedImages[0].url}
+                alt={displayedImages[selectedPhoto]?.alt || product.name}
               />
             ) : (
               <>
@@ -186,7 +191,7 @@ export function ProductDetail({ product, relatedProducts = [], reviews: productR
               </>
             )}
             {product.stock <= 10 && product.stock > 0 && <span className="fi-tag">Dernières unités</span>}
-            {hasGallery && product.images.length > 1 && (
+            {hasGallery && displayedImages.length > 1 && (
               <>
                 <button type="button" className="fi-gallery-arrow fi-gallery-arrow-prev" onClick={photoPrecedente} aria-label="Photo précédente">
                   <ChevronLeft size={20} strokeWidth={2} />
@@ -197,9 +202,9 @@ export function ProductDetail({ product, relatedProducts = [], reviews: productR
               </>
             )}
           </div>
-          {hasGallery && product.images.length > 1 && (
+          {hasGallery && displayedImages.length > 1 && (
             <div className="fi-thumbs">
-              {product.images.map((img, idx) => (
+              {displayedImages.map((img, idx) => (
                 <button
                   key={idx}
                   type="button"
@@ -259,6 +264,29 @@ export function ProductDetail({ product, relatedProducts = [], reviews: productR
           <h1 className="sn-h1">{product.name}</h1>
           {product.benefit && <div className="sn-sub">{product.benefit}</div>}
 
+          {/* Coloris -- pastilles, sous le nom du produit. Change la galerie
+              photo (voir displayedImages) ; prix/stock identiques pour tous
+              les choix (pas un vrai "modele", cf. variantKind). */}
+          {product.variantKind === 'color' && product.variants && product.variants.length > 0 && (
+            <div className="sn-colors">
+              <div className="sn-colors-lbl">Coloris : <strong>{selectedVariant?.name}</strong></div>
+              <div className="sn-colors-row">
+                {product.variants.map((v) => (
+                  <button
+                    key={v.id}
+                    type="button"
+                    className={selectedVariant?.id === v.id ? 'sn-color-btn sn-color-btn-active' : 'sn-color-btn'}
+                    style={{ background: v.colorSwatch }}
+                    onClick={() => setSelectedVariant(v)}
+                    aria-label={`Coloris ${v.name}`}
+                    aria-pressed={selectedVariant?.id === v.id}
+                    title={v.name}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="sn-stars-row">
             {hasReviews ? (
               <>
@@ -276,8 +304,9 @@ export function ProductDetail({ product, relatedProducts = [], reviews: productR
             <div className="sn-price-note">Prix TTC · Livraison offerte dès 59€</div>
           </div>
 
-          {/* Variants */}
-          {product.variants && product.variants.length > 0 && (
+          {/* Variants modele/prix -- pas pour un coloris, qui a son propre
+              selecteur (pastilles) plus haut, sous le nom du produit. */}
+          {product.variants && product.variants.length > 0 && product.variantKind !== 'color' && (
             <div className="fi-vars">
               <div className="fi-var-lbl">Choisir le modèle</div>
               <div className="fi-var-btns">
@@ -288,7 +317,7 @@ export function ProductDetail({ product, relatedProducts = [], reviews: productR
                     onClick={() => setSelectedVariant(v)}
                   >
                     <span>{v.name}</span>
-                    <span>{formatPrice(v.price)}</span>
+                    <span>{formatPrice(v.price ?? product.price)}</span>
                   </button>
                 ))}
               </div>

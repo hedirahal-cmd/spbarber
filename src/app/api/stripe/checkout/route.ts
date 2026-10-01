@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { problemeConfigurationStripe, stripe } from '@/lib/stripe'
 import { CartValidationError, resolveCartItems } from '@/lib/pricing'
+import { imagesPourVariante } from '@/lib/products'
 
 function getBaseUrl(): string {
   if (process.env.VERCEL_PROJECT_PRODUCTION_URL) return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
@@ -66,7 +67,11 @@ export async function POST(req: NextRequest) {
         product_data: {
           name: libelle(item),
           description: delaiLigne(item),
-          images: item.product.images.filter((img) => img.url.startsWith('http')).map((img) => img.url),
+          // Coloris choisi (ex. tondeuses) : photo du bon coloris sur le
+          // recu/la page Stripe, pour preparer le bon article a l'envoi.
+          images: imagesPourVariante(item.product.images, item.variant)
+            .filter((img) => img.url.startsWith('http'))
+            .map((img) => img.url),
         },
         unit_amount: item.unitAmount,
       },

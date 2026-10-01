@@ -605,7 +605,7 @@ function TabProduits() {
                   {selectedProduct.variants.map((v, i) => (
                     <div key={v.id} style={{ padding: '10px 14px', borderBottom: i < (selectedProduct.variants?.length ?? 0) - 1 ? `1px solid ${S.border}` : 'none', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 13 }}>
                       <span style={{ color: S.text }}>{v.name}</span>
-                      <span style={{ fontWeight: 600, color: S.muted }}>{eur(v.price)}</span>
+                      <span style={{ fontWeight: 600, color: S.muted }}>{eur(v.price ?? selectedProduct.price)}</span>
                     </div>
                   ))}
                 </div>
