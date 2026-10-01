@@ -12,7 +12,7 @@ export default function CartPage() {
   const [checkoutError, setCheckoutError] = useState('')
 
   const cartTotal = total()
-  const isFreeShip = cartTotal >= 6000
+  const isFreeShip = cartTotal >= 5900
   const shippingFee = isFreeShip ? 0 : 590
 
   async function handleCheckout() {
@@ -61,8 +61,12 @@ export default function CartPage() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           {items.map((item) => (
             <div key={`${item.product.id}-${item.variant?.id}`} style={{ display: 'flex', gap: 16, padding: 16, background: 'var(--g)', border: '1px solid var(--gm)' }}>
-              <div style={{ width: 72, height: 72, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--gm)', flexShrink: 0 }}>
-                <span style={{ color: 'var(--gold)', opacity: 0.5, fontFamily: 'var(--fd)', fontSize: 14 }}>SP</span>
+              <div style={{ width: 72, height: 72, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--gm)', flexShrink: 0, overflow: 'hidden' }}>
+                {item.product.images[0]?.url.startsWith('http') ? (
+                  <img src={item.product.images[0].url} alt={item.product.images[0].alt || item.product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                ) : (
+                  <span style={{ color: 'var(--gold)', opacity: 0.5, fontFamily: 'var(--fd)', fontSize: 14 }}>SP</span>
+                )}
               </div>
               <div style={{ flex: 1 }}>
                 <p style={{ fontFamily: 'var(--fs)', fontSize: 16, color: 'var(--b)', marginBottom: 2 }}>{item.product.name}</p>
@@ -70,19 +74,28 @@ export default function CartPage() {
                 <p style={{ color: 'var(--gold)', fontWeight: 600, fontSize: 14 }}>{formatPrice((item.variant?.price ?? item.product.price) * item.quantity)}</p>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', justifyContent: 'space-between' }}>
-                <button onClick={() => removeItem(item.product.id, item.variant?.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--gt)', padding: 4 }}>
+                <button
+                  onClick={() => removeItem(item.product.id, item.variant?.id)}
+                  aria-label={`Supprimer ${item.product.name} du panier`}
+                  style={{ width: 44, height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--gt)' }}
+                >
                   <Trash2 size={15} />
                 </button>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <button onClick={() => updateQuantity(item.product.id, item.quantity - 1, item.variant?.id)} style={{ width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--gm)', background: 'none', cursor: 'pointer', color: 'var(--b)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <button
+                    onClick={() => updateQuantity(item.product.id, item.quantity - 1, item.variant?.id)}
+                    aria-label={`Diminuer la quantité de ${item.product.name}`}
+                    style={{ width: 44, height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--gm)', background: 'none', cursor: 'pointer', color: 'var(--b)' }}
+                  >
                     <Minus size={11} />
                   </button>
                   <span style={{ minWidth: 20, textAlign: 'center', fontSize: 13, color: 'var(--b)' }}>{item.quantity}</span>
                   <button
                     onClick={() => updateQuantity(item.product.id, item.quantity + 1, item.variant?.id)}
                     disabled={!item.product.is_dropshipping && item.quantity >= item.product.stock}
+                    aria-label={`Augmenter la quantité de ${item.product.name}`}
                     style={{
-                      width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      width: 44, height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center',
                       border: '1px solid var(--gm)', background: 'none', color: 'var(--b)',
                       ...(!item.product.is_dropshipping && item.quantity >= item.product.stock
                         ? { opacity: 0.4, cursor: 'not-allowed' }
@@ -113,7 +126,7 @@ export default function CartPage() {
           </div>
           {!isFreeShip && (
             <div style={{ fontSize: 11, color: 'var(--gt)', marginBottom: 24, padding: '8px 10px', background: 'var(--gm)', borderRadius: 2 }}>
-              Plus que <strong style={{ color: 'var(--b)' }}>{formatPrice(6000 - cartTotal)}</strong> pour la livraison offerte
+              Plus que <strong style={{ color: 'var(--b)' }}>{formatPrice(5900 - cartTotal)}</strong> pour la livraison offerte
             </div>
           )}
           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 16, fontWeight: 600, marginBottom: 24, paddingTop: 16, borderTop: '1px solid var(--gm)', color: 'var(--b)' }}>

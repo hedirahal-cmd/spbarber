@@ -12,7 +12,7 @@ import { Scissors, Droplets, User, Zap, Sparkles, Cog } from 'lucide-react'
 export const metadata: Metadata = {
   title: 'Boutique Produits Capillaires Homme — Shampooing, Soins & Tondeuses',
   description:
-    'Découvrez la gamme complète SP Barber : shampooing colorant noir, crème curl, poudre texturante, kit barbe complet et tondeuses professionnelles. Livraison offerte dès 60€.',
+    'Découvrez la gamme complète SP Barber : shampooing colorant noir, crème curl, poudre texturante, kit barbe complet et tondeuses professionnelles. Livraison offerte dès 59€.',
   alternates: { canonical: 'https://spbarber.fr/products' },
   openGraph: {
     title: 'Boutique SP Barber — Produits Capillaires Homme Premium',
@@ -122,7 +122,7 @@ export default async function ProductsPage() {
                   )}
                   {product.is_dropshipping && (
                     <Link href={`/products/${product.slug}`} className="pc-atc" style={{ display: 'block', textAlign: 'center', textDecoration: 'none' }}>
-                      Voir les options →
+                      {product.variants && product.variants.length > 0 ? 'Voir les options →' : 'Voir le produit →'}
                     </Link>
                   )}
                 </div>

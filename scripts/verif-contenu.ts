@@ -159,18 +159,21 @@ async function main() {
 
   console.log('\n--- A. Valeurs par defaut (aucune ligne en base) = copie actuelle du site ---')
   const accueil = await page('/')
-  verifie('bandeau d annonce par defaut present', accueil.includes('Livraison offerte dès 60€ · Expédition 48h'))
+  verifie('bandeau d annonce par defaut present', accueil.includes('Livraison offerte dès 59€ · Expédition 48h'))
   verifie('bannière CTA par defaut presente', accueil.includes('Rejoignez nos clients satisfaits'))
 
   const ficheCurl = await page('/products/creme-curl-control')
-  verifie('les 4 reperes de confiance par defaut sont presents', ['Sécurisé', 'Livraison 3-5 jours', 'Retour 30j', 'France'].every((t) => ficheCurl.includes(t)))
+  // "France" masque par defaut depuis le 2026-10-01 (decision Hedi, formulation
+  // a revoir) -- seuls 3 reperes sur 4 sont visibles tant qu'il reste masque.
+  verifie('les 3 reperes de confiance visibles par defaut sont presents', ['Sécurisé', 'Livraison 3-5 jours', 'Retour 30j'].every((t) => ficheCurl.includes(t)))
+  verifie('repere France masque par defaut', !ficheCurl.includes('🇫🇷'))
 
   console.log('\n--- B. Edition des bandeaux du site (site_content) ---')
   let r = await putAdmin('/api/admin/site-content', { key: 'announcement_bar', text: 'TEXTE PERSO BANDEAU', visible: true })
   verifie('sauvegarde bandeau => 200', r.statut === 200, 'obtenu ' + r.statut)
   let accueil2 = await page('/')
   verifie('nouveau texte du bandeau applique', accueil2.includes('TEXTE PERSO BANDEAU'))
-  verifie('ancien texte du bandeau disparu', !accueil2.includes('Livraison offerte dès 60€ · Expédition 48h'))
+  verifie('ancien texte du bandeau disparu', !accueil2.includes('Livraison offerte dès 59€ · Expédition 48h'))
 
   r = await putAdmin('/api/admin/site-content', { key: 'home_cta_banner', text: 'Peu importe', visible: false })
   verifie('masquage bannière CTA => 200', r.statut === 200, 'obtenu ' + r.statut)
@@ -203,7 +206,7 @@ async function main() {
   verifie('nouveau texte du repere Livraison applique dans la rangee', zoneTrust.includes('Livraison express 24h'))
   verifie('ancien texte "Livraison 3-5 jours" disparu de la rangee', !zoneTrust.includes('Livraison 3-5 jours'))
   verifie('repere Sécurisé masque (absent de la rangee)', !zoneTrust.includes('Sécurisé'))
-  verifie('les 2 reperes non touches restent presents', zoneTrust.includes('Retour 30j') && zoneTrust.includes('France'))
+  verifie('le repere non touche reste present', zoneTrust.includes('Retour 30j'))
 
   console.log('\n=======================================')
   console.log('  ' + ok + ' OK, ' + ko + ' ECHEC')

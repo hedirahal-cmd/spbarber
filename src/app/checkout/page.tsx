@@ -34,7 +34,7 @@ export default function CheckoutPage() {
 
   const cartTotal  = total()
   const count      = itemCount()
-  const isFreeShip = cartTotal >= 6000
+  const isFreeShip = cartTotal >= 5900
   const colissimo  = isFreeShip ? 0 : 590
 
   function applyCoupon() {
@@ -166,7 +166,7 @@ export default function CheckoutPage() {
             </div>
             {!isFreeShip && (
               <p className="chk-total-hint">
-                Plus que <strong>{euros(6000 - cartTotal)}</strong> pour la livraison offerte
+                Plus que <strong>{euros(5900 - cartTotal)}</strong> pour la livraison offerte
               </p>
             )}
             <div className="chk-total-row chk-total-row--grand">

@@ -2421,8 +2421,9 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
   width: 64px; height: 64px; flex-shrink: 0;
   background: linear-gradient(140deg, #eceae6 0%, #d5d1cb 100%);
   display: flex; align-items: center; justify-content: center;
-  color: var(--gt); border-radius: 2px;
+  color: var(--gt); border-radius: 2px; overflow: hidden;
 }
+.cdr-item-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
 /* Info */
 .cdr-item-info { min-width: 0; }
@@ -2447,7 +2448,7 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
   width: fit-content;
 }
 .cdr-qty-btn {
-  width: 34px; height: 34px; flex-shrink: 0;
+  width: 44px; height: 44px; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
   background: none; border: none; color: var(--b);
   cursor: pointer; transition: background 0.12s;
@@ -2463,11 +2464,11 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
 
 /* Supprimer */
 .cdr-item-rm {
-  width: 28px; height: 28px; flex-shrink: 0;
+  width: 44px; height: 44px; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
   background: none; border: none; cursor: pointer;
   color: var(--gm); transition: all 0.12s;
-  align-self: start; margin-top: 2px;
+  align-self: start; margin: -8px -10px 0 0;
 }
 .cdr-item-rm:hover { color: #e74c3c; background: rgba(231,76,60,.06); }
 

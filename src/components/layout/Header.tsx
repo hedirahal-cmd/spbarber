@@ -17,7 +17,7 @@ interface HeaderProps {
 const PRODUIT_PAR_SLUG: Record<string, string> = Object.fromEntries(
   PRODUCTS.map((p) => [`/products/${p.slug}`, p.category]),
 )
-const ANNONCE_TONDEUSE = 'Tondeuse : expédition sous ~2 semaines (import) · Livraison offerte dès 60€'
+const ANNONCE_TONDEUSE = 'Tondeuse : livraison sous ~2 semaines (import) · Livraison offerte dès 59€'
 
 export function Header({ announcement }: HeaderProps) {
   const [menuOpen, setMenuOpen] = useState(false)
@@ -42,9 +42,9 @@ export function Header({ announcement }: HeaderProps) {
     e.preventDefault()
     setMenuOpen(false)
     if (pathname === '/') {
-      document.getElementById('produits')?.scrollIntoView({ behavior: 'smooth' })
+      document.getElementById('bestsellers')?.scrollIntoView({ behavior: 'smooth' })
     } else {
-      window.location.href = '/#produits'
+      window.location.href = '/#bestsellers'
     }
   }
 
@@ -67,7 +67,7 @@ export function Header({ announcement }: HeaderProps) {
               {menuOpen ? <X size={22} /> : <Menu size={22} />}
             </button>
             <div className="site-nav-links-desktop">
-              <a href="/#produits" onClick={handleBestSellersClick}>Best Sellers</a>
+              <a href="/#bestsellers" onClick={handleBestSellersClick}>Best Sellers</a>
               <Link href="/products/pack-barbe-complet">Packs</Link>
               <Link href="/products">Tous les produits</Link>
               <a href="/#salons" onClick={handleSalonsClick}>Nos salons</a>
@@ -100,7 +100,7 @@ export function Header({ announcement }: HeaderProps) {
         {/* Menu mobile — tous les liens dans l'ordre gauche → droite */}
         {menuOpen && (
           <div className="mobile-menu">
-            <a href="/#produits" onClick={handleBestSellersClick}>Best Sellers</a>
+            <a href="/#bestsellers" onClick={handleBestSellersClick}>Best Sellers</a>
             <Link href="/products/pack-barbe-complet" onClick={() => setMenuOpen(false)}>Packs</Link>
             <Link href="/products" onClick={() => setMenuOpen(false)}>Tous les produits</Link>
             <a href="/#salons" onClick={handleSalonsClick}>Nos salons</a>

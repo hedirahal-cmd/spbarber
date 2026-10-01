@@ -173,7 +173,7 @@ async function main() {
   const zoneTotal = accueil.slice(accueil.indexOf('h-rev-total'), accueil.indexOf('h-rev-total') + 80)
   verifie('le compte reel (3) est affiche dans le resume, pas "500+"', zoneTotal.includes('-->3<!--') && !zoneTotal.includes('500'))
 
-  console.log('\n--- H. Accueil sans aucun vrai avis : etat vide honnete, pas de repli fictif ---')
+  console.log('\n--- H. Accueil sans aucun vrai avis : bloc entier masque (2026-10-01, decision Hedi) ---')
   reviews = []
   const accueilVide = await (await fetch(base() + '/')).text()
   verifie(
@@ -181,8 +181,8 @@ async function main() {
     !accueilVide.includes('Basé sur'),
   )
   verifie(
-    'invitation a laisser le premier avis, pas de faux temoignage',
-    accueilVide.includes('premier') && !accueilVide.includes('Achat vérifié'),
+    'section AVIS CLIENTS absente (pas de bloc vide qui souligne l absence de preuve)',
+    !accueilVide.includes('AVIS CLIENTS') && !accueilVide.includes('Achat vérifié'),
   )
 
   console.log('\n=======================================')

@@ -10,7 +10,7 @@ import { formatPrice } from '@/lib/utils'
 import { getSessionId } from '@/lib/session'
 import type { Product } from '@/types'
 
-const FREE_SHIP = 6000
+const FREE_SHIP = 5900
 const SHIPPING_FEE = 590
 
 function euros(cents: number) {
@@ -90,7 +90,7 @@ export function CartDrawer({ products = [] }: { products?: Product[] }) {
   let progDone = false
 
   if (count === 0) {
-    progMsg = <>Ajoutez un produit pour la <strong>livraison offerte dès 60 €</strong></>
+    progMsg = <>Ajoutez un produit pour la <strong>livraison offerte dès 59 €</strong></>
     progPct = 0
   } else if (cartTotal >= FREE_SHIP) {
     progMsg = <><strong>Livraison offerte !</strong></>
@@ -211,7 +211,11 @@ export function CartDrawer({ products = [] }: { products?: Product[] }) {
                   <li key={key} className="cdr-item">
 
                     <div className="cdr-item-thumb">
-                      <CatIcon cat={item.product.category} size={22} />
+                      {item.product.images[0]?.url.startsWith('http') ? (
+                        <img src={item.product.images[0].url} alt="" />
+                      ) : (
+                        <CatIcon cat={item.product.category} size={22} />
+                      )}
                     </div>
 
                     <div className="cdr-item-info">
@@ -229,7 +233,7 @@ export function CartDrawer({ products = [] }: { products?: Product[] }) {
                         <button
                           className="cdr-qty-btn"
                           onClick={() => updateQuantity(item.product.id, item.quantity - 1, item.variant?.id)}
-                          aria-label="Diminuer la quantité"
+                          aria-label={`Diminuer la quantité de ${item.product.name}`}
                         >
                           <Minus size={11} strokeWidth={2.5} />
                         </button>
@@ -239,7 +243,7 @@ export function CartDrawer({ products = [] }: { products?: Product[] }) {
                           onClick={() => updateQuantity(item.product.id, item.quantity + 1, item.variant?.id)}
                           disabled={!item.product.is_dropshipping && item.quantity >= item.product.stock}
                           style={!item.product.is_dropshipping && item.quantity >= item.product.stock ? { opacity: 0.4, cursor: 'not-allowed' } : undefined}
-                          aria-label="Augmenter la quantité"
+                          aria-label={`Augmenter la quantité de ${item.product.name}`}
                         >
                           <Plus size={11} strokeWidth={2.5} />
                         </button>

@@ -44,7 +44,7 @@ export const metadata: Metadata = {
     template: '%s | SP Barber',
   },
   description:
-    'SP Barber — les formules professionnelles des barbiers, expédiées sous 48h. Shampooing colorant, crème curl, pack barbe, tondeuse. Livraison offerte dès 60€.',
+    'SP Barber — les formules professionnelles des barbiers, expédiées sous 48h. Shampooing colorant, crème curl, pack barbe, tondeuse. Livraison offerte dès 59€.',
   keywords: [
     'produits capillaires homme',
     'crème curl cheveux bouclés',
@@ -65,7 +65,7 @@ export const metadata: Metadata = {
     siteName: 'SP Barber',
     title: 'SP Barber — Produits Capillaires Premium pour Hommes',
     description:
-      'Les formules professionnelles des barbiers, expédiées sous 48h. Livraison offerte dès 60€.',
+      'Les formules professionnelles des barbiers, expédiées sous 48h. Livraison offerte dès 59€.',
     images: [
       {
         url: 'https://spbarber.fr/og-default.jpg',
@@ -78,7 +78,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'SP Barber — Produits Capillaires Premium pour Hommes',
-    description: 'Les formules pro des barbiers, expédiées sous 48h. Livraison offerte dès 60€.',
+    description: 'Les formules pro des barbiers, expédiées sous 48h. Livraison offerte dès 59€.',
     images: ['https://spbarber.fr/og-default.jpg'],
   },
   robots: {

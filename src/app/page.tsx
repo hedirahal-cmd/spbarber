@@ -208,14 +208,14 @@ export default async function HomePage() {
         {/* Trust checks */}
         <div className="hero-trust-checks">
           <span className="hero-check-item"><span className="hero-check-v">✓</span> Formules utilisées par les barbiers pros</span>
-          <span className="hero-check-item"><span className="hero-check-v">✓</span> Livraison offerte dès 60€</span>
+          <span className="hero-check-item"><span className="hero-check-v">✓</span> Livraison offerte dès 59€</span>
           <span className="hero-check-item"><span className="hero-check-v">✓</span> Retour 30 jours</span>
         </div>
 
       </section>
 
       {/* ── NOS 2 BESTSELLERS ── */}
-      <section className="best2-sec">
+      <section id="bestsellers" className="best2-sec">
         <div className="best2-head sec-head">
           <div>
             <div className="sec-ey">— Les incontournables —</div>
@@ -301,7 +301,7 @@ export default async function HomePage() {
         </Link>
       </div>
       <div className="rea-compact">
-        <div className="rea-c-item"><Truck size={11} strokeWidth={1.8} /> Livraison offerte dès 60€</div>
+        <div className="rea-c-item"><Truck size={11} strokeWidth={1.8} /> Livraison offerte dès 59€</div>
         <div className="rea-c-sep">|</div>
         <div className="rea-c-item"><RotateCcw size={11} strokeWidth={1.8} /> Retour 30j</div>
         <div className="rea-c-sep">|</div>
@@ -395,15 +395,16 @@ export default async function HomePage() {
       {/* ── SALON ── */}
       <HomeSalonSection salons={salons} />
 
-      {/* ── AVIS ── */}
-      <section className="h-reviews">
-        <div className="sec-head">
-          <div>
-            <div className="sec-ey">— Ils nous font confiance —</div>
-            <h2 className="sec-title">AVIS CLIENTS</h2>
+      {/* ── AVIS — masque entierement sans vrai avis, plutot qu'un bloc de
+          preuve sociale qui souligne justement son absence ── */}
+      {hasReviews && (
+        <section className="h-reviews">
+          <div className="sec-head">
+            <div>
+              <div className="sec-ey">— Ils nous font confiance —</div>
+              <h2 className="sec-title">AVIS CLIENTS</h2>
+            </div>
           </div>
-        </div>
-        {hasReviews && (
           <div className="h-rev-summary">
             <div className="h-rev-avg">{avgRatingLabel}</div>
             <div>
@@ -411,9 +412,9 @@ export default async function HomePage() {
               <div className="h-rev-total">Basé sur {reviews.length} avis</div>
             </div>
           </div>
-        )}
-        <ReviewsList reviews={reviews} variant="home" emptyMessage="Aucun avis pour le moment — soyez le premier à en laisser un." />
-      </section>
+          <ReviewsList reviews={reviews} variant="home" emptyMessage="Aucun avis pour le moment — soyez le premier à en laisser un." />
+        </section>
+      )}
 
       {/* ── STICKY MOBILE ── */}
       <div className="sticky-mob">

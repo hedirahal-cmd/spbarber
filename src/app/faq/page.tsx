@@ -41,11 +41,11 @@ const FAQS = [
     items: [
       {
         q: 'Quel est le délai de livraison ?',
-        a: 'Vos commandes sont expédiées sous 24-48h ouvrées. La livraison prend ensuite 3 à 5 jours ouvrés selon votre adresse. Exception : les tondeuses (envoyées directement par notre fournisseur) comptent environ 2 semaines.',
+        a: 'Vos commandes sont expédiées sous 24-48h ouvrées. La livraison prend ensuite 3 à 5 jours ouvrés selon votre adresse. Exception : les tondeuses (envoyées directement par notre fournisseur), livraison sous ~2 semaines.',
       },
       {
         q: 'La livraison est-elle gratuite ?',
-        a: 'Oui, la livraison est offerte pour toute commande de 60 € ou plus. En dessous, les frais de port sont de 5,90 €.',
+        a: 'Oui, la livraison est offerte pour toute commande de 59 € ou plus. En dessous, les frais de port sont de 5,90 €.',
       },
       {
         q: 'Livrez-vous en dehors de France ?',
@@ -62,7 +62,7 @@ const FAQS = [
     items: [
       {
         q: 'Les produits SP Barber conviennent-ils à tous les types de cheveux ?',
-        a: 'Oui. La crème Curl est formulée pour les cheveux bouclés. Le shampooing noir s\'adapte aux cheveux blancs ou gris. Consultez la description de chaque produit pour plus de détails.',
+        a: 'Cela dépend du produit : le Shampooing Noir Colorant s\'adresse aux cheveux blancs ou gris à camoufler, la Crème Curl Control est spécifique aux cheveux bouclés ou frisés, et la Poudre Texturante convient surtout aux cheveux fins en manque de volume. Le Peigne Texture Expert, le Pack Barbe et nos tondeuses conviennent en revanche à tous types de cheveux et de barbe. Consultez la description de chaque produit pour vérifier qu\'il correspond à votre besoin.',
       },
       {
         q: 'Quelle est la composition des produits ?',

@@ -34,6 +34,9 @@ export interface Product {
   /** Slider avant/apres -- contenu (libelles, dessin CSS de repli) propre aux
    * colorants capillaires, n'a aucun sens sur les autres categories. */
   beforeAfterEnabled?: boolean
+  /** Marque reelle du fabricant, pour les produits dropshippes qui n'en portent
+   * pas -- absent = "SP Barber" (produits de la marque propre). */
+  brand?: string
 }
 
 export interface ProductVariant {

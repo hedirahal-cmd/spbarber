@@ -98,7 +98,7 @@ async function main() {
   ])
   const sousTotal = r.reduce((s, i) => s + i.unitAmount * i.quantity, 0)
   verifie('sous-total serveur', 1490, sousTotal)
-  verifie('livraison NON offerte', false, sousTotal >= 6000)
+  verifie('livraison NON offerte', false, sousTotal >= 5900)
 
   console.log('\n--- 5. Variantes ---')
   r = await resolveCartItems([

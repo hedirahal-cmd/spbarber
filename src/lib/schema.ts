@@ -100,8 +100,15 @@ export function schemaOrganizationLocal() {
  * omis plutot que rempli d'un chiffre par defaut (meme principe que
  * schemaSalon ci-dessous pour note_google/nombre_avis).
  */
+// Doit rester le meme seuil que le vrai forfait de port (checkout Stripe,
+// bandeau, fiches) -- SEUIL_LIVRAISON_OFFERTE dans /api/stripe/checkout, pas
+// importe directement pour eviter un aller-retour serveur/route depuis ce
+// module partage cote client comme serveur.
+const SEUIL_LIVRAISON_OFFERTE_CENTIMES = 5900
+
 export function schemaProduct(product: Product, reviewSummary?: { count: number; rating: string } | null) {
-  const price = ((product.variants?.[0]?.price ?? product.price) / 100).toFixed(2)
+  const prixCentimes = product.variants?.[0]?.price ?? product.price
+  const price = (prixCentimes / 100).toFixed(2)
 
   return {
     '@context': 'https://schema.org',
@@ -115,7 +122,9 @@ export function schemaProduct(product: Product, reviewSummary?: { count: number;
     url: `${BASE}/products/${product.slug}`,
     brand: {
       '@type': 'Brand',
-      name: 'SP Barber',
+      // Un produit dropshippe (tondeuses) n'est pas fabrique par SP Barber --
+      // le declarer comme marque induirait le client en erreur.
+      name: product.brand ?? 'SP Barber',
     },
     offers: {
       '@type': 'Offer',
@@ -132,13 +141,12 @@ export function schemaProduct(product: Product, reviewSummary?: { count: number;
       shippingDetails: {
         '@type': 'OfferShippingDetails',
         // schema.org n'a pas de notion native de "gratuit au-dessus d'un
-        // seuil" -- le forfait reel (5,90e, offert des 60e) est reduit au
-        // tarif facture le plus courant plutot que de declarer "0" comme si
-        // la livraison etait toujours gratuite, ce qui etait faux en dessous
-        // du seuil.
+        // seuil" -- ce produit PRIS SEUL declenche-t-il la livraison offerte ?
+        // Le prix (pas de variante ici, PRODUCTS n'en donne pas au moins cher
+        // des deux tondeuses) suffit a le determiner pour un achat a l'unite.
         shippingRate: {
           '@type': 'MonetaryAmount',
-          value: '5.90',
+          value: prixCentimes >= SEUIL_LIVRAISON_OFFERTE_CENTIMES ? '0' : '5.90',
           currency: 'EUR',
         },
         shippingDestination: {
@@ -152,14 +160,15 @@ export function schemaProduct(product: Product, reviewSummary?: { count: number;
             dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
           },
           cutoffTime: '16:00',
-          // Tondeuses = dropshipping manuel, delai reel ~2 semaines -- tres
-          // different du reste du catalogue (2-5 jours). Categorie utilisee
-          // plutot qu'un id en dur pour rester correct si d'autres tondeuses
-          // rejoignent le catalogue.
+          // Tondeuses = dropshipping manuel, delai reel "sous ~2 semaines" --
+          // tres different du reste du catalogue (2-5 jours). Categorie
+          // utilisee plutot qu'un id en dur pour rester correct si d'autres
+          // tondeuses rejoignent le catalogue. Handling + transit doit rester
+          // <= 14 jours au total pour matcher le texte visible sur la fiche.
           handlingTime: product.category === 'tondeuse' ? {
             '@type': 'QuantitativeValue',
             minValue: 1,
-            maxValue: 3,
+            maxValue: 2,
             unitCode: 'DAY',
           } : {
             '@type': 'QuantitativeValue',
@@ -169,8 +178,8 @@ export function schemaProduct(product: Product, reviewSummary?: { count: number;
           },
           transitTime: product.category === 'tondeuse' ? {
             '@type': 'QuantitativeValue',
-            minValue: 10,
-            maxValue: 14,
+            minValue: 8,
+            maxValue: 12,
             unitCode: 'DAY',
           } : {
             '@type': 'QuantitativeValue',

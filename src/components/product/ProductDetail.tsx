@@ -54,7 +54,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   tondeuse: 'Tondeuse',
 }
 
-const FREE_SHIP = 6000
+const FREE_SHIP = 5900
 
 // "Formule soignee", "Ingredients selectionnes"... n'a aucun sens sur un
 // peigne ou une tondeuse -- ce bloc de 4 benefices etait fige et identique
@@ -273,7 +273,7 @@ export function ProductDetail({ product, relatedProducts = [], reviews: productR
 
           <div className="sn-price-block">
             <div className="sn-price">{formatPrice(price)}</div>
-            <div className="sn-price-note">Prix TTC · Livraison offerte dès 60€</div>
+            <div className="sn-price-note">Prix TTC · Livraison offerte dès 59€</div>
           </div>
 
           {/* Variants */}
@@ -444,7 +444,7 @@ export function ProductDetail({ product, relatedProducts = [], reviews: productR
         <div className="sac-sec">
           <div className="sac-hd">
             <div className="sac-ttl">COMPLÉTEZ VOTRE ROUTINE</div>
-            <div className="sac-sub">Ces produits sont souvent achetés ensemble</div>
+            <div className="sac-sub">Notre sélection pour compléter votre routine</div>
           </div>
           <div className="sac-grid">
             {relatedProducts.map((rp) => (

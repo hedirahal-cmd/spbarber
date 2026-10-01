@@ -17,7 +17,7 @@ export interface SiteContentBlock {
 export const SITE_CONTENT_DEFAULTS: Record<string, SiteContentBlock> = {
   // "Cadeau offert des 70e" retire (2026-09-29, decision Hedi) : mecanisme
   // jamais reellement en place, reste de la construction du site.
-  announcement_bar: { text: 'Livraison offerte dès 60€ · Expédition 48h', visible: true },
+  announcement_bar: { text: 'Livraison offerte dès 59€ · Expédition 48h', visible: true },
   // "500+" retire (2026-09-28, decision Hedi) : chiffre invente, jamais
   // verifie. Texte neutre tant qu'aucun vrai chiffre n'est renseigne ici.
   home_cta_banner: { text: 'Rejoignez nos clients satisfaits', visible: true },
@@ -27,7 +27,10 @@ export const SITE_CONTENT_DEFAULTS: Record<string, SiteContentBlock> = {
   // tondeuses, qui ont leur propre repere (tondeuse_delai_livraison).
   trust_livraison: { text: 'Livraison 3-5 jours', visible: true },
   trust_retour: { text: 'Retour 30j', visible: true },
-  trust_france: { text: 'France', visible: true },
+  // Masque pour l'instant (2026-10-01, decision Hedi) : formulation a revoir
+  // avant de le remettre -- volontairement pas supprime pour garder le
+  // reglage/l'historique dans l'onglet Contenu.
+  trust_france: { text: 'France', visible: false },
   // Textes provisoires -- Hedi les remplacera lui-meme depuis l'onglet Contenu.
   tondeuse_pourquoi_marque: { text: 'Nous sélectionnons des tondeuses fiables et éprouvées, testées pour leur qualité de coupe et leur autonomie, pour une alternative professionnelle sans les tarifs du matériel haut de gamme.', visible: true },
   tondeuse_delai_livraison: { text: 'Livraison sous 2 semaines', visible: true },

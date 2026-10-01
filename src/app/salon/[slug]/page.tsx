@@ -242,7 +242,7 @@ export default async function SalonDetailPage({ params }: Props) {
             <div className="salon-sec-ey">— Emportez le salon chez vous —</div>
             <h2 className="salon-sec-title">NOS PRODUITS EN LIGNE</h2>
             <p className="salon-sec-sub">
-              Les mêmes produits que nos barbiers utilisent en salon, expédiés sous 48h partout en France (livraison 3-5 jours ouvrés, offerte dès 60€ — sauf tondeuses, ~2 semaines).
+              Les mêmes produits que nos barbiers utilisent en salon, expédiés sous 48h partout en France (livraison 3-5 jours ouvrés, offerte dès 59€ — sauf tondeuses, livraison sous ~2 semaines).
             </p>
             <Link href="/products" className="salon-shop-cta">
               Voir tous les produits <ArrowRight size={14} strokeWidth={2.5} />

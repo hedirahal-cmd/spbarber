@@ -21,7 +21,7 @@ export const PRODUCTS: Product[] = [
     related: ['3', '4'],
     seo_title: 'Cire Cheveux Homme Fixation Forte — SP Barber | Résultat Pro à la Maison',
     seo_description:
-      'Cire cheveux homme fixation forte et brillance naturelle. Formule professionnelle utilisée en salon. Tenue 24h. Livraison offerte dès 60€. Commander maintenant.',
+      'Cire cheveux homme fixation forte et brillance naturelle. Formule professionnelle utilisée en salon. Tenue 24h. Livraison offerte dès 59€. Commander maintenant.',
     created_at: new Date().toISOString(),
   },
   {
@@ -66,7 +66,7 @@ export const PRODUCTS: Product[] = [
     related: ['2', '4'],
     seo_title: 'Crème Curl Cheveux Bouclés Homme — SP Barber | Boucles Définies Sans Résidu',
     seo_description:
-      'Crème coiffante curl pour cheveux bouclés et frisés homme. Boucles définies, hydratation longue durée, sans résidu ni alourdissement. Livraison offerte dès 60€.',
+      'Crème coiffante curl pour cheveux bouclés et frisés homme. Boucles définies, hydratation longue durée, sans résidu ni alourdissement. Livraison offerte dès 59€.',
     created_at: new Date().toISOString(),
   },
   {
@@ -85,7 +85,7 @@ export const PRODUCTS: Product[] = [
     related: ['1', '3'],
     seo_title: 'Peigne Homme Professionnel SP Barber | Texture Expert Dents Anti-Casse',
     seo_description:
-      'Peigne texture expert professionnel pour homme. Dents larges anti-casse, idéal cheveux épais et texturés. Précision salon à la maison. Livraison offerte dès 60€.',
+      'Peigne texture expert professionnel pour homme. Dents larges anti-casse, idéal cheveux épais et texturés. Précision salon à la maison. Livraison offerte dès 59€.',
     created_at: new Date().toISOString(),
   },
   {
@@ -160,7 +160,7 @@ export const PRODUCTS: Product[] = [
     related: ['1', '3'],
     seo_title: 'Poudre Texturante Cheveux Homme — SP Barber | Volume & Grip Mat',
     seo_description:
-      'Poudre texturante homme pour volume et grip mat instantanés. Formule légère, idéale cheveux fins. Résultat salon à la maison. Livraison offerte dès 60€.',
+      'Poudre texturante homme pour volume et grip mat instantanés. Formule légère, idéale cheveux fins. Résultat salon à la maison. Livraison offerte dès 59€.',
     created_at: new Date().toISOString(),
   },
   {
@@ -172,6 +172,7 @@ export const PRODUCTS: Product[] = [
     id: '8',
     name: 'Tondeuse BRDCLIP FA1T',
     slug: 'tondeuse-brdclip-fa1t',
+    brand: 'BRDCLIP',
     description:
       'La Tondeuse BRDCLIP FA1T embarque des lames en titane pour une coupe précise et durable, sans faux mouvement. Sa batterie Li-ion offre environ 90 minutes d\'autonomie pour une recharge complète d\'environ 2 heures sur son support de charge inclus. Conçue pour un usage à sec, ses lames se rincent facilement à l\'eau pour un entretien simple. Livrée avec plusieurs embouts interchangeables (de 0,5 à 5 mm), elle s\'adapte à toutes les longueurs de coupe, du dégradé le plus court à la finition la plus fournie.',
     price: 2739,
@@ -198,6 +199,7 @@ export const PRODUCTS: Product[] = [
     // commentaire au-dessus) -- actif:false + pas de `related`.
     id: '9',
     name: 'Tondeuse Kemei KM-999',
+    brand: 'Kemei',
     slug: 'tondeuse-kemei-km-999',
     description:
       'La Tondeuse Kemei KM-999 est équipée d\'une lame DLC zéro écart pour une coupe nette, sans tiraillement ni accroche dans les cheveux. Son écran LED affiche en temps réel le niveau de charge de la batterie 1500 mAh, qui offre environ 3 heures d\'utilisation continue pour une recharge USB d\'environ 3 heures. Compacte et sans fil, elle se glisse facilement dans un sac de voyage pour un entretien impeccable en toutes circonstances.',

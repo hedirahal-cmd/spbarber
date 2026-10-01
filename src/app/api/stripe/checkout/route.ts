@@ -12,7 +12,7 @@ function getBaseUrl(): string {
 // au poids (POIDS_PRODUIT + getColissimoPrice), qui divergeait du forfait
 // affiche sur le site (4,90e affiche partout, alors que Stripe facturait
 // jusqu'a 9,90e selon le poids reel du panier).
-const SEUIL_LIVRAISON_OFFERTE = 6000
+const SEUIL_LIVRAISON_OFFERTE = 5900
 const FRAIS_PORT = 590
 
 export async function POST(req: NextRequest) {
@@ -50,11 +50,22 @@ export async function POST(req: NextRequest) {
     const libelle = (item: (typeof resolved)[number]) =>
       item.variant ? `${item.product.name} — ${item.variant.name}` : item.product.name
 
+    // Delai propre a chaque article -- affiche par Stripe sous le nom du
+    // produit sur sa page de paiement. Necessaire des qu'un panier mixte
+    // (produit standard + tondeuse) promet des delais differents : le
+    // libelle du forfait de port ci-dessous renvoie a CE detail, qui doit
+    // donc exister reellement plutot que renvoyer dans le vide.
+    const delaiLigne = (item: (typeof resolved)[number]) =>
+      item.product.category === 'tondeuse'
+        ? 'Livraison sous ~2 semaines, envoi séparé'
+        : 'Livraison 3-5 jours ouvrés'
+
     const line_items = resolved.map((item) => ({
       price_data: {
         currency: 'eur',
         product_data: {
           name: libelle(item),
+          description: delaiLigne(item),
           images: item.product.images.filter((img) => img.url.startsWith('http')).map((img) => img.url),
         },
         unit_amount: item.unitAmount,
