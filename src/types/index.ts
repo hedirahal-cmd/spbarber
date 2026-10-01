@@ -51,8 +51,6 @@ export interface ProductVariant {
    * un (ex. modeles/tailles a prix differents) le renseignent. */
   price?: number
   stock: number
-  /** Couleur CSS de la pastille, pour variantKind:'color' uniquement. */
-  colorSwatch?: string
   /** Sous-ensemble de product.images reserve a ce coloris -- sous-chaines a
    * retrouver dans les URL (ex. noms de fichiers). Absent ou aucune
    * correspondance = galerie complete affichee (repli sans danger). */

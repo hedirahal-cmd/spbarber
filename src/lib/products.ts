@@ -208,8 +208,8 @@ export const PRODUCTS: Product[] = [
     // -2 = vert, -3/-4/-5 = blanc (identifiees visuellement).
     variantKind: 'color',
     variants: [
-      { id: 'blanc', name: 'Blanc', stock: 999, colorSwatch: '#f5f3ef', imageMatch: ['-3.png', '-4.png', '-5.png'] },
-      { id: 'vert', name: 'Vert', stock: 999, colorSwatch: '#5a9c3f', imageMatch: ['-2.png'] },
+      { id: 'blanc', name: 'Blanc', stock: 999, imageMatch: ['-3.png', '-4.png', '-5.png'] },
+      { id: 'vert', name: 'Vert', stock: 999, imageMatch: ['-2.png'] },
     ],
     seo_title: 'Tondeuse BRDCLIP FA1T — SP Barber | Lames Titane, Sans Fil',
     seo_description:
@@ -243,8 +243,8 @@ export const PRODUCTS: Product[] = [
     // -1/-4/-5 = noir, -3 = rouge (identifiees visuellement).
     variantKind: 'color',
     variants: [
-      { id: 'noir', name: 'Noir', stock: 999, colorSwatch: '#1a1a1a', imageMatch: ['-1.png', '-4.png', '-5.png'] },
-      { id: 'rouge', name: 'Rouge', stock: 999, colorSwatch: '#b91c1c', imageMatch: ['-3.png'] },
+      { id: 'noir', name: 'Noir', stock: 999, imageMatch: ['-1.png', '-4.png', '-5.png'] },
+      { id: 'rouge', name: 'Rouge', stock: 999, imageMatch: ['-3.png'] },
     ],
     seo_title: 'Tondeuse Kemei KM-999 — SP Barber | Lame DLC, Écran LED',
     seo_description:

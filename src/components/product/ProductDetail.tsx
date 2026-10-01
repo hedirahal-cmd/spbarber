@@ -264,26 +264,23 @@ export function ProductDetail({ product, relatedProducts = [], reviews: productR
           <h1 className="sn-h1">{product.name}</h1>
           {product.benefit && <div className="sn-sub">{product.benefit}</div>}
 
-          {/* Coloris -- pastilles, sous le nom du produit. Change la galerie
-              photo (voir displayedImages) ; prix/stock identiques pour tous
-              les choix (pas un vrai "modele", cf. variantKind). */}
+          {/* Coloris -- menu deroulant, sous le nom du produit (2026-10-01,
+              demande Hedi : plus de pastilles). Change la galerie photo (voir
+              displayedImages) ; prix/stock identiques pour tous les choix
+              (pas un vrai "modele", cf. variantKind). */}
           {product.variantKind === 'color' && product.variants && product.variants.length > 0 && (
             <div className="sn-colors">
-              <div className="sn-colors-lbl">Coloris : <strong>{selectedVariant?.name}</strong></div>
-              <div className="sn-colors-row">
+              <label className="sn-colors-lbl" htmlFor="sn-color-select">Coloris</label>
+              <select
+                id="sn-color-select"
+                className="sn-color-select"
+                value={selectedVariant?.id}
+                onChange={(e) => setSelectedVariant(product.variants!.find((v) => v.id === e.target.value))}
+              >
                 {product.variants.map((v) => (
-                  <button
-                    key={v.id}
-                    type="button"
-                    className={selectedVariant?.id === v.id ? 'sn-color-btn sn-color-btn-active' : 'sn-color-btn'}
-                    style={{ background: v.colorSwatch }}
-                    onClick={() => setSelectedVariant(v)}
-                    aria-label={`Coloris ${v.name}`}
-                    aria-pressed={selectedVariant?.id === v.id}
-                    title={v.name}
-                  />
+                  <option key={v.id} value={v.id}>{v.name}</option>
                 ))}
-              </div>
+              </select>
             </div>
           )}
 
