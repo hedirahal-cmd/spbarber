@@ -3425,6 +3425,27 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
 }
 .sn-atc:hover { background: var(--goldl); }
 .sn-atc-added { background: var(--green) !important; color: #fff !important; }
+.sn-express-pay {
+  margin-top: 10px;
+  min-height: 52px;
+}
+.sn-express-pay-loading {
+  height: 52px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--gm) 25%, var(--g) 37%, var(--gm) 63%);
+  background-size: 400% 100%;
+  animation: sn-express-pulse 1.4s ease infinite;
+}
+@keyframes sn-express-pulse {
+  0% { background-position: 100% 50%; }
+  100% { background-position: 0 50%; }
+}
+.sn-express-pay-err {
+  font-size: 11px;
+  color: #c0392b;
+  text-align: center;
+  margin-top: 6px;
+}
 .sn-prog { margin-top: 2px; }
 .sn-prog-msg { font-size: 11px; color: var(--gt); margin-bottom: 6px; }
 .sn-prog-msg strong { color: var(--b); }
@@ -3586,7 +3607,7 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
   .sn-bc, .sn-badge-cat, .sn-h1, .sn-sub { order: 1; }
   .sn-hero-photo, .fi-thumbs { order: 2; }
   .sn-colors, .sn-stars-row, .sn-price-block, .fi-vars,
-  .sn-stock, .stock-warn, .sn-atc, .sn-prog, .pay-logos-block, .sn-contact-link { order: 3; }
+  .sn-stock, .stock-warn, .sn-atc, .sn-express-pay, .sn-prog, .pay-logos-block, .sn-contact-link { order: 3; }
   .sn-check-list, .trust-row { order: 4; }
   .sn-hero-slider, .sn-pills { order: 5; }
 

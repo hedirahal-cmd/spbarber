@@ -67,9 +67,20 @@ async function envoyerAlerteOperationnelle(
   }
 }
 
+/** Contexte minimal partage par les deux chemins de paiement (Checkout classique
+ *  et PaymentIntent express) pour les alertes ci-dessous -- plus les champs
+ *  specifiques de Stripe.Checkout.Session, qu aucune des deux fonctions
+ *  n utilise reellement. */
+type ContexteAlerte = {
+  reference: string
+  email: string
+  paymentIntentId: string | null
+  montant: number
+}
+
 /** Previent qu'un paiement a ete encaisse sans que la commande soit enregistree. */
 async function alerterEchecInsertion(
-  session: Stripe.Checkout.Session,
+  ctx: ContexteAlerte,
   error: { code?: string; message: string },
 ): Promise<void> {
   await envoyerAlerteOperationnelle(
@@ -78,14 +89,14 @@ async function alerterEchecInsertion(
       'Stripe va retenter automatiquement. Si toutes les tentatives echouent, la commande ' +
       'devra etre saisie a la main.',
     [
-      ['Session', session.id],
-      ['Payment intent', idPaiement(session) ?? '(aucun)'],
-      ['Montant', ((session.amount_total ?? 0) / 100).toFixed(2) + ' EUR'],
-      ['Client', session.customer_details?.email ?? '(inconnu)'],
+      ['Reference', ctx.reference],
+      ['Payment intent', ctx.paymentIntentId ?? '(aucun)'],
+      ['Montant', (ctx.montant / 100).toFixed(2) + ' EUR'],
+      ['Client', ctx.email || '(inconnu)'],
       ['Erreur', (error.code ? error.code + ' — ' : '') + error.message],
       ['Horodatage', new Date().toISOString()],
     ],
-    'paiement encaisse sans commande enregistree, session ' + session.id,
+    'paiement encaisse sans commande enregistree, reference ' + ctx.reference,
   )
 }
 
@@ -98,7 +109,7 @@ async function alerterEchecInsertion(
  * (reappro, contact fournisseur), pas a bloquer quoi que ce soit.
  */
 async function alerterStockInsuffisant(
-  session: Stripe.Checkout.Session,
+  ctx: ContexteAlerte,
   produitId: string,
   quantite: number,
 ): Promise<void> {
@@ -108,14 +119,120 @@ async function alerterStockInsuffisant(
       'du decrement. La commande est enregistree normalement (Stripe a deja encaisse) : ' +
       'verifiez le reapprovisionnement ou contactez le client si necessaire.',
     [
-      ['Session', session.id],
+      ['Reference', ctx.reference],
       ['Produit', produitId],
       ['Quantite commandee', String(quantite)],
-      ['Client', session.customer_details?.email ?? '(inconnu)'],
+      ['Client', ctx.email || '(inconnu)'],
       ['Horodatage', new Date().toISOString()],
     ],
-    'stock insuffisant au decrement, produit ' + produitId + ', session ' + session.id,
+    'stock insuffisant au decrement, produit ' + produitId + ', reference ' + ctx.reference,
   )
+}
+
+type AdresseLivraison = { name?: string | null; address?: Stripe.Address | null } | null
+
+/**
+ * Enregistrement de commande partage par les deux chemins de paiement (Checkout
+ * classique et PaymentIntent express, voir plus bas) : meme insertion dans
+ * `orders`, meme decrement de stock, meme alerting. Les deux chemins ne different
+ * que par la facon dont Stripe leur presente l email/les articles/l adresse --
+ * cette fonction ne voit plus que des valeurs deja normalisees.
+ */
+async function enregistrerCommande(params: {
+  email: string
+  rawItems: unknown
+  total: number
+  paymentIntentId: string | null
+  shippingAddress: AdresseLivraison
+  reference: string
+}): Promise<NextResponse> {
+  let parsedItems: unknown[] = []
+  try {
+    parsedItems = JSON.parse(typeof params.rawItems === 'string' ? params.rawItems : '[]')
+  } catch {}
+
+  if (params.paymentIntentId === null) {
+    // L'index unique orders_stripe_payment_intent_id_key est PARTIEL
+    // (WHERE stripe_payment_intent_id IS NOT NULL) : sans payment intent, rien
+    // n'empeche une redelivrance Stripe de creer un second enregistrement.
+    console.warn('[webhook] evenement sans payment_intent, doublon possible:', params.reference)
+  }
+
+  const { error } = await supabaseAdmin.from('orders').insert({
+    email: params.email,
+    items: parsedItems,
+    total: params.total,
+    status: 'paid',
+    stripe_payment_intent_id: params.paymentIntentId,
+    shipping_address: params.shippingAddress,
+    created_at: new Date().toISOString(),
+  })
+
+  const ctx: ContexteAlerte = {
+    reference: params.reference,
+    email: params.email,
+    paymentIntentId: params.paymentIntentId,
+    montant: params.total,
+  }
+
+  if (error) {
+    // 23505 = violation d'unicite. L'index partiel a mordu : ce paiement est
+    // deja enregistre. C'est un succes, pas une panne -- repondre autre chose
+    // que 2xx ferait retenter Stripe en boucle sur un evenement deja traite.
+    if (error.code === '23505') {
+      console.log('[webhook] evenement deja enregistre, ignore:', params.reference)
+      return NextResponse.json({ received: true, duplicate: true })
+    }
+
+    // Tout le reste est une vraie panne. Le 500 est ce qui declenche la
+    // reprise cote Stripe ; sans lui, le paiement est encaisse et la commande
+    // perdue sans que personne ne l'apprenne.
+    console.error('[webhook] echec insertion orders:', error.code, error.message)
+    await alerterEchecInsertion(ctx, error)
+    return NextResponse.json({ error: 'enregistrement impossible' }, { status: 500 })
+  }
+
+  // Decrement du stock -- on n'atteint ce point que sur un enregistrement
+  // FRAIS : les deux branches ci-dessus (doublon 23505, echec reel) sont
+  // deja revenues plus tot. Jamais deux fois pour le meme paiement.
+  for (const brut of parsedItems) {
+    const ligne = brut as { id?: unknown; variantId?: unknown; qty?: unknown }
+    const produitId = typeof ligne.id === 'string' ? ligne.id : null
+    const quantite = typeof ligne.qty === 'number' && Number.isInteger(ligne.qty) && ligne.qty > 0
+      ? ligne.qty
+      : null
+    if (!produitId || !quantite) continue
+
+    const base = PRODUCTS.find((p) => p.id === produitId)
+    if (!base) continue
+
+    // Dropshipping (tondeuses, dropshipping manuel ou non) est HORS de ce
+    // systeme -- le fournisseur gere son propre stock, decision actee
+    // separement de ce correctif.
+    if (base.is_dropshipping) continue
+
+    const { data: nouveauStock, error: erreurStock } = await supabaseAdmin.rpc('decrementer_stock', {
+      p_id: produitId,
+      p_quantite: quantite,
+      p_stock_par_defaut: base.stock,
+    })
+
+    if (erreurStock) {
+      // Incident d'infrastructure sur le decrement, pas un probleme de stock
+      // -- la commande reste valide, on le journalise pour investigation.
+      console.error('[webhook] decrement de stock impossible pour', produitId, ':', erreurStock.message)
+      continue
+    }
+    if (nouveauStock === null) {
+      console.warn(
+        '[webhook] stock insuffisant au decrement pour', produitId,
+        '(qte', quantite, ') -- commande conservee, alerte envoyee',
+      )
+      await alerterStockInsuffisant(ctx, produitId, quantite)
+    }
+  }
+
+  return NextResponse.json({ received: true })
 }
 
 export async function POST(req: Request) {
@@ -162,91 +279,45 @@ export async function POST(req: Request) {
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object as Stripe.Checkout.Session
 
-    let parsedItems: unknown[] = []
-    try {
-      parsedItems = JSON.parse(session.metadata?.items ?? '[]')
-    } catch {}
-
     const shippingInfo = session.collected_information?.shipping_details ?? null
     const shipping = shippingInfo
       ? { name: shippingInfo.name, address: shippingInfo.address }
-      : (session.customer_details?.address ?? null)
-
-    const paymentIntentId = idPaiement(session)
-
-    if (paymentIntentId === null) {
-      // L'index unique orders_stripe_payment_intent_id_key est PARTIEL
-      // (WHERE stripe_payment_intent_id IS NOT NULL) : sans payment intent, rien
-      // n'empeche une redelivrance Stripe de creer un second enregistrement.
-      console.warn('[webhook] session sans payment_intent, doublon possible:', session.id)
-    }
-
-    const { error } = await supabaseAdmin.from('orders').insert({
-      email: session.customer_details?.email ?? '',
-      items: parsedItems,
-      total: session.amount_total ?? 0,
-      status: 'paid',
-      stripe_payment_intent_id: paymentIntentId,
-      shipping_address: shipping,
-      created_at: new Date().toISOString(),
-    })
-
-    if (error) {
-      // 23505 = violation d'unicite. L'index partiel a mordu : ce paiement est
-      // deja enregistre. C'est un succes, pas une panne -- repondre autre chose
-      // que 2xx ferait retenter Stripe en boucle sur un evenement deja traite.
-      if (error.code === '23505') {
-        console.log('[webhook] evenement deja enregistre, ignore:', session.id)
-        return NextResponse.json({ received: true, duplicate: true })
-      }
-
-      // Tout le reste est une vraie panne. Le 500 est ce qui declenche la
-      // reprise cote Stripe ; sans lui, le paiement est encaisse et la commande
-      // perdue sans que personne ne l'apprenne.
-      console.error('[webhook] echec insertion orders:', error.code, error.message)
-      await alerterEchecInsertion(session, error)
-      return NextResponse.json({ error: 'enregistrement impossible' }, { status: 500 })
-    }
-
-    // Decrement du stock -- on n'atteint ce point que sur un enregistrement
-    // FRAIS : les deux branches ci-dessus (doublon 23505, echec reel) sont
-    // deja revenues plus tot. Jamais deux fois pour le meme paiement.
-    for (const brut of parsedItems) {
-      const ligne = brut as { id?: unknown; variantId?: unknown; qty?: unknown }
-      const produitId = typeof ligne.id === 'string' ? ligne.id : null
-      const quantite = typeof ligne.qty === 'number' && Number.isInteger(ligne.qty) && ligne.qty > 0
-        ? ligne.qty
+      : session.customer_details?.address
+        ? { name: session.customer_details.name ?? null, address: session.customer_details.address }
         : null
-      if (!produitId || !quantite) continue
 
-      const base = PRODUCTS.find((p) => p.id === produitId)
-      if (!base) continue
+    return await enregistrerCommande({
+      email: session.customer_details?.email ?? '',
+      rawItems: session.metadata?.items ?? '[]',
+      total: session.amount_total ?? 0,
+      paymentIntentId: idPaiement(session),
+      shippingAddress: shipping,
+      reference: session.id,
+    })
+  }
 
-      // Dropshipping (aujourd'hui : la Tondeuse Fade Pro, seule a porter des
-      // variantes) est HORS de ce systeme -- le fournisseur gere son propre
-      // stock, decision actee separement de ce correctif.
-      if (base.is_dropshipping) continue
+  if (event.type === 'payment_intent.succeeded') {
+    const paymentIntent = event.data.object as Stripe.PaymentIntent
 
-      const { data: nouveauStock, error: erreurStock } = await supabaseAdmin.rpc('decrementer_stock', {
-        p_id: produitId,
-        p_quantite: quantite,
-        p_stock_par_defaut: base.stock,
-      })
-
-      if (erreurStock) {
-        // Incident d'infrastructure sur le decrement, pas un probleme de stock
-        // -- la commande reste valide, on le journalise pour investigation.
-        console.error('[webhook] decrement de stock impossible pour', produitId, ':', erreurStock.message)
-        continue
-      }
-      if (nouveauStock === null) {
-        console.warn(
-          '[webhook] stock insuffisant au decrement pour', produitId,
-          '(qte', quantite, ') -- commande conservee, alerte envoyee',
-        )
-        await alerterStockInsuffisant(session, produitId, quantite)
-      }
+    // Une Checkout Session en mode 'payment' cree TOUJOURS un PaymentIntent
+    // sous-jacent, qui declenche lui aussi cet evenement -- sans ce garde-fou,
+    // chaque achat panier classique serait traite ICI *en plus* du bloc
+    // checkout.session.completed ci-dessus. Seul le paiement express (voir
+    // /api/stripe/payment-intent) pose cette metadonnee a la creation.
+    if (paymentIntent.metadata?.source !== 'express_checkout') {
+      return NextResponse.json({ received: true, ignored: true })
     }
+
+    return await enregistrerCommande({
+      email: paymentIntent.receipt_email ?? '',
+      rawItems: paymentIntent.metadata?.items ?? '[]',
+      total: paymentIntent.amount,
+      paymentIntentId: paymentIntent.id,
+      shippingAddress: paymentIntent.shipping
+        ? { name: paymentIntent.shipping.name, address: paymentIntent.shipping.address }
+        : null,
+      reference: paymentIntent.id,
+    })
   }
 
   return NextResponse.json({ received: true })

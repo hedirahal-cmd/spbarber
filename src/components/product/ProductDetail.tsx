@@ -6,6 +6,7 @@ import { formatPrice } from '@/lib/utils'
 import { Product, ProductVariant } from '@/types'
 import { imagesPourVariante } from '@/lib/products'
 import { PaymentLogos } from '@/components/PaymentLogos'
+import { ExpressCheckoutButton } from './ExpressCheckoutButton'
 import { AddToCartButton } from '@/components/AddToCartButton'
 import { Lock, Truck, RotateCcw, CheckCircle2, AlertTriangle, ShoppingCart, Dumbbell, Sparkles, Leaf, FlaskConical, Scissors, Droplets, User, Zap, Clock, Waves, AlignJustify, Package, Wind, Cog, Package2, ChevronLeft, ChevronRight } from 'lucide-react'
 import { BeforeAfterSlider, type BeforeAfterImage } from './BeforeAfterSlider'
@@ -387,6 +388,19 @@ export function ProductDetail({ product, relatedProducts = [], reviews: productR
                 ? 'Rupture de stock'
                 : <><ShoppingCart size={16} strokeWidth={2} />Ajouter au panier</>}
           </button>
+
+          {/* Paiement express (Apple Pay / Google Pay) -- achat direct de ce
+              produit, independant du panier. Invisible si le navigateur/appareil
+              du visiteur ne sait pas reellement payer ainsi (voir le composant). */}
+          {!stockEpuise && (
+            <ExpressCheckoutButton
+              productId={product.id}
+              productName={product.name}
+              variantId={selectedVariant?.id}
+              unitAmount={price}
+              isFreeShip={produitSeulSuffit}
+            />
+          )}
 
           {/* Mini progress */}
           <div className="sn-prog">
