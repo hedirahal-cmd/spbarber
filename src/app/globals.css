@@ -1614,6 +1614,7 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
 
 /* Annule le cercle doré ajouté précédemment */
 .sac-icon-ring { display: contents; }
+.sac-img-photo { width: 100%; height: 100%; object-fit: cover; display: block; }
 
 /* Infos */
 .sac-info {
@@ -2432,6 +2433,12 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
 .cdr-body {
   flex: 1 1 0; overflow-y: auto; overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
+  /* Plancher (2026-10-20, retour Hedi) : .cdr-foot ne retrecit jamais
+     (flex-shrink:0) -- sans ce plancher, sur une fenetre basse, la liste
+     d'articles pouvait etre ecrasee jusqu'a disparaitre completement derriere
+     lui. ~1 article plein + un apercu du suivant, pour signaler qu'il y en a
+     d'autres a faire defiler plutot que de laisser croire le panier vide. */
+  min-height: 160px;
 }
 
 /* État vide */
@@ -2652,7 +2659,9 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
   background: var(--gm);
   display: flex; align-items: center; justify-content: center;
   color: var(--gt); border-radius: 2px;
+  overflow: hidden;
 }
+.cdr-sugg-icon img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .cdr-sugg-info { flex: 1; min-width: 0; }
 .cdr-sugg-name {
   font-size: 12px; font-weight: 500; color: var(--b);
@@ -2719,7 +2728,9 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
   background: linear-gradient(140deg, #eceae6, #d5d1cb);
   display: flex; align-items: center; justify-content: center;
   color: var(--gt);
+  overflow: hidden;
 }
+.chk-item-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .chk-item-qty-badge {
   position: absolute; top: -6px; right: -6px;
   width: 18px; height: 18px;

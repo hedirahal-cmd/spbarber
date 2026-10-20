@@ -34,7 +34,11 @@ export function CartDrawer({ products = [] }: { products?: Product[] }) {
   const [loading, setLoading]             = useState(false)
   const [checkoutError, setCheckoutError] = useState('')
   const [cancelMsg, setCancelMsg]         = useState(false)
-  const [suggOpen, setSuggOpen]           = useState(true)
+  // Replie par defaut (2026-10-20, retour Hedi) : ouvert par defaut, ce bloc
+  // pouvait a lui seul ecraser la liste d'articles sous son propre poids sur
+  // une fenetre de hauteur reduite (.cdr-foot ne retrecit jamais -- voir
+  // globals.css). Le client peut toujours le deplier lui-meme.
+  const [suggOpen, setSuggOpen]           = useState(false)
   const safetyTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [couponOpen, setCouponOpen]       = useState(false)
   const [couponCode, setCouponCode]       = useState('')
@@ -375,7 +379,11 @@ export function CartDrawer({ products = [] }: { products?: Product[] }) {
                     {suggestions.map(p => (
                       <li key={p.id} className="cdr-sugg-item">
                         <div className="cdr-sugg-icon">
-                          <CatIcon cat={p.category} size={17} />
+                          {p.images[0]?.url.startsWith('http') ? (
+                            <img src={p.images[0].url} alt="" />
+                          ) : (
+                            <CatIcon cat={p.category} size={17} />
+                          )}
                         </div>
                         <div className="cdr-sugg-info">
                           <div className="cdr-sugg-name">{p.name}</div>

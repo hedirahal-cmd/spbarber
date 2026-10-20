@@ -8,7 +8,7 @@ import { imagesPourVariante } from '@/lib/products'
 import { PaymentLogos } from '@/components/PaymentLogos'
 import { ExpressCheckoutButton } from './ExpressCheckoutButton'
 import { AddToCartButton } from '@/components/AddToCartButton'
-import { Lock, Truck, RotateCcw, CheckCircle2, AlertTriangle, ShoppingCart, Dumbbell, Sparkles, Leaf, FlaskConical, Scissors, Droplets, User, Zap, Clock, Waves, AlignJustify, Package, Wind, Cog, Package2, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Lock, Truck, RotateCcw, CheckCircle2, AlertTriangle, ShoppingCart, Dumbbell, Sparkles, Leaf, FlaskConical, Scissors, Droplets, User, Zap, Clock, Wind, Cog, Package2, ChevronLeft, ChevronRight } from 'lucide-react'
 import { BeforeAfterSlider, type BeforeAfterImage } from './BeforeAfterSlider'
 import type { ReviewDisplay } from '@/lib/reviews'
 import { ReviewsList } from '@/components/ReviewsList'
@@ -38,15 +38,17 @@ function CategoryIcon({ category, size = 64 }: { category: string; size?: number
   return <Sparkles size={size} strokeWidth={1.2} />
 }
 
-function ProductIcon({ productId, size = 40 }: { productId: string; size?: number }) {
-  if (productId === '1') return <Scissors   size={size} strokeWidth={1.2} />
-  if (productId === '2') return <Droplets   size={size} strokeWidth={1.2} />
-  if (productId === '3') return <Waves      size={size} strokeWidth={1.2} />
-  if (productId === '4') return <AlignJustify size={size} strokeWidth={1.2} />
-  if (productId === '5') return <Zap        size={size} strokeWidth={1.2} />
-  if (productId === '6') return <Package    size={size} strokeWidth={1.2} />
-  if (productId === '7') return <Wind       size={size} strokeWidth={1.2} />
-  return <Scissors size={size} strokeWidth={1.2} />
+// Repli uniquement si le produit n'a reellement aucune photo -- par
+// categorie, pas par id (l'ancienne version indexait sur des ids figes en
+// dur, perimee des qu'un produit est retire/ajoute au catalogue : les
+// tondeuses, par exemple, retombaient sur l'icone Ciseaux par defaut).
+function CategoryIconFallback({ category, size = 40 }: { category: string; size?: number }) {
+  if (category === 'coiffant')   return <Scissors size={size} strokeWidth={1.2} />
+  if (category === 'soin')       return <Droplets size={size} strokeWidth={1.2} />
+  if (category === 'barbe')      return <User     size={size} strokeWidth={1.2} />
+  if (category === 'accessoire') return <Zap      size={size} strokeWidth={1.2} />
+  if (category === 'tondeuse')   return <Cog      size={size} strokeWidth={1.2} />
+  return <Sparkles size={size} strokeWidth={1.2} />
 }
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -511,9 +513,13 @@ export function ProductDetail({ product, relatedProducts = [], reviews: productR
               <div key={rp.id} className="sac-card">
                 <Link href={`/products/${rp.slug}`} className="sac-card-link">
                   <div className="sac-img">
-                    <div className="sac-icon-ring">
-                      <ProductIcon productId={rp.id} size={56} />
-                    </div>
+                    {rp.images[0]?.url.startsWith('http') ? (
+                      <img src={rp.images[0].url} alt={rp.images[0].alt || rp.name} className="sac-img-photo" />
+                    ) : (
+                      <div className="sac-icon-ring">
+                        <CategoryIconFallback category={rp.category} size={56} />
+                      </div>
+                    )}
                   </div>
                   <div className="sac-info">
                     <div className="sac-cat">{CATEGORY_LABELS[rp.category] ?? rp.category}</div>

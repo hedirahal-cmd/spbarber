@@ -9,6 +9,7 @@ import {
 } from 'lucide-react'
 import { PaymentLogos } from '@/components/PaymentLogos'
 import { formatPrice } from '@/lib/utils'
+import { imagesPourVariante } from '@/lib/products'
 
 function euros(cents: number) {
   return (cents / 100).toFixed(2).replace('.', ',') + ' €'
@@ -109,7 +110,14 @@ export default function CheckoutPage() {
                   className="chk-item"
                 >
                   <div className="chk-item-thumb">
-                    <CatIcon cat={item.product.category} size={22} />
+                    {(() => {
+                      const photo = imagesPourVariante(item.product.images, item.variant)[0]
+                      return photo?.url.startsWith('http') ? (
+                        <img src={photo.url} alt="" />
+                      ) : (
+                        <CatIcon cat={item.product.category} size={22} />
+                      )
+                    })()}
                     {item.quantity > 1 && (
                       <span className="chk-item-qty-badge">{item.quantity}</span>
                     )}
