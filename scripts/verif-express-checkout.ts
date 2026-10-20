@@ -69,9 +69,8 @@ function verifie(nom: string, attendu: unknown, obtenu: unknown) {
 const recu: { chemin: string; corps: string }[] = []
 const appelsRpc: { id: string; quantite: number }[] = []
 
-// Cire Cheveux Premium (id 1), prix statique 2490 -- force actif:true via
-// l'override, independamment de son statut reel en production (voir
-// verif-stock.ts, meme technique).
+// Shampooing Noir Colorant (id 2), prix statique 2890, deja actif par defaut
+// dans le catalogue -- aucun override necessaire pour l'exposer.
 const faux = http.createServer((req, res) => {
   let corps = ''
   req.on('data', (c) => (corps += c))
@@ -81,7 +80,7 @@ const faux = http.createServer((req, res) => {
 
     if (req.method === 'GET' && chemin.includes('/product_overrides')) {
       res.writeHead(200, { 'Content-Type': 'application/json' })
-      res.end(JSON.stringify([{ id: '1', name: null, price: null, description: null, stock: null, benefit: null, images: null, actif: true }]))
+      res.end(JSON.stringify([]))
       return
     }
     if (req.method === 'POST' && chemin.includes('/rpc/decrementer_stock')) {
@@ -189,16 +188,16 @@ async function main() {
   console.log('  OK    trafic Supabase detourne vers le faux serveur')
 
   console.log('\n--- 1. Montant calcule sous le seuil de livraison offerte ---')
-  const r1 = await creerPaymentIntent({ productId: '1', quantity: 1 })
+  const r1 = await creerPaymentIntent({ productId: '2', quantity: 1 })
   verifie('=> 200', 200, r1.statut)
-  verifie('montant = prix + frais de port (2490 + 590)', 3080, r1.corps.amount)
+  verifie('montant = prix + frais de port (2890 + 590)', 3480, r1.corps.amount)
   verifie('clientSecret present', true, typeof r1.corps.clientSecret === 'string')
   const piId1 = r1.corps.paymentIntentId as string
 
   console.log('\n--- 2. Montant calcule au-dessus du seuil (livraison offerte) ---')
-  const r2 = await creerPaymentIntent({ productId: '1', quantity: 3 })
+  const r2 = await creerPaymentIntent({ productId: '2', quantity: 3 })
   verifie('=> 200', 200, r2.statut)
-  verifie('montant = 3 x prix, sans frais de port (7470)', 7470, r2.corps.amount)
+  verifie('montant = 3 x prix, sans frais de port (8670)', 8670, r2.corps.amount)
 
   console.log('\n--- 3. Produit inconnu : paiement refuse, pas de PaymentIntent cree ---')
   const r3 = await creerPaymentIntent({ productId: 'inexistant', quantity: 1 })
@@ -226,7 +225,7 @@ async function main() {
     amount: 3080,
     receipt_email: 'client-express@exemple.test',
     shipping: { name: 'Client Express', address: { line1: '2 rue X', city: 'Fougeres', postal_code: '35300', country: 'FR' }, carrier: null, phone: null, tracking_number: null },
-    metadata: { source: 'express_checkout', items: JSON.stringify([{ id: '1', qty: 1 }]) },
+    metadata: { source: 'express_checkout', items: JSON.stringify([{ id: '2', qty: 1 }]) },
   })
   verifie('=> 200', 200, statut5)
   const insertion5 = recu.find((r) => r.chemin.includes('/orders'))
@@ -239,7 +238,7 @@ async function main() {
     verifie('statut', 'paid', ligne.status)
     verifie('adresse de livraison presente', 'Fougeres', ligne.shipping_address?.address?.city)
   }
-  verifie('le stock a bien ete decremente (produit 1, qte 1)', [{ id: '1', quantite: 1 }], appelsRpc)
+  verifie('le stock a bien ete decremente (produit 2, qte 1)', [{ id: '2', quantite: 1 }], appelsRpc)
 
   console.log('\n--- 6. Webhook : PaymentIntent d une Checkout Session classique => ignore ---')
   // Sans metadata.source -- exactement ce qu une Checkout Session laisse sur

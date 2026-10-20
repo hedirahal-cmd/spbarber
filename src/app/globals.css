@@ -1716,6 +1716,10 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
 
 /* ─ Sticky ATC mobile ─ */
 .fi-sticky-atc {
+  /* Mobile uniquement (2026-10-02, retour Hedi) -- en desktop, le bouton
+     d'achat de la colonne de droite reste visible la plupart du temps, une
+     barre collee en bas y est redondante. Reaffiche en mobile ci-dessous. */
+  display: none;
   position: fixed;
   bottom: 0;
   left: 0;
@@ -1723,7 +1727,6 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
   z-index: 500;
   background: var(--b);
   padding: 12px 20px;
-  display: flex;
   align-items: center;
   gap: 16px;
   box-shadow: 0 -4px 20px rgba(0,0,0,0.2);
@@ -3581,6 +3584,65 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
   padding-bottom: 28px;
 }
 
+/* ── FAQ produit (accordeon) ── */
+.sn-faq {
+  background: var(--b);
+  padding: 64px 24px 72px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+.sn-faq-inner {
+  max-width: 720px;
+  margin: 0 auto;
+  text-align: center;
+}
+.sn-faq-eyebrow {
+  font-size: 10px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--gold);
+  font-family: var(--fd);
+  margin-bottom: 16px;
+}
+.sn-faq-title {
+  font-family: var(--fd);
+  font-size: clamp(24px, 3.6vw, 34px);
+  color: var(--w);
+  letter-spacing: 3px;
+  margin-bottom: 36px;
+  line-height: 1;
+}
+.sn-faq-list { text-align: left; }
+.sn-faq-item {
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+.sn-faq-q {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  font-family: var(--fb);
+  font-size: 14px;
+  color: var(--w);
+}
+.sn-faq-chevron {
+  flex-shrink: 0;
+  color: var(--gold);
+  transition: transform 0.2s ease;
+}
+.sn-faq-item-open .sn-faq-chevron { transform: rotate(180deg); }
+.sn-faq-a {
+  margin: 0 4px 18px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: rgba(248,246,243,0.65);
+}
+
 /* ── Responsive ── */
 /*
  * Hierarchie mobile reorganisee (2026-10-01, retour Hedi) : nom+benefice,
@@ -3612,6 +3674,8 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
   .sn-hero-slider, .sn-pills { order: 5; }
 
   .sn-pd-right { padding: 36px 24px; }
+
+  .fi-sticky-atc { display: flex; }
 }
 @media (max-width: 640px) {
   .sn-hero { padding: 24px 16px; }
@@ -4513,6 +4577,62 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
 .cookie-banner-btn--refuse:hover { border-color: var(--w); }
 .cookie-banner-btn--accept { background: var(--gold); border: 1px solid var(--gold); color: var(--b); font-weight: 700; }
 .cookie-banner-btn--accept:hover { background: var(--goldl); border-color: var(--goldl); }
+.cookie-banner-btn--personnaliser { background: none; border: 1px solid rgba(255,255,255,.25); color: var(--w); }
+.cookie-banner-btn--personnaliser:hover { border-color: var(--w); }
+
+.cookie-banner-option {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 0;
+  border-top: 1px solid rgba(255,255,255,.1);
+}
+.cookie-banner-option-txt { display: flex; flex-direction: column; gap: 2px; }
+.cookie-banner-option-txt strong { font-size: 12px; color: var(--w); }
+.cookie-banner-option-txt span { font-size: 11px; color: rgba(248,246,243,.6); }
+.cookie-banner-option-locked {
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: rgba(248,246,243,.45);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.cookie-banner-toggle {
+  position: relative;
+  display: inline-block;
+  width: 40px;
+  height: 22px;
+  flex-shrink: 0;
+}
+.cookie-banner-toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.cookie-banner-toggle-slider {
+  position: absolute;
+  inset: 0;
+  background: rgba(255,255,255,.2);
+  border-radius: 22px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+.cookie-banner-toggle-slider::before {
+  content: '';
+  position: absolute;
+  height: 16px;
+  width: 16px;
+  left: 3px;
+  bottom: 3px;
+  background: var(--w);
+  border-radius: 50%;
+  transition: transform 0.2s ease;
+}
+.cookie-banner-toggle input:checked + .cookie-banner-toggle-slider { background: var(--gold); }
+.cookie-banner-toggle input:checked + .cookie-banner-toggle-slider::before { transform: translateX(18px); }
 @media (max-width: 560px) {
   .cookie-banner { padding: 16px; flex-direction: column; align-items: stretch; }
   .cookie-banner-actions { justify-content: stretch; }

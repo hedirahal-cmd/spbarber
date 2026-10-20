@@ -185,15 +185,15 @@ async function main() {
   verifie('rien enregistre pour cette cle inconnue', !('cle_qui_nexiste_pas' in siteContent))
 
   console.log('\n--- C. Edition partielle (avant/apres) ne doit PAS ecraser le reste de la fiche produit ---')
-  r = await putAdmin('/api/admin/products', { id: '1', name: 'Cire Custom Test', price: 1999, description: 'd', stock: 5, benefit: 'b', images: [] })
+  r = await putAdmin('/api/admin/products', { id: '2', name: 'Shampooing Custom Test', price: 1999, description: 'd', stock: 5, benefit: 'b', images: [] })
   verifie('sauvegarde complete (onglet Produits) => 200', r.statut === 200, 'obtenu ' + r.statut)
-  r = await putAdmin('/api/admin/products', { id: '1', before_image_url: 'https://exemple.test/avant.jpg' })
+  r = await putAdmin('/api/admin/products', { id: '2', before_image_url: 'https://exemple.test/avant.jpg' })
   verifie('sauvegarde partielle (champ isole) => 200', r.statut === 200, 'obtenu ' + r.statut)
-  verifie('le nom personnalise du produit 1 n a PAS ete efface', overrides['1']?.name === 'Cire Custom Test', 'obtenu ' + JSON.stringify(overrides['1']?.name))
-  verifie('le champ isole a bien ete enregistre', overrides['1']?.before_image_url === 'https://exemple.test/avant.jpg')
+  verifie('le nom personnalise du produit 2 n a PAS ete efface', overrides['2']?.name === 'Shampooing Custom Test', 'obtenu ' + JSON.stringify(overrides['2']?.name))
+  verifie('le champ isole a bien ete enregistre', overrides['2']?.before_image_url === 'https://exemple.test/avant.jpg')
 
-  const ficheCire2 = await page('/products/cire-cheveux-premium')
-  verifie('nom personnalise toujours affiche sur la fiche', ficheCire2.includes('Cire Custom Test'))
+  const ficheShampooing2 = await page('/products/shampooing-noir-colorant')
+  verifie('nom personnalise toujours affiche sur la fiche', ficheShampooing2.includes('Shampooing Custom Test'))
 
   console.log('\n--- D. Edition des reperes de confiance, un par un ---')
   r = await putAdmin('/api/admin/site-content', { key: 'trust_livraison', text: 'Livraison express 24h', visible: true })
@@ -201,8 +201,8 @@ async function main() {
   r = await putAdmin('/api/admin/site-content', { key: 'trust_securise', text: 'Sécurisé', visible: false })
   verifie('masquage repere Sécurisé => 200', r.statut === 200, 'obtenu ' + r.statut)
 
-  const ficheCire4 = await page('/products/cire-cheveux-premium')
-  const zoneTrust = zoneEntre(ficheCire4, 'trust-row', 'sn-hero-right')
+  const ficheShampooing4 = await page('/products/shampooing-noir-colorant')
+  const zoneTrust = zoneEntre(ficheShampooing4, 'trust-row', 'sn-hero-right')
   verifie('nouveau texte du repere Livraison applique dans la rangee', zoneTrust.includes('Livraison express 24h'))
   verifie('ancien texte "Livraison 3-5 jours" disparu de la rangee', !zoneTrust.includes('Livraison 3-5 jours'))
   verifie('repere Sécurisé masque (absent de la rangee)', !zoneTrust.includes('Sécurisé'))

@@ -14,29 +14,6 @@ export function imagesPourVariante(images: ProductImage[], variant?: ProductVari
 
 export const PRODUCTS: Product[] = [
   {
-    id: '1',
-    name: 'Cire Cheveux Premium',
-    slug: 'cire-cheveux-premium',
-    description:
-      'La Cire Cheveux Premium SP Barber est formulée par des barbiers professionnels pour offrir une fixation forte et une brillance naturelle toute la journée. Sa texture légère se répartit uniformément sur les cheveux courts à mi-longs, sans laisser de résidus ni alourdir. Idéale pour un coiffage naturel façon salon, elle tient jusqu\'à 24h et se rince facilement au shampooing. Que vous souhaitiez un effet mat ou légèrement brillant, cette cire cheveux homme s\'adapte à tous les styles. Un incontournable de la routine capillaire masculine pour un résultat pro à la maison.',
-    price: 2490,
-    images: [{ url: '/images/products/cire-cheveux.jpg', alt: 'Pot de Cire Cheveux Premium SP Barber' }],
-    category: 'coiffant',
-    stock: 50,
-    is_dropshipping: false,
-    // Retiree de la vente (2026-09-28, decision Hedi) -- pas remise en ligne.
-    // actif:false plutot que suppression pour ne pas casser l'historique des
-    // commandes deja passees (OrderItemsList resout le nom depuis PRODUCTS).
-    actif: false,
-    benefit: 'Fixation forte toute la journée',
-    trust: ['Fixation forte 24h', 'Effet naturel & brillance mat', 'Livraison 3-5 jours ouvrés', 'Satisfait ou remboursé'],
-    related: ['3', '4'],
-    seo_title: 'Cire Cheveux Homme Fixation Forte — SP Barber | Résultat Pro à la Maison',
-    seo_description:
-      'Cire cheveux homme fixation forte et brillance naturelle. Formule professionnelle utilisée en salon. Tenue 24h. Livraison offerte dès 59€. Commander maintenant.',
-    created_at: new Date().toISOString(),
-  },
-  {
     id: '2',
     name: 'Shampooing Noir Colorant',
     slug: 'shampooing-noir-colorant',
@@ -92,7 +69,7 @@ export const PRODUCTS: Product[] = [
     name: 'Peigne Texture Expert',
     slug: 'peigne-texture-expert',
     description:
-      'Le Peigne Texture Expert SP Barber est l\'outil professionnel incontournable pour sculpter, texturer et coiffer avec précision. Ses dents larges anti-casse sont conçues pour cheveux épais, texturés et bouclés : elles démêlent sans arracher et définissent le style avec précision. Utilisé par les barbiers professionnels, ce peigne homme offre une prise en main ergonomique et une durabilité supérieure aux accessoires classiques. Compatible avec tous types de coiffures masculines, il complète parfaitement votre routine avec la cire cheveux ou la crème curl pour un résultat pro à la maison.',
+      'Le Peigne Texture Expert SP Barber est l\'outil professionnel incontournable pour sculpter, texturer et coiffer avec précision. Ses dents larges anti-casse sont conçues pour cheveux épais, texturés et bouclés : elles démêlent sans arracher et définissent le style avec précision. Utilisé par les barbiers professionnels, ce peigne homme offre une prise en main ergonomique et une durabilité supérieure aux accessoires classiques. Compatible avec tous types de coiffures masculines, il complète parfaitement votre routine avec la crème curl pour un résultat pro à la maison.',
     price: 1490,
     images: [{ url: '/images/products/peigne-texture.jpg', alt: 'Peigne Texture Expert SP Barber pour barbier professionnel' }],
     category: 'accessoire',
@@ -101,7 +78,7 @@ export const PRODUCTS: Product[] = [
     benefit: 'Précision pro — dents anti-casse',
     usageTag: 'Cheveux épais, texturés ou bouclés',
     trust: ['Dents renforcées anti-casse', 'Idéal cheveux épais & texturés', 'Livraison 3-5 jours ouvrés', 'Satisfait ou remboursé'],
-    related: ['1', '3'],
+    related: ['3'],
     seo_title: 'Peigne Homme Professionnel SP Barber | Texture Expert Dents Anti-Casse',
     seo_description:
       'Peigne texture expert professionnel pour homme. Dents larges anti-casse, idéal cheveux épais et texturés. Précision salon à la maison. Livraison offerte dès 59€.',
@@ -133,37 +110,6 @@ export const PRODUCTS: Product[] = [
     seo_title: 'Pack Barbe Complet Homme — SP Barber | Kit 6 Produits Soin Barbe',
     seo_description:
       'Kit barbe complet pour homme : 6 essentiels inclus. Huile, brosse, peigne, baume, coupe-chou, dermaroller. Livraison offerte. Idéal cadeau.',
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: '6',
-    name: 'Tondeuse Fade Pro',
-    slug: 'tondeuse-fade-pro',
-    description:
-      'La Tondeuse Fade Pro SP Barber est l\'outil professionnel pour réaliser des dégradés fade parfaits à la maison. Ses lames en acier japonais inoxydable garantissent une coupe précise, nette et durable. Idéale pour les hommes qui souhaitent maîtriser la coupe dégradé, le skin fade ou le buzz cut sans passer par le salon de coiffure. Silencieuse, légère et rechargeable, elle convient à tous types de cheveux — droits, ondulés ou texturés. Le choix des barbiers professionnels pour un résultat fade haircut impeccable à la maison.',
-    price: 7990,
-    images: [{ url: '/images/products/tondeuse-fade.jpg', alt: 'Tondeuse Fade Pro SP Barber, lames acier japonais' }],
-    category: 'tondeuse',
-    stock: 999,
-    is_dropshipping: true,
-    // Retiree de la vente (2026-09-28, decision Hedi) -- pas remise en ligne.
-    // actif:false plutot que suppression pour ne pas casser l'historique des
-    // commandes deja passees (OrderItemsList resout le nom depuis PRODUCTS).
-    // dsers_url reste cassee (F-006), sans consequence puisque le produit est
-    // de toute facon masque avant d'atteindre la redirection.
-    actif: false,
-    dsers_url: 'https://www.dsers.com',
-    benefit: 'Dégradé pro — lames japonaises',
-    trust: ['Lames acier japonais inoxydables', 'Dégradé précis comme en salon', 'Livraison sous 2 semaines', 'Satisfait ou remboursé'],
-    related: ['4', '1'],
-    variants: [
-      { id: '6a', name: 'Standard — 79,90€', price: 7990, stock: 999 },
-      { id: '6b', name: 'Pro — 89,90€', price: 8990, stock: 999 },
-      { id: '6c', name: 'Elite — 99,90€', price: 9990, stock: 999 },
-    ],
-    seo_title: 'Tondeuse Dégradé Professionnel Homme — SP Barber | Fade Pro Lames Japonaises',
-    seo_description:
-      'Tondeuse professionnelle dégradé fade pour homme. Lames acier japonais pour un skin fade précis. Résultat salon chez vous. Plusieurs modèles disponibles.',
     created_at: new Date().toISOString(),
   },
   {

@@ -179,7 +179,6 @@ async function main() {
     '7': { id: '7', is_bestseller: true, bestseller_ordre: 3 },
     '4': { id: '4', is_bestseller: true, bestseller_ordre: 4 },
     '3': { id: '3', is_bestseller: true, bestseller_ordre: 0, actif: false },
-    '1': { id: '1', is_bestseller: false },
   }
   p = await page('/')
   const debutGrille = p.corps.indexOf('best2-grid')
@@ -191,8 +190,7 @@ async function main() {
   verifie('Shampooing Noir : repli automatique sur le badge generique "Bestseller"', zoneBestsellers.includes('shampooing-noir-colorant'))
   verifie('Poudre Texturante presente (3e, ordre 3)', zoneBestsellers.includes('poudre-texturante'))
   verifie('Creme Curl absente malgre is_bestseller:true (actif:false doit primer)', !zoneBestsellers.includes('creme-curl-control'))
-  verifie('Cire Cheveux absente des Bestsellers (is_bestseller:false)', !zoneBestsellers.includes('cire-cheveux-premium'))
-  verifie('raccourci accueil pointe vers la Poudre, plus vers la Cire', p.corps.includes('/products/poudre-texturante') && !p.corps.includes('/products/cire-cheveux-premium" class'))
+  verifie('raccourci accueil pointe vers la Poudre', p.corps.includes('/products/poudre-texturante'))
 
   console.log('\n--- E. Checkout : produit desactive refuse, meme via un lien/panier deja existant ---')
   overrides = { '2': { id: '2', actif: false } }
@@ -225,17 +223,17 @@ async function main() {
   res = await putAdmin({ id: '5', actif: false }, false)
   verifie('PUT sans cookie => 401', res.statut === 401)
 
-  console.log('\n--- I. Produit desactive UNIQUEMENT dans le catalogue statique, aucune ligne override (id 6, Tondeuse Fade Pro, retiree de la vente) ---')
+  console.log('\n--- I. Produit desactive UNIQUEMENT dans le catalogue statique, aucune ligne override (id 8, Tondeuse BRDCLIP FA1T, dropshipping manuel pas encore valide) ---')
   overrides = {}
-  p = await page('/products/tondeuse-fade-pro')
+  p = await page('/products/tondeuse-brdclip-fa1t')
   verifie('statut 404 (repli sur actif du catalogue statique, sans override)', p.statut === 404, 'obtenu ' + p.statut)
   const rcStatique = await checkout([{
-    product: { id: '6', name: 'Tondeuse', slug: 'tondeuse-fade-pro', description: 'x', price: 7990, images: [], category: 'tondeuse', stock: 999, is_dropshipping: true, created_at: '2026-01-01T00:00:00.000Z' },
+    product: { id: '8', name: 'Tondeuse', slug: 'tondeuse-brdclip-fa1t', description: 'x', price: 2739, images: [], category: 'tondeuse', stock: 999, is_dropshipping: true, created_at: '2026-01-01T00:00:00.000Z' },
     quantity: 1,
   }])
   verifie('checkout refuse => 400, meme sans la moindre ligne override', rcStatique.statut === 400, 'obtenu ' + rcStatique.statut + ' ' + JSON.stringify(rcStatique.corps))
   const sitemapXml = await page('/sitemap.xml')
-  verifie('absente du sitemap (repli actif du catalogue statique)', !sitemapXml.corps.includes('tondeuse-fade-pro'))
+  verifie('absente du sitemap (repli actif du catalogue statique)', !sitemapXml.corps.includes('tondeuse-brdclip-fa1t'))
 
   console.log('\n=======================================')
   console.log('  ' + ok + ' OK, ' + ko + ' ECHEC')

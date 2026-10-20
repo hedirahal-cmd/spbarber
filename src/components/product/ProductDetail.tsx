@@ -13,6 +13,7 @@ import { BeforeAfterSlider, type BeforeAfterImage } from './BeforeAfterSlider'
 import type { ReviewDisplay } from '@/lib/reviews'
 import { ReviewsList } from '@/components/ReviewsList'
 import { ReviewForm } from '@/components/ReviewForm'
+import { ProductFAQ } from './ProductFAQ'
 import type { TrustItem, SiteContentBlock } from '@/lib/site-content'
 
 const TRUST_ICONS: Record<string, ReactNode> = {
@@ -480,6 +481,8 @@ export function ProductDetail({ product, relatedProducts = [], reviews: productR
           </div>
         </section>
       )}
+
+      <ProductFAQ product={product} />
 
       {/* Avis clients — filtres a ce produit */}
       <div id="avis" className="fi-revs-sec">

@@ -133,9 +133,9 @@ async function main() {
   verifie('rien enregistre', reviews.length === 0, 'obtenu ' + reviews.length)
 
   console.log('\n--- B. Filtrage des ids produit ---')
-  r = await admin('POST', { author: 'Karim', rating: '5', text: 'Excellent produit, je recommande.', product_ids: ['1', 'id-fantome', '5'] })
+  r = await admin('POST', { author: 'Karim', rating: '5', text: 'Excellent produit, je recommande.', product_ids: ['2', 'id-fantome', '5'] })
   verifie('creation => 200/201', r.statut === 200 || r.statut === 201, 'obtenu ' + r.statut)
-  verifie('les 2 ids reels sont conserves', JSON.stringify(reviews[0]?.product_ids) === JSON.stringify(['1', '5']), 'obtenu ' + JSON.stringify(reviews[0]?.product_ids))
+  verifie('les 2 ids reels sont conserves', JSON.stringify(reviews[0]?.product_ids) === JSON.stringify(['2', '5']), 'obtenu ' + JSON.stringify(reviews[0]?.product_ids))
   verifie('l id fantome a ete filtre (pas juste ignore globalement)', !((reviews[0]?.product_ids as string[])?.includes('id-fantome')))
 
   r = await admin('POST', { author: 'Sans Produit', rating: '4', text: 'Avis sans produit precis associe.' })
@@ -148,11 +148,11 @@ async function main() {
 
   console.log('\n--- D. Page d accueil : resolution des noms de produits ---')
   reviews[0].visible = true
-  reviews[0].product_ids = ['1']
+  reviews[0].product_ids = ['2']
   const legacy = { id: 'legacy-1', author: 'Ancien Avis', rating: 5, text: 'Avis cree avant ce champ.', visible: true, product_name: 'Nom En Dur Historique' }
   reviews.push(legacy)
   const page = await (await fetch(base() + '/')).text()
-  verifie('avis avec product_ids => vrai nom resolu depuis PRODUCTS (Cire Cheveux Premium)', page.includes('Cire Cheveux Premium'))
+  verifie('avis avec product_ids => vrai nom resolu depuis PRODUCTS (Shampooing Noir Colorant)', page.includes('Shampooing Noir Colorant'))
   verifie('avis historique sans product_ids => repli sur product_name', page.includes('Nom En Dur Historique'))
 
   console.log('\n=======================================')

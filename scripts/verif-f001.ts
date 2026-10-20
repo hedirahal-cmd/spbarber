@@ -19,19 +19,15 @@ import http from 'node:http'
 import type { AddressInfo } from 'node:net'
 
 const OVERRIDES = [
-  // Prix volontairement DIFFERENT du catalogue statique (2490) pour que la
-  // provenance du montant soit sans ambiguite. La Cire Cheveux Premium (id 1)
-  // est retiree de la vente (actif:false) dans le catalogue statique depuis la
-  // decision Hedi du 2026-09-28 -- sans repli explicite ici, les cas 1, 6 et 7
-  // ci-dessous (qui testent la provenance du prix et la validation d'entrees,
-  // pas le statut actif) echoueraient sur "produit indisponible" au lieu de
-  // tester ce qu'ils sont censes tester.
-  { id: '1', name: null, price: 1990, description: null, stock: null, benefit: null, actif: true },
-  { id: '2', name: null, price: 2890, description: null, stock: null, benefit: null },
-  // Meme raison pour la Tondeuse Fade Pro (id 6, actif:false) : les cas 3 et 5
-  // testent la resolution du slug et la validation de variante, pas le
-  // statut actif.
-  { id: '6', name: null, price: null, description: null, stock: null, benefit: null, actif: true },
+  // Prix volontairement DIFFERENT du catalogue statique (2890) pour que la
+  // provenance du montant soit sans ambiguite (cas 1, 6, 7 ci-dessous).
+  { id: '2', name: null, price: 1990, description: null, stock: null, benefit: null },
+  // La Tondeuse BRDCLIP FA1T (id 8) est actif:false dans le catalogue statique
+  // (dropshipping manuel pas encore valide, voir products.ts) -- sans repli
+  // explicite ici, les cas 3 et 5 (qui testent la resolution du slug et la
+  // validation de variante, pas le statut actif) echoueraient sur "produit
+  // indisponible" au lieu de tester ce qu'ils sont censes tester.
+  { id: '8', name: null, price: null, description: null, stock: null, benefit: null, actif: true },
 ]
 
 let modeErreur = false
@@ -76,7 +72,7 @@ async function main() {
 
   console.log('\n--- 1. Prix falsifie a 1 centime (l\'attaque de F-001) ---')
   let r = await resolveCartItems([
-    { product: { id: '1', slug: 'cire-cheveux-premium', price: 1 }, quantity: 1 },
+    { product: { id: '2', slug: 'shampooing-noir-colorant', price: 1 }, quantity: 1 },
   ])
   verifie('prix serveur, pas le 1 centime envoye', 1990, r[0].unitAmount)
 
@@ -88,9 +84,9 @@ async function main() {
 
   console.log('\n--- 3. Slug falsifie : le vrai slug fait foi cote serveur ---')
   r = await resolveCartItems([
-    { product: { id: '6', slug: 'peigne-texture-expert', price: 7990 }, quantity: 1 },
+    { product: { id: '8', slug: 'peigne-texture-expert', price: 7990 }, quantity: 1 },
   ])
-  verifie('slug repris du serveur', 'tondeuse-fade-pro', r[0].product.slug)
+  verifie('slug repris du serveur', 'tondeuse-brdclip-fa1t', r[0].product.slug)
 
   console.log('\n--- 4. Sous-total gonfle pour decrocher la livraison offerte ---')
   r = await resolveCartItems([
@@ -101,25 +97,33 @@ async function main() {
   verifie('livraison NON offerte', false, sousTotal >= 5900)
 
   console.log('\n--- 5. Variantes ---')
+  // Les variantes reelles actuelles (coloris BRDCLIP/Kemei) n'ont pas de prix
+  // propre par decision produit (meme prix quel que soit le coloris, cf.
+  // products.ts) -- ce cas verifie donc le repli sur le prix du produit de
+  // base (variant.price ?? prixProduit), pas la branche "prix propre a la
+  // variante". Plus aucun produit du catalogue n'exerce cette seconde branche
+  // depuis le retrait de la Tondeuse Fade Pro (ses variantes Standard/Pro/
+  // Elite etaient les seules a prix distincts) -- la ligne de code existe
+  // toujours dans pricing.ts, simplement sans exemple reel a tester dessus.
   r = await resolveCartItems([
-    { product: { id: '6', slug: 'tondeuse-fade-pro' }, variant: { id: '6b', price: 1 }, quantity: 1 },
+    { product: { id: '8', slug: 'tondeuse-brdclip-fa1t' }, variant: { id: 'vert', price: 1 }, quantity: 1 },
   ])
-  verifie('variante 6b au prix serveur', 8990, r[0].unitAmount)
+  verifie('variante sans prix propre => prix du produit de base', 2739, r[0].unitAmount)
   await echec('variante inexistante refusee', [
-    { product: { id: '6', slug: 'tondeuse-fade-pro' }, variant: { id: '6z', price: 1 }, quantity: 1 },
+    { product: { id: '8', slug: 'tondeuse-brdclip-fa1t' }, variant: { id: 'jaune', price: 1 }, quantity: 1 },
   ], 400)
 
   console.log('\n--- 6. Entrees invalides ---')
   await echec('produit inconnu', [{ product: { id: '999' }, quantity: 1 }], 400)
-  await echec('quantite 0', [{ product: { id: '1' }, quantity: 0 }], 400)
-  await echec('quantite negative', [{ product: { id: '1' }, quantity: -3 }], 400)
-  await echec('quantite fractionnaire', [{ product: { id: '1' }, quantity: 1.5 }], 400)
-  await echec('quantite demesuree', [{ product: { id: '1' }, quantity: 1e9 }], 400)
+  await echec('quantite 0', [{ product: { id: '2' }, quantity: 0 }], 400)
+  await echec('quantite negative', [{ product: { id: '2' }, quantity: -3 }], 400)
+  await echec('quantite fractionnaire', [{ product: { id: '2' }, quantity: 1.5 }], 400)
+  await echec('quantite demesuree', [{ product: { id: '2' }, quantity: 1e9 }], 400)
   await echec('panier vide', [], 400)
 
   console.log('\n--- 7. Base injoignable : on refuse plutot que de facturer a l\'aveugle ---')
   modeErreur = true
-  await echec('lecture en panne => 503', [{ product: { id: '1' }, quantity: 1 }], 503)
+  await echec('lecture en panne => 503', [{ product: { id: '2' }, quantity: 1 }], 503)
   modeErreur = false
 
   console.log('\n=======================================')

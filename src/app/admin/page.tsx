@@ -1201,6 +1201,97 @@ function commandeContientDropshipping(order: Record<string, unknown>): boolean {
   })
 }
 
+// Inverse de commandeContientDropshipping : au moins un article qui part en
+// Colissimo/Chronopost "normal", pas via le fournisseur. Une commande
+// "mixte" a les deux a true en meme temps -- c'est elle qui a besoin des
+// DEUX blocs d'expedition separes ci-dessous.
+function commandeContientStandard(order: Record<string, unknown>): boolean {
+  const lignes = Array.isArray(order.items) ? (order.items as LigneCommande[]) : []
+  return lignes.some(l => {
+    const produitId = typeof l.id === 'string' ? l.id : null
+    return produitId ? PRODUCTS.find(p => p.id === produitId)?.is_dropshipping !== true : false
+  })
+}
+
+/**
+ * Une commande reste-t-elle a expedier (vue "A expedier" par defaut) ?
+ *
+ * Avec deux colis possibles, le statut global `shipped` ne veut plus dire
+ * "tout est parti" -- il passe a `shipped` des le PREMIER colis (voir
+ * /api/admin/ship). Sans ce calcul par colis, une commande mixte disparaitrait
+ * de la liste de travail de Pablo/Sofiane des que le colis standard part,
+ * alors que le colis tondeuse du fournisseur reste a faire.
+ */
+function commandeResteAExpedier(order: Record<string, unknown>): boolean {
+  if (order.status !== 'paid' && order.status !== 'shipped') return false
+  const standardOk = !commandeContientStandard(order) || !!order.tracking_number
+  const tondeuseOk = !commandeContientDropshipping(order) || !!order.tracking_number_fournisseur
+  return !(standardOk && tondeuseOk)
+}
+
+/**
+ * Un bloc d'expedition = un colis. Une commande mixte (tondeuse + standard)
+ * en affiche DEUX, chacun avec son propre transporteur/numero/bouton/e-mail
+ * -- voir commandeResteAExpedier plus haut pour pourquoi le statut global ne
+ * suffit plus a savoir si CE colis precis est parti.
+ */
+function BlocExpedition({
+  titre, tracking, carrier, dejaExpedie, verrouille,
+  trackingInput, onTrackingChange, carrierInput, onCarrierChange,
+  shipping, shipOk, shipErr, onSubmit,
+}: {
+  titre: string
+  tracking: string | null
+  carrier: string | null
+  dejaExpedie: boolean
+  verrouille: boolean
+  trackingInput: string
+  onTrackingChange: (v: string) => void
+  carrierInput: string
+  onCarrierChange: (v: string) => void
+  shipping: boolean
+  shipOk: boolean
+  shipErr: string
+  onSubmit: () => void
+}) {
+  return (
+    <div style={{ ...S.card_, padding: 14, marginBottom: 16 }}>
+      <div style={{ fontSize: 12, fontWeight: 600, color: S.text, marginBottom: 8 }}>{titre}</div>
+      {shipErr && <div style={{ fontSize: 12, color: '#b91c1c', marginBottom: 8 }}>Erreur : {shipErr}</div>}
+      {dejaExpedie ? (
+        <div style={{ fontSize: 13, color: '#15803d', marginBottom: 8 }}>
+          {/* carrier absent (commande expediee avant ce champ) => Colissimo, comme convenu. */}
+          Numéro de suivi ({carrier === 'chronopost' ? 'Chronopost' : 'Colissimo'}) : <strong>{tracking}</strong>
+        </div>
+      ) : verrouille ? (
+        <div style={{ fontSize: 12, color: S.muted }}>Commande déjà expédiée ou livrée.</div>
+      ) : (
+        <>
+          <select value={carrierInput} onChange={e => onCarrierChange(e.target.value)} style={{ ...S.input, marginBottom: 8 }}>
+            <option value="colissimo">Colissimo</option>
+            <option value="chronopost">Chronopost</option>
+          </select>
+          <input
+            value={trackingInput}
+            onChange={e => onTrackingChange(e.target.value)}
+            placeholder="Numéro de suivi"
+            style={{ ...S.input, marginBottom: 8 }}
+          />
+          {shipOk && <div style={{ fontSize: 12, color: '#15803d', marginBottom: 6, fontWeight: 500 }}>✓ Expédié — email client envoyé</div>}
+          <button
+            onClick={onSubmit}
+            disabled={shipping || !trackingInput.trim()}
+            style={{ ...S.btnPrimary, width: '100%', opacity: !trackingInput.trim() ? 0.5 : 1 }}
+          >
+            {shipping ? 'Envoi…' : 'Marquer comme expédié'}
+          </button>
+          <div style={{ fontSize: 11, color: S.muted, marginTop: 4 }}>Envoie un email de suivi au client via Resend.</div>
+        </>
+      )}
+    </div>
+  )
+}
+
 function TabCommandes() {
   const [orders, setOrders] = useState<Array<Record<string, unknown>>>([])
   const [loading, setLoading] = useState(true)
@@ -1208,10 +1299,14 @@ function TabCommandes() {
   const [updateErr, setUpdateErr] = useState('')
   const [selected, setSelected] = useState<Record<string, unknown> | null>(null)
   const [trackingInputs, setTrackingInputs] = useState<Record<string, string>>({})
+  const [carrierInputs, setCarrierInputs] = useState<Record<string, string>>({})
   const [shipping, setShipping] = useState<string | null>(null)
   const [shipOk, setShipOk] = useState<string | null>(null)
   const [shipErr, setShipErr] = useState('')
-  const [filtre, setFiltre] = useState<'toutes' | 'tondeuses'>('toutes')
+  // "A expedier" par defaut (2026-10-20, decision Hedi) : c'est la vue de
+  // travail de Pablo/Sofiane pour preparer les colis, pas un recapitulatif
+  // general -- "Toutes" reste accessible pour le reste.
+  const [filtre, setFiltre] = useState<'a-expedier' | 'toutes' | 'tondeuses'>('a-expedier')
   const [fournisseurUpdating, setFournisseurUpdating] = useState<string | null>(null)
   const [fournisseurErr, setFournisseurErr] = useState('')
 
@@ -1243,21 +1338,26 @@ function TabCommandes() {
     }
   }
 
-  async function markShipped(id: string) {
-    const tracking = trackingInputs[id]?.trim() ?? ''
+  async function markShipped(id: string, colis: 'standard' | 'tondeuse') {
+    const cle = `${id}:${colis}`
+    const tracking = trackingInputs[cle]?.trim() ?? ''
+    const carrier = carrierInputs[cle] ?? 'colissimo'
     if (!tracking) return
-    setShipping(id); setShipErr('')
+    setShipping(cle); setShipErr('')
     try {
       const res = await fetch('/api/admin/ship', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, tracking_number: tracking }),
+        body: JSON.stringify({ id, tracking_number: tracking, carrier, parcel: colis }),
       })
       if (res.ok) {
-        setShipOk(id)
-        setTimeout(() => setShipOk(s => s === id ? null : s), 3000)
+        setShipOk(cle)
+        setTimeout(() => setShipOk(s => s === cle ? null : s), 3000)
         await load()
-        setSelected(s => s && String(s.id) === id ? { ...s, status: 'shipped', tracking_number: tracking } : s)
+        const champs = colis === 'tondeuse'
+          ? { tracking_number_fournisseur: tracking, carrier_fournisseur: carrier }
+          : { tracking_number: tracking, carrier }
+        setSelected(s => s && String(s.id) === id ? { ...s, status: 'shipped', ...champs } : s)
       } else {
         const d = await res.json().catch(() => ({}))
         setShipErr(d.error ?? `Erreur ${res.status}`)
@@ -1287,7 +1387,11 @@ function TabCommandes() {
     }
   }
 
-  const ordersFiltrees = filtre === 'tondeuses' ? orders.filter(commandeContientDropshipping) : orders
+  const ordersFiltrees = filtre === 'tondeuses'
+    ? orders.filter(commandeContientDropshipping)
+    : filtre === 'a-expedier'
+      ? orders.filter(commandeResteAExpedier)
+      : orders
 
   return (
     <div style={{ display: 'flex', gap: 0, height: '100%' }}>
@@ -1296,7 +1400,7 @@ function TabCommandes() {
           <h1 style={{ fontSize: 20, fontWeight: 600, color: S.text, margin: 0 }}>Commandes</h1>
           <p style={{ fontSize: 13, color: S.muted, margin: '2px 0 0' }}>{ordersFiltrees.length} commande{ordersFiltrees.length !== 1 ? 's' : ''}</p>
           <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
-            {(['toutes', 'tondeuses'] as const).map(f => (
+            {(['a-expedier', 'toutes', 'tondeuses'] as const).map(f => (
               <button
                 key={f}
                 onClick={() => setFiltre(f)}
@@ -1305,7 +1409,7 @@ function TabCommandes() {
                   ...(filtre === f ? { background: S.text, color: '#fff', borderColor: S.text } : {}),
                 }}
               >
-                {f === 'toutes' ? 'Toutes' : 'Tondeuses'}
+                {f === 'a-expedier' ? 'À expédier' : f === 'toutes' ? 'Toutes' : 'Tondeuses'}
               </button>
             ))}
           </div>
@@ -1316,7 +1420,9 @@ function TabCommandes() {
         ) : !ordersFiltrees.length ? (
           <div style={{ padding: '40px 24px', textAlign: 'center' }}>
             <div style={{ fontSize: 32, marginBottom: 12, color: '#d1d5db' }}>■</div>
-            <div style={{ fontSize: 14, color: S.muted }}>{filtre === 'tondeuses' ? 'Aucune commande tondeuse pour le moment.' : 'Aucune commande pour le moment.'}</div>
+            <div style={{ fontSize: 14, color: S.muted }}>
+              {filtre === 'tondeuses' ? 'Aucune commande tondeuse pour le moment.' : filtre === 'a-expedier' ? 'Aucune commande à expédier pour le moment.' : 'Aucune commande pour le moment.'}
+            </div>
           </div>
         ) : (
           <div style={{ padding: '0 24px 24px' }}>
@@ -1367,6 +1473,18 @@ function TabCommandes() {
             <div style={{ fontSize: 12, color: S.muted, marginBottom: 4 }}>Client</div>
             <div style={{ fontWeight: 500, color: S.text, marginBottom: 16 }}>{String(selected.email ?? '—')}</div>
 
+            {/* Adresse en haut (2026-10-20, decision Hedi) : c'est la premiere
+                chose que Pablo/Sofiane doivent lire pour preparer un colis --
+                pas apres le statut, les articles et le suivi. */}
+            {!!selected.shipping_address && (
+              <>
+                <div style={{ fontSize: 12, color: S.muted, marginBottom: 4 }}>Adresse de livraison</div>
+                <div style={{ fontSize: 13, color: S.text, lineHeight: 1.6, background: S.bg, padding: '10px 14px', borderRadius: 6, marginBottom: 16 }}>
+                  {JSON.stringify(selected.shipping_address, null, 2).replace(/[{}"]/g, '').split('\n').filter(l => l.trim()).map((l, i) => <div key={i}>{l.replace(/,\s*$/, '').replace(/^\s+/, '')}</div>)}
+                </div>
+              </>
+            )}
+
             <div style={{ fontSize: 12, color: S.muted, marginBottom: 4 }}>Total</div>
             <div style={{ fontWeight: 700, fontSize: 18, color: S.text, marginBottom: 16 }}>{selected.total ? eur(Number(selected.total)) : '—'}</div>
 
@@ -1386,39 +1504,51 @@ function TabCommandes() {
             </select>
             {updateErr && <div style={{ fontSize: 12, color: '#b91c1c', marginBottom: 16 }}>Erreur : {updateErr}</div>}
 
-            {/* Tracking / expédition */}
-            <div style={{ ...S.card_, padding: 14, marginBottom: 16 }}>
-              <div style={{ fontSize: 12, fontWeight: 600, color: S.text, marginBottom: 8 }}>Expédition Colissimo</div>
-              {shipErr && <div style={{ fontSize: 12, color: '#b91c1c', marginBottom: 8 }}>Erreur : {shipErr}</div>}
-              {selected.tracking_number ? (
-                <div style={{ fontSize: 13, color: '#15803d', marginBottom: 8 }}>
-                  Numéro de suivi : <strong>{String(selected.tracking_number)}</strong>
-                </div>
-              ) : null}
-              {selected.status !== 'shipped' && selected.status !== 'delivered' ? (
-                <>
-                  <input
-                    value={trackingInputs[String(selected.id)] ?? ''}
-                    onChange={e => setTrackingInputs(t => ({ ...t, [String(selected.id)]: e.target.value }))}
-                    placeholder="Numéro de suivi Colissimo"
-                    style={{ ...S.input, marginBottom: 8 }}
-                  />
-                  {shipOk === String(selected.id) && (
-                    <div style={{ fontSize: 12, color: '#15803d', marginBottom: 6, fontWeight: 500 }}>✓ Expédié — email client envoyé</div>
-                  )}
-                  <button
-                    onClick={() => markShipped(String(selected.id))}
-                    disabled={shipping === String(selected.id) || !(trackingInputs[String(selected.id)]?.trim())}
-                    style={{ ...S.btnPrimary, width: '100%', opacity: !(trackingInputs[String(selected.id)]?.trim()) ? 0.5 : 1 }}
-                  >
-                    {shipping === String(selected.id) ? 'Envoi…' : 'Marquer comme expédié'}
-                  </button>
-                  <div style={{ fontSize: 11, color: S.muted, marginTop: 4 }}>Envoie un email de suivi au client via Resend.</div>
-                </>
-              ) : (
-                <div style={{ fontSize: 12, color: S.muted }}>Commande déjà expédiée ou livrée.</div>
-              )}
-            </div>
+            {/* Tracking / expédition -- un bloc par colis (deux sur une
+                commande mixte tondeuse + standard, voir BlocExpedition). */}
+            {commandeContientStandard(selected) && (() => {
+              const cle = `${String(selected.id)}:standard`
+              const verrouille = selected.status === 'delivered' || selected.status === 'cancelled'
+              return (
+                <BlocExpedition
+                  titre={commandeContientDropshipping(selected) ? 'Expédition — colis standard' : 'Expédition'}
+                  tracking={selected.tracking_number ? String(selected.tracking_number) : null}
+                  carrier={selected.carrier ? String(selected.carrier) : null}
+                  dejaExpedie={!!selected.tracking_number}
+                  verrouille={verrouille}
+                  trackingInput={trackingInputs[cle] ?? ''}
+                  onTrackingChange={v => setTrackingInputs(t => ({ ...t, [cle]: v }))}
+                  carrierInput={carrierInputs[cle] ?? 'colissimo'}
+                  onCarrierChange={v => setCarrierInputs(c => ({ ...c, [cle]: v }))}
+                  shipping={shipping === cle}
+                  shipOk={shipOk === cle}
+                  shipErr={shipErr}
+                  onSubmit={() => markShipped(String(selected.id), 'standard')}
+                />
+              )
+            })()}
+
+            {commandeContientDropshipping(selected) && (() => {
+              const cle = `${String(selected.id)}:tondeuse`
+              const verrouille = selected.status === 'delivered' || selected.status === 'cancelled'
+              return (
+                <BlocExpedition
+                  titre="Expédition — colis tondeuse (fournisseur)"
+                  tracking={selected.tracking_number_fournisseur ? String(selected.tracking_number_fournisseur) : null}
+                  carrier={selected.carrier_fournisseur ? String(selected.carrier_fournisseur) : null}
+                  dejaExpedie={!!selected.tracking_number_fournisseur}
+                  verrouille={verrouille}
+                  trackingInput={trackingInputs[cle] ?? ''}
+                  onTrackingChange={v => setTrackingInputs(t => ({ ...t, [cle]: v }))}
+                  carrierInput={carrierInputs[cle] ?? 'colissimo'}
+                  onCarrierChange={v => setCarrierInputs(c => ({ ...c, [cle]: v }))}
+                  shipping={shipping === cle}
+                  shipOk={shipOk === cle}
+                  shipErr={shipErr}
+                  onSubmit={() => markShipped(String(selected.id), 'tondeuse')}
+                />
+              )
+            })()}
 
             {commandeContientDropshipping(selected) && (
               <div style={{ ...S.card_, padding: 14, marginBottom: 16 }}>
@@ -1435,15 +1565,6 @@ function TabCommandes() {
                   Commande passée chez le fournisseur
                 </label>
               </div>
-            )}
-
-            {!!selected.shipping_address && (
-              <>
-                <div style={{ fontSize: 12, color: S.muted, marginBottom: 4 }}>Adresse de livraison</div>
-                <div style={{ fontSize: 13, color: S.text, lineHeight: 1.6, background: S.bg, padding: '10px 14px', borderRadius: 6 }}>
-                  {JSON.stringify(selected.shipping_address, null, 2).replace(/[{}"]/g, '').split('\n').filter(l => l.trim()).map((l, i) => <div key={i}>{l.replace(/,\s*$/, '').replace(/^\s+/, '')}</div>)}
-                </div>
-              </>
             )}
           </div>
         </div>

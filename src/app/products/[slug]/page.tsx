@@ -5,7 +5,8 @@ import type { Metadata } from 'next'
 import { notFound, redirect } from 'next/navigation'
 import { PRODUCTS } from '@/lib/products'
 import { ProductDetail } from '@/components/product/ProductDetail'
-import { schemaProduct, schemaBreadcrumb, jsonLd } from '@/lib/schema'
+import { schemaProduct, schemaBreadcrumb, schemaFAQ, jsonLd } from '@/lib/schema'
+import { getProductFAQ } from '@/lib/product-faq'
 import { supabase, supabaseAdmin } from '@/lib/supabase'
 import { toReviewDisplay, summarizeReviews, type ReviewDisplay } from '@/lib/reviews'
 import { getSiteContent, getTrustItems } from '@/lib/site-content'
@@ -153,6 +154,7 @@ export default async function ProductPage({ params }: Props) {
     { name: 'Boutique', url: 'https://spbarber.fr/products' },
     { name: product.name, url: `https://spbarber.fr/products/${product.slug}` },
   ])
+  const faqSchema = schemaFAQ([{ cat: 'FAQ', items: getProductFAQ(product) }])
 
   return (
     <>
@@ -163,6 +165,10 @@ export default async function ProductPage({ params }: Props) {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: jsonLd(faqSchema) }}
       />
       <ProductDetail product={product} relatedProducts={relatedProducts} reviews={productReviews} trustItems={trustItems} tondeuseContent={tondeuseContent} beforeImage={beforeImage} afterImage={afterImage} />
     </>

@@ -166,11 +166,11 @@ function resoudreLigne(
     throw new CartValidationError(ligne + ' : prix indisponible pour ce produit.', 500)
   }
 
-  // 6. Stock. Un produit en dropshipping (aujourd'hui : la Tondeuse Fade Pro,
-  // seule a porter des variantes) est HORS de ce systeme -- le fournisseur gere
-  // son propre stock, decision actee separement. Le critere est is_dropshipping,
-  // pas "a une variante" : ca reste juste si un futur produit dropshipping
-  // arrive sans variante, ou l'inverse.
+  // 6. Stock. Un produit en dropshipping (aujourd'hui : les tondeuses) est
+  // HORS de ce systeme -- le fournisseur gere son propre stock, decision
+  // actee separement. Le critere est is_dropshipping, pas "a une variante" :
+  // ca reste juste si un futur produit dropshipping arrive sans variante, ou
+  // l'inverse.
   if (!base.is_dropshipping) {
     const stockDisponible = ov && ov.stock != null ? Number(ov.stock) : base.stock
     if (quantity > stockDisponible) {

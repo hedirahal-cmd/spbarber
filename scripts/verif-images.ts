@@ -149,15 +149,11 @@ async function main() {
   console.log('  OK    trafic Supabase detourne vers le faux serveur')
 
   overrides = [
-    // actif:true force ici : la Cire Cheveux Premium (id 1) est retiree de la
-    // vente (actif:false) dans le catalogue statique depuis la decision Hedi
-    // du 2026-09-28 -- ce banc teste la galerie/og:image, pas le statut actif,
-    // et garde ce produit comme fixture existante plutot que d'en changer.
-    { id: '1', name: null, price: null, description: null, stock: null, benefit: null, images: [{ url: URL_PHOTO_1, alt: ALT_PHOTO_1 }], actif: true },
+    { id: '3', name: null, price: null, description: null, stock: null, benefit: null, images: [{ url: URL_PHOTO_1, alt: ALT_PHOTO_1 }] },
   ]
 
-  console.log('\n--- A. Fiche produit (id 1, avec override) : vraie galerie + og:image/alt ---')
-  let html = await page('/products/cire-cheveux-premium')
+  console.log('\n--- A. Fiche produit (id 3, avec override) : vraie galerie + og:image/alt ---')
+  let html = await page('/products/creme-curl-control')
   verifie('image reelle affichee (sn-hero-photo)', html.includes(`src="${URL_PHOTO_1}"`) && html.includes(`alt="${ALT_PHOTO_1}"`))
   verifie('le placeholder ne s affiche plus pour ce produit', !html.includes('Photo produit'))
   verifie('og:image pointe vers la vraie photo', metaContent(html, 'og:image') === URL_PHOTO_1,
@@ -178,9 +174,9 @@ async function main() {
   verifie('la vignette du produit avec override est une vraie photo', html.includes(`src="${URL_PHOTO_1}"`))
   verifie('un produit sans override garde son icone', html.includes('pc-ph'))
 
-  console.log('\n--- D. Accueil : carte vedette (Cire Cheveux) + grille ---')
+  console.log('\n--- D. Accueil : carte vedette (Crème Curl Control) + grille ---')
   html = await page('/')
-  verifie('la carte vedette Cire Cheveux affiche la vraie photo', html.includes(`src="${URL_PHOTO_1}"`))
+  verifie('la carte vedette Crème Curl affiche la vraie photo', html.includes(`src="${URL_PHOTO_1}"`))
   // Bestsellers (best2-grid) est desormais choisi en admin (is_bestseller),
   // vide par defaut sans configuration -- absent de ce banc. La grille
   // #produits, elle, reste toujours peuplee : c est elle qui porte la
@@ -189,7 +185,6 @@ async function main() {
 
   console.log('\n--- E. Shampooing Noir Colorant (page dediee, id 2, avec override) ---')
   overrides = [
-    { id: '1', name: null, price: null, description: null, stock: null, benefit: null, images: [{ url: URL_PHOTO_1, alt: ALT_PHOTO_1 }], actif: true },
     { id: '2', name: null, price: null, description: null, stock: null, benefit: null, images: [{ url: URL_PHOTO_2, alt: ALT_PHOTO_2 }] },
   ]
   html = await page('/products/shampooing-noir-colorant')
@@ -204,8 +199,11 @@ async function main() {
     !html.includes('sn-pd-left') && !html.includes('sn-ph-icon'))
 
   console.log('\n--- F. Checkout reel Stripe : la galerie survit a pricing.ts + Stripe ---')
+  overrides = [
+    { id: '3', name: null, price: null, description: null, stock: null, benefit: null, images: [{ url: URL_PHOTO_1, alt: ALT_PHOTO_1 }] },
+  ]
   const r = await checkout([{
-    product: { id: '1', name: 'Cire', slug: 'cire-cheveux-premium', description: 'x', price: 2490, images: [], category: 'coiffant', stock: 50, is_dropshipping: false, created_at: '2026-01-01T00:00:00.000Z' },
+    product: { id: '3', name: 'Crème Curl', slug: 'creme-curl-control', description: 'x', price: 2690, images: [], category: 'coiffant', stock: 35, is_dropshipping: false, created_at: '2026-01-01T00:00:00.000Z' },
     quantity: 1,
   }])
   if (r.statut !== 200) console.log('    corps recu :', JSON.stringify(r.corps))

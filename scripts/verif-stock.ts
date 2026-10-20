@@ -71,10 +71,11 @@ const faux = http.createServer((req, res) => {
     }
 
     if (req.method === 'GET' && chemin.includes('/product_overrides')) {
-      // actif:true explicite : la Tondeuse Fade Pro (id 6) est actif:false
-      // dans le vrai catalogue statique depuis son retrait de la vente -- ce
-      // banc teste le comportement dropshipping (stock ignore), pas le statut
-      // actif, donc l'override doit le neutraliser pour les cas qui l'utilisent.
+      // actif:true explicite : la Tondeuse BRDCLIP FA1T (id 8) est actif:false
+      // dans le vrai catalogue statique (dropshipping manuel pas encore
+      // valide) -- ce banc teste le comportement dropshipping (stock ignore),
+      // pas le statut actif, donc l'override doit le neutraliser pour les cas
+      // qui l'utilisent.
       const lignes = Object.entries(stock).map(([id, s]) => ({
         id, name: null, price: null, description: null, stock: s, benefit: null, actif: true,
       }))
@@ -155,16 +156,16 @@ async function envoyerWebhook(items: { id: string; variantId?: string; qty: numb
   return r.status
 }
 
-// Cire Cheveux Premium (id 1) : non-dropshipping, stock statique 50.
-const ligneCire = (qty: number) => ({
-  product: { id: '1', name: 'Cire', slug: 'cire-cheveux-premium', description: 'x', price: 2490, images: [], category: 'coiffant', stock: 50, is_dropshipping: false, created_at: '2026-01-01T00:00:00.000Z' },
+// Shampooing Noir Colorant (id 2) : non-dropshipping, stock statique 40.
+const ligneShampooing = (qty: number) => ({
+  product: { id: '2', name: 'Shampooing', slug: 'shampooing-noir-colorant', description: 'x', price: 2890, images: [], category: 'soin', stock: 40, is_dropshipping: false, created_at: '2026-01-01T00:00:00.000Z' },
   quantity: qty,
 })
 
-// Tondeuse Fade Pro (id 6) : dropshipping, variante Elite -- hors du systeme.
+// Tondeuse BRDCLIP FA1T (id 8) : dropshipping, coloris vert -- hors du systeme.
 const ligneTondeuse = (qty: number) => ({
-  product: { id: '6', name: 'Tondeuse', slug: 'tondeuse-fade-pro', description: 'x', price: 7990, images: [], category: 'tondeuse', stock: 999, is_dropshipping: true, created_at: '2026-01-01T00:00:00.000Z' },
-  variant: { id: '6c', name: 'Elite', price: 9990 },
+  product: { id: '8', name: 'Tondeuse', slug: 'tondeuse-brdclip-fa1t', description: 'x', price: 2739, images: [], category: 'tondeuse', stock: 999, is_dropshipping: true, created_at: '2026-01-01T00:00:00.000Z' },
+  variant: { id: 'vert', name: 'Vert' },
   quantity: qty,
 })
 
@@ -212,14 +213,14 @@ async function main() {
   console.log('  OK    trafic Supabase detourne vers le faux serveur')
 
   console.log('\n--- 1. Checkout, quantite dans la limite du stock ---')
-  stock = { '1': 50 }
-  let r = await checkout([ligneCire(10)])
+  stock = { '2': 50 }
+  let r = await checkout([ligneShampooing(10)])
   if (r.statut !== 200) console.log('    corps recu :', JSON.stringify(r.corps))
   verifie('quantite 10 sur stock 50 => 200', 200, r.statut)
 
   console.log('\n--- 2. Checkout, quantite au-dela du stock (la regression a verrouiller) ---')
-  stock = { '1': 3 }
-  r = await checkout([ligneCire(5)])
+  stock = { '2': 3 }
+  r = await checkout([ligneShampooing(5)])
   verifie('quantite 5 sur stock 3 => refuse', 409, r.statut)
   verifie('  message exploitable pour le client', true,
     typeof r.corps.error === 'string' && r.corps.error.includes('3'))
@@ -231,7 +232,7 @@ async function main() {
   // 0 pour ce produit -- rien n'empeche techniquement d'en ecrire un -- reste
   // sans le moindre effet, puisque is_dropshipping court-circuite le controle
   // avant meme de regarder cette valeur.
-  stock = { '6': 0 }
+  stock = { '8': 0 }
   r = await checkout([ligneTondeuse(2)])
   if (r.statut !== 200) console.log('    corps recu :', JSON.stringify(r.corps))
   verifie('stock override a 0, dropshipping => quand meme 200', 200, r.statut)
@@ -246,16 +247,16 @@ async function main() {
 
   console.log('\n--- 5. Paiement reussi sur la Tondeuse : AUCUN decrement ---')
   appelsRpc.length = 0
-  statutWebhook = await envoyerWebhook([{ id: '6', variantId: '6c', qty: 500 }])
+  statutWebhook = await envoyerWebhook([{ id: '8', variantId: 'vert', qty: 500 }])
   verifie('webhook => 200', 200, statutWebhook)
   verifie('aucun appel a decrementer_stock pour un produit dropshipping', 0, appelsRpc.length)
 
   console.log('\n--- 6. Stock epuise PENDANT que le paiement etait en cours ---')
   console.log('    (deux clients ont pu payer les derniers exemplaires en meme temps)')
-  stock = { '1': 1 }
-  statutWebhook = await envoyerWebhook([{ id: '1', qty: 2 }])
+  stock = { '2': 1 }
+  statutWebhook = await envoyerWebhook([{ id: '2', qty: 2 }])
   verifie('la commande est TOUJOURS enregistree (Stripe a deja encaisse)', 200, statutWebhook)
-  verifie('le stock ne passe pas sous zero', 1, stock['1'])
+  verifie('le stock ne passe pas sous zero', 1, stock['2'])
 
   console.log('\n--- 7. Produit inconnu ou ligne malformee dans les metadonnees : ignore, pas de crash ---')
   statutWebhook = await envoyerWebhook([{ id: 'inexistant', qty: 1 }])

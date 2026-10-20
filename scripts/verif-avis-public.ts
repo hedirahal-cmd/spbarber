@@ -124,11 +124,11 @@ async function main() {
   verifie('aucun de ces rejets n a ete enregistre', reviews.length === 0, 'obtenu ' + reviews.length)
 
   console.log('\n--- B. Moderation forcee, quoi que le client envoie ---')
-  r = await poster({ author: 'Client Honnete', rating: '5', text: 'Excellent produit, je recommande vivement.', product_id: '1', visible: true, verified: true })
+  r = await poster({ author: 'Client Honnete', rating: '5', text: 'Excellent produit, je recommande vivement.', product_id: '2', visible: true, verified: true })
   verifie('soumission valide => 200/201', r.statut === 200 || r.statut === 201, 'obtenu ' + r.statut)
   verifie('visible force a false malgre visible:true envoye', reviews[0]?.visible === false, 'obtenu ' + JSON.stringify(reviews[0]?.visible))
   verifie('verified force a false malgre verified:true envoye', reviews[0]?.verified === false, 'obtenu ' + JSON.stringify(reviews[0]?.verified))
-  verifie('product_id valide conserve dans product_ids', JSON.stringify(reviews[0]?.product_ids) === JSON.stringify(['1']))
+  verifie('product_id valide conserve dans product_ids', JSON.stringify(reviews[0]?.product_ids) === JSON.stringify(['2']))
 
   console.log('\n--- C. Piege a robots ---')
   const avant = reviews.length
