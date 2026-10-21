@@ -109,6 +109,19 @@ export async function POST(req: NextRequest) {
       cancel_url: `${base}/cart`,
       locale: 'fr',
       shipping_address_collection: { allowed_countries: ['FR', 'BE', 'CH', 'LU'] },
+      // Telephone + prenom/nom separes (2026-10-21, chantier Boxtal) : Boxtal
+      // exige les deux pour generer une etiquette, et un decoupage automatise
+      // d'un nom complet est fragile (noms composes, particules...). Stripe
+      // Checkout collecte les deux directement comme champs dedies sur SA page
+      // hebergee -- aucun decoupage a deviner cote serveur pour ce flux. Le
+      // paiement express (Apple Pay/Google Pay) n'a pas cette option (feuille
+      // native du portefeuille) : il reste sur un decoupage best-effort, voir
+      // diviserNomComplet dans src/lib/noms.ts.
+      phone_number_collection: { enabled: true },
+      custom_fields: [
+        { key: 'prenom', label: { type: 'custom', custom: 'Prénom' }, type: 'text', text: { minimum_length: 1, maximum_length: 100 } },
+        { key: 'nom', label: { type: 'custom', custom: 'Nom' }, type: 'text', text: { minimum_length: 1, maximum_length: 100 } },
+      ],
       shipping_options: [
         {
           shipping_rate_data: {

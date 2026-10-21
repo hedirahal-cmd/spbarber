@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { getStripeClient } from '@/lib/stripe-client'
+import { diviserNomComplet } from '@/lib/noms'
 import type {
   PaymentRequestPaymentMethodEvent,
   PaymentRequestShippingAddressEvent,
@@ -61,6 +62,10 @@ export function ExpressCheckoutButton({
         currency: 'eur',
         total: { label: productName, amount: unitAmount + fraisPort },
         requestPayerEmail: true,
+        // Telephone (2026-10-21, chantier Boxtal) : rendu directement par la
+        // feuille Apple Pay/Google Pay, structure -- aucun decoupage a faire
+        // ici, contrairement au nom (voir plus bas, payerName).
+        requestPayerPhone: true,
         requestShipping: true,
         shippingOptions: [
           {
@@ -126,12 +131,20 @@ export function ExpressCheckoutButton({
           }
 
           const addr = ev.shippingAddress
+          // payerName = chaine unique rendue par la feuille (Apple Pay/Google
+          // Pay, via l'abstraction Stripe) -- pas de prenom/nom separes ici,
+          // contrairement au Checkout classique (custom_fields dedies). Voir
+          // le commentaire de diviserNomComplet pour la limite connue.
+          const { prenom, nom } = diviserNomComplet(addr?.recipient || ev.payerName || 'Client SP Barber')
           await fetch('/api/stripe/payment-intent', {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               paymentIntentId: donnees.paymentIntentId,
               email: ev.payerEmail,
+              phone: ev.payerPhone,
+              firstName: prenom,
+              lastName: nom,
               shipping: addr
                 ? {
                     name: addr.recipient || 'Client SP Barber',

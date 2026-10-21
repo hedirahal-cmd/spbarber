@@ -50,6 +50,14 @@ export interface Product {
    * pioche plutot parmi les autres produits actifs du catalogue (hors
    * tondeuses, cf. related). */
   genericRecommendations?: boolean
+  /** Poids/dimensions reels du produit expedie -- requis par Boxtal pour
+   * generer une etiquette (chantier 2026-10-21). Jamais renseignes ici (le
+   * catalogue statique n'a pas vocation a les connaitre) : saisis par Hedi
+   * dans l'admin, stockes sur product_overrides, comme prix/stock. */
+  weightKg?: number
+  lengthCm?: number
+  widthCm?: number
+  heightCm?: number
 }
 
 export interface ProductVariant {

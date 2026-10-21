@@ -29,7 +29,7 @@ function normaliserImages(images: unknown): { url: string; alt: string }[] {
 export async function PUT(req: NextRequest) {
   if (!(await estAdmin())) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const body = await req.json()
-  const { id, name, price, description, stock, benefit, images, before_image_url, after_image_url, actif, is_bestseller, bestseller_ordre, bestseller_badge, bestseller_cat } = body
+  const { id, name, price, description, stock, benefit, images, before_image_url, after_image_url, actif, is_bestseller, bestseller_ordre, bestseller_badge, bestseller_cat, weight_kg, length_cm, width_cm, height_cm } = body
   if (!id) return NextResponse.json({ error: 'id requis' }, { status: 400 })
 
   // Champs presents dans le corps de la requete uniquement : on part de la
@@ -55,6 +55,13 @@ export async function PUT(req: NextRequest) {
     bestseller_ordre: bestseller_ordre !== undefined ? (bestseller_ordre === null ? null : Number(bestseller_ordre)) : existant?.bestseller_ordre ?? null,
     bestseller_badge: bestseller_badge !== undefined ? (bestseller_badge || null) : existant?.bestseller_badge ?? null,
     bestseller_cat: bestseller_cat !== undefined ? (bestseller_cat || null) : existant?.bestseller_cat ?? null,
+    // Poids/dimensions (chantier Boxtal, 2026-10-21) : requis par colis, pas
+    // par produit individuel sur une commande multi-articles -- voir
+    // CARTON_STANDARD dans src/lib/boxtal.ts pour la regle de calcul.
+    weight_kg: weight_kg !== undefined ? (weight_kg === null || weight_kg === '' ? null : Number(weight_kg)) : existant?.weight_kg ?? null,
+    length_cm: length_cm !== undefined ? (length_cm === null || length_cm === '' ? null : Number(length_cm)) : existant?.length_cm ?? null,
+    width_cm: width_cm !== undefined ? (width_cm === null || width_cm === '' ? null : Number(width_cm)) : existant?.width_cm ?? null,
+    height_cm: height_cm !== undefined ? (height_cm === null || height_cm === '' ? null : Number(height_cm)) : existant?.height_cm ?? null,
     updated_at: new Date().toISOString(),
   })
 

@@ -61,7 +61,7 @@ export default async function PolitiqueConfidentialitePage() {
             <li>Prénom et nom ;</li>
             <li>Adresse e-mail ;</li>
             <li>Adresse postale de livraison ;</li>
-            <li>Numéro de téléphone (optionnel) ;</li>
+            <li>Numéro de téléphone (requis pour la livraison) ;</li>
             <li>Données de paiement (gérées exclusivement par Stripe — SP Barber n&apos;accède jamais aux données bancaires brutes) ;</li>
             <li>Historique des commandes et des produits achetés.</li>
           </ul>
@@ -143,6 +143,9 @@ export default async function PolitiqueConfidentialitePage() {
             </li>
             <li>
               <strong>Transporteurs postaux</strong> (Colissimo, Chronopost, etc.) pour la livraison des commandes ;
+            </li>
+            <li>
+              <strong>Boxtal</strong> (plateforme d&apos;édition des étiquettes d&apos;expédition, intermédiaire technique avec les transporteurs ci-dessus) ;
             </li>
             <li>
               <strong>Supabase Inc.</strong> (hébergement de la base de données) — données hébergées dans l&apos;Union Européenne (région eu-north-1) ;

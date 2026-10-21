@@ -129,7 +129,28 @@ async function alerterStockInsuffisant(
   )
 }
 
-type AdresseLivraison = { name?: string | null; address?: Stripe.Address | null } | null
+/**
+ * phone/prenom/nom (2026-10-21, chantier Boxtal) : jamais lus par
+ * enregistrerCommande lui-meme, simplement portes dans shipping_address --
+ * seule la route de creation d'etiquette (/api/admin/boxtal/create-label) les
+ * exploite. Absents sur une commande passee avant ce chantier (repli sur un
+ * decoupage de `name`, voir diviserNomComplet) ou si le client a choisi de ne
+ * pas renseigner son telephone (optionnel cote paiement express, requis cote
+ * Checkout classique via phone_number_collection).
+ */
+type AdresseLivraison = {
+  name?: string | null
+  address?: Stripe.Address | null
+  phone?: string | null
+  prenom?: string | null
+  nom?: string | null
+} | null
+
+/** Lit un custom_field Stripe Checkout par sa cle (voir /api/stripe/checkout). */
+function champPersonnalise(session: Stripe.Checkout.Session, cle: string): string | null {
+  const champ = session.custom_fields?.find((c) => c.key === cle)
+  return champ?.text?.value ?? null
+}
 
 /**
  * Enregistrement de commande partage par les deux chemins de paiement (Checkout
@@ -280,10 +301,13 @@ export async function POST(req: Request) {
     const session = event.data.object as Stripe.Checkout.Session
 
     const shippingInfo = session.collected_information?.shipping_details ?? null
+    const telephone = session.customer_details?.phone ?? null
+    const prenom = champPersonnalise(session, 'prenom')
+    const nom = champPersonnalise(session, 'nom')
     const shipping = shippingInfo
-      ? { name: shippingInfo.name, address: shippingInfo.address }
+      ? { name: shippingInfo.name, address: shippingInfo.address, phone: telephone, prenom, nom }
       : session.customer_details?.address
-        ? { name: session.customer_details.name ?? null, address: session.customer_details.address }
+        ? { name: session.customer_details.name ?? null, address: session.customer_details.address, phone: telephone, prenom, nom }
         : null
 
     return await enregistrerCommande({
@@ -314,7 +338,13 @@ export async function POST(req: Request) {
       total: paymentIntent.amount,
       paymentIntentId: paymentIntent.id,
       shippingAddress: paymentIntent.shipping
-        ? { name: paymentIntent.shipping.name, address: paymentIntent.shipping.address }
+        ? {
+            name: paymentIntent.shipping.name,
+            address: paymentIntent.shipping.address,
+            phone: paymentIntent.metadata?.phone ?? null,
+            prenom: paymentIntent.metadata?.firstName ?? null,
+            nom: paymentIntent.metadata?.lastName ?? null,
+          }
         : null,
       reference: paymentIntent.id,
     })

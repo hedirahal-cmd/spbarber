@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { PRODUCTS } from '@/lib/products'
 import { SITE_CONTENT_KEYS, SITE_CONTENT_LABELS, SITE_CONTENT_DEFAULTS, type SiteContentBlock } from '@/lib/site-content-data'
+import { CARTON_STANDARD, calculerPoidsSuggere } from '@/lib/colis'
 
 type NavSection = 'produits' | 'commandes' | 'retractations' | 'legal' | 'avis' | 'salons' | 'barbers' | 'temoignages-pros' | 'contenu'
 
@@ -173,6 +174,13 @@ function TabProduits() {
   const [bestsellerOrdre, setBestsellerOrdre] = useState('')
   const [bestsellerBadge, setBestsellerBadge] = useState('')
   const [bestsellerCat, setBestsellerCat] = useState('')
+  // Poids/dimensions (chantier Boxtal, 2026-10-21) : requis pour generer une
+  // etiquette -- voir /api/admin/boxtal/create-label. Chaines comme le reste
+  // du formulaire (inputs number controles), converties a l'envoi.
+  const [weightKg, setWeightKg] = useState('')
+  const [lengthCm, setLengthCm] = useState('')
+  const [widthCm, setWidthCm] = useState('')
+  const [heightCm, setHeightCm] = useState('')
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [saveErr, setSaveErr] = useState('')
@@ -207,6 +215,10 @@ function TabProduits() {
     setBestsellerOrdre(ov.bestseller_ordre != null ? String(ov.bestseller_ordre) : '')
     setBestsellerBadge(typeof ov.bestseller_badge === 'string' ? ov.bestseller_badge : '')
     setBestsellerCat(typeof ov.bestseller_cat === 'string' ? ov.bestseller_cat : '')
+    setWeightKg(ov.weight_kg != null ? String(ov.weight_kg) : '')
+    setLengthCm(ov.length_cm != null ? String(ov.length_cm) : '')
+    setWidthCm(ov.width_cm != null ? String(ov.width_cm) : '')
+    setHeightCm(ov.height_cm != null ? String(ov.height_cm) : '')
     setBeforeAfterErr('')
     setImgErr('')
     setEditing(id)
@@ -324,6 +336,10 @@ function TabProduits() {
         bestseller_ordre: bestsellerOrdre === '' ? null : Number(bestsellerOrdre),
         bestseller_badge: bestsellerBadge,
         bestseller_cat: bestsellerCat,
+        weight_kg: weightKg === '' ? null : weightKg,
+        length_cm: lengthCm === '' ? null : lengthCm,
+        width_cm: widthCm === '' ? null : widthCm,
+        height_cm: heightCm === '' ? null : heightCm,
       }) })
       if (res.ok) {
         setSaved(true)
@@ -561,6 +577,32 @@ function TabProduits() {
                 <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: S.text, marginBottom: 4 }}>Stock</label>
                 <div style={{ fontSize: 11, color: S.muted, marginBottom: 6 }}>&nbsp;</div>
                 <input type="number" value={form.stock ?? ''} onChange={e => setForm(f => ({ ...f, stock: e.target.value }))} style={S.input} />
+              </div>
+            </div>
+
+            {/* Poids & dimensions (chantier Boxtal, 2026-10-21) */}
+            <div style={{ marginBottom: 24 }}>
+              <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: S.text, marginBottom: 4 }}>Poids &amp; dimensions réels (colis)</label>
+              <div style={{ fontSize: 11, color: S.muted, marginBottom: 8 }}>Nécessaires pour générer une étiquette Boxtal — laissez vide si inconnu (le suivi manuel reste disponible).</div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 8 }}>
+                <div>
+                  <div style={{ fontSize: 11, color: S.muted, marginBottom: 4 }}>Poids (kg)</div>
+                  <input type="number" step="0.01" min="0" value={weightKg} onChange={e => setWeightKg(e.target.value)} style={S.input} placeholder="0.25" />
+                </div>
+                <div>
+                  <div style={{ fontSize: 11, color: S.muted, marginBottom: 4 }}>Longueur (cm)</div>
+                  <input type="number" step="1" min="0" value={lengthCm} onChange={e => setLengthCm(e.target.value)} style={S.input} placeholder="15" />
+                </div>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div>
+                  <div style={{ fontSize: 11, color: S.muted, marginBottom: 4 }}>Largeur (cm)</div>
+                  <input type="number" step="1" min="0" value={widthCm} onChange={e => setWidthCm(e.target.value)} style={S.input} placeholder="8" />
+                </div>
+                <div>
+                  <div style={{ fontSize: 11, color: S.muted, marginBottom: 4 }}>Hauteur (cm)</div>
+                  <input type="number" step="1" min="0" value={heightCm} onChange={e => setHeightCm(e.target.value)} style={S.input} placeholder="8" />
+                </div>
               </div>
             </div>
 
@@ -1236,7 +1278,7 @@ function commandeResteAExpedier(order: Record<string, unknown>): boolean {
  * suffit plus a savoir si CE colis precis est parti.
  */
 function BlocExpedition({
-  titre, tracking, carrier, dejaExpedie, verrouille,
+  titre, tracking, carrier, dejaExpedie, verrouille, labelUrl,
   trackingInput, onTrackingChange, carrierInput, onCarrierChange,
   shipping, shipOk, shipErr, onSubmit,
 }: {
@@ -1245,6 +1287,8 @@ function BlocExpedition({
   carrier: string | null
   dejaExpedie: boolean
   verrouille: boolean
+  /** Etiquette PDF Boxtal (chantier 2026-10-21) -- absente pour une expedition manuelle. */
+  labelUrl?: string | null
   trackingInput: string
   onTrackingChange: (v: string) => void
   carrierInput: string
@@ -1262,6 +1306,11 @@ function BlocExpedition({
         <div style={{ fontSize: 13, color: '#15803d', marginBottom: 8 }}>
           {/* carrier absent (commande expediee avant ce champ) => Colissimo, comme convenu. */}
           Numéro de suivi ({carrier === 'chronopost' ? 'Chronopost' : 'Colissimo'}) : <strong>{tracking}</strong>
+          {!!labelUrl && (
+            <div style={{ marginTop: 8 }}>
+              <a href={labelUrl} target="_blank" rel="noreferrer" style={{ fontSize: 12, color: S.gold }}>Télécharger l&apos;étiquette (PDF)</a>
+            </div>
+          )}
         </div>
       ) : verrouille ? (
         <div style={{ fontSize: 12, color: S.muted }}>Commande déjà expédiée ou livrée.</div>
@@ -1300,6 +1349,14 @@ function TabCommandes() {
   const [selected, setSelected] = useState<Record<string, unknown> | null>(null)
   const [trackingInputs, setTrackingInputs] = useState<Record<string, string>>({})
   const [carrierInputs, setCarrierInputs] = useState<Record<string, string>>({})
+  // Boxtal (chantier 2026-10-21) : poids connu par produit (pour suggerer un
+  // poids de colis par defaut) + champs editables par commande, cle = id de
+  // commande (jamais ":standard"/":tondeuse" -- Boxtal ne concerne jamais le
+  // colis fournisseur, voir create-label/route.ts).
+  const [produitsPoids, setProduitsPoids] = useState<Record<string, number | null>>({})
+  const [boxtalInputs, setBoxtalInputs] = useState<Record<string, Partial<Record<'poidsKg' | 'longueurCm' | 'largeurCm' | 'hauteurCm' | 'carrier', string>>>>({})
+  const [boxtalBusy, setBoxtalBusy] = useState<string | null>(null)
+  const [boxtalErr, setBoxtalErr] = useState('')
   const [shipping, setShipping] = useState<string | null>(null)
   const [shipOk, setShipOk] = useState<string | null>(null)
   const [shipErr, setShipErr] = useState('')
@@ -1317,6 +1374,74 @@ function TabCommandes() {
     setLoading(false)
   }, [])
   useEffect(() => { load() }, [load])
+
+  useEffect(() => {
+    fetch('/api/admin/products').then(r => r.json()).then((rows: Array<Record<string, unknown>>) => {
+      if (!Array.isArray(rows)) return
+      const map: Record<string, number | null> = {}
+      rows.forEach(r => { map[String(r.id)] = r.weight_kg != null ? Number(r.weight_kg) : null })
+      setProduitsPoids(map)
+    }).catch(() => {})
+  }, [])
+
+  function setChampBoxtal(id: string, champ: 'poidsKg' | 'longueurCm' | 'largeurCm' | 'hauteurCm' | 'carrier', valeur: string) {
+    setBoxtalInputs(b => ({ ...b, [id]: { ...b[id], [champ]: valeur } }))
+  }
+
+  function lignesStandardDe(order: Record<string, unknown> | undefined): LigneCommande[] {
+    const items = Array.isArray(order?.items) ? (order!.items as LigneCommande[]) : []
+    return items.filter(l => {
+      const pid = typeof l.id === 'string' ? l.id : null
+      return pid ? PRODUCTS.find(p => p.id === pid)?.is_dropshipping !== true : false
+    })
+  }
+
+  async function genererEtiquetteBoxtal(id: string) {
+    const order = orders.find(o => String(o.id) === id)
+    const suggestion = calculerPoidsSuggere(lignesStandardDe(order), produitsPoids)
+    const champs = boxtalInputs[id] ?? {}
+    const corps = {
+      id,
+      carrier: champs.carrier ?? 'colissimo',
+      poidsKg: champs.poidsKg ?? String(suggestion.poidsKg),
+      longueurCm: champs.longueurCm ?? String(CARTON_STANDARD.longueurCm),
+      largeurCm: champs.largeurCm ?? String(CARTON_STANDARD.largeurCm),
+      hauteurCm: champs.hauteurCm ?? String(CARTON_STANDARD.hauteurCm),
+    }
+    setBoxtalBusy(id); setBoxtalErr('')
+    try {
+      const res = await fetch('/api/admin/boxtal/create-label', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(corps) })
+      const d = await res.json().catch(() => ({}))
+      if (res.ok) {
+        await load()
+        setSelected(s => s && String(s.id) === id ? { ...s, status: 'shipped', carrier: corps.carrier, boxtal_order_id: d.boxtal_order_id ?? s.boxtal_order_id } : s)
+      } else {
+        setBoxtalErr(d.error ?? `Erreur ${res.status}`)
+      }
+    } catch {
+      setBoxtalErr('Erreur réseau')
+    } finally {
+      setBoxtalBusy(null)
+    }
+  }
+
+  async function annulerEtiquetteBoxtal(id: string) {
+    setBoxtalBusy(id); setBoxtalErr('')
+    try {
+      const res = await fetch('/api/admin/boxtal/cancel-label', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) })
+      if (res.ok) {
+        await load()
+        setSelected(s => s && String(s.id) === id ? { ...s, boxtal_order_id: null, boxtal_label_url: null } : s)
+      } else {
+        const d = await res.json().catch(() => ({}))
+        setBoxtalErr(d.error ?? `Erreur ${res.status}`)
+      }
+    } catch {
+      setBoxtalErr('Erreur réseau')
+    } finally {
+      setBoxtalBusy(null)
+    }
+  }
 
   async function updateStatus(id: string, status: string) {
     setUpdating(id); setUpdateErr('')
@@ -1504,11 +1629,73 @@ function TabCommandes() {
             </select>
             {updateErr && <div style={{ fontSize: 12, color: '#b91c1c', marginBottom: 16 }}>Erreur : {updateErr}</div>}
 
+            {/* Étiquette automatique Boxtal -- UNIQUEMENT le colis standard
+                (jamais le colis fournisseur, voir create-label/route.ts).
+                Masquée une fois un numéro de suivi connu : le bloc
+                d'expédition classique ci-dessous reprend alors l'affichage,
+                lien d'étiquette inclus (voir labelUrl). */}
+            {commandeContientStandard(selected) && !selected.tracking_number && (() => {
+              const id = String(selected.id)
+              const busy = boxtalBusy === id
+              const champs = boxtalInputs[id] ?? {}
+
+              if (selected.boxtal_order_id) {
+                return (
+                  <div style={{ ...S.card_, padding: 14, marginBottom: 16, background: '#fffbeb', border: '1px solid #fde68a' }}>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: S.text, marginBottom: 6 }}>Étiquette Boxtal en cours</div>
+                    <div style={{ fontSize: 12, color: '#92400e', marginBottom: 10 }}>Le numéro de suivi apparaîtra automatiquement dès que Boxtal l&apos;aura généré.</div>
+                    {boxtalErr && <div style={{ fontSize: 12, color: '#b91c1c', marginBottom: 8 }}>Erreur : {boxtalErr}</div>}
+                    {!!selected.boxtal_label_url && (
+                      <a href={String(selected.boxtal_label_url)} target="_blank" rel="noreferrer" style={{ ...S.btnSecondary, display: 'block', textAlign: 'center', marginBottom: 8, textDecoration: 'none' }}>
+                        Télécharger l&apos;étiquette (PDF)
+                      </a>
+                    )}
+                    <button onClick={() => annulerEtiquetteBoxtal(id)} disabled={busy} style={{ ...S.btnSecondary, width: '100%', color: '#b91c1c', borderColor: '#fca5a5' }}>
+                      {busy ? 'Annulation…' : "Annuler l'étiquette Boxtal"}
+                    </button>
+                  </div>
+                )
+              }
+
+              const suggestion = calculerPoidsSuggere(lignesStandardDe(selected), produitsPoids)
+              return (
+                <div style={{ ...S.card_, padding: 14, marginBottom: 16 }}>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: S.text, marginBottom: 8 }}>Étiquette automatique (Boxtal)</div>
+                  {!!suggestion.manquants.length && (
+                    <div style={{ fontSize: 11, color: '#92400e', marginBottom: 8 }}>Poids inconnu pour {suggestion.manquants.length} article(s) — renseignez-le dans l&apos;onglet Produits pour un calcul exact.</div>
+                  )}
+                  {boxtalErr && <div style={{ fontSize: 12, color: '#b91c1c', marginBottom: 8 }}>Erreur : {boxtalErr}</div>}
+                  <select value={champs.carrier ?? 'colissimo'} onChange={e => setChampBoxtal(id, 'carrier', e.target.value)} style={{ ...S.input, marginBottom: 8 }}>
+                    <option value="colissimo">Colissimo</option>
+                    <option value="chronopost">Chronopost</option>
+                  </select>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 8 }}>
+                    <input type="number" step="0.01" min="0" value={champs.poidsKg ?? String(suggestion.poidsKg)} onChange={e => setChampBoxtal(id, 'poidsKg', e.target.value)} style={S.input} placeholder="Poids (kg)" />
+                    <input type="number" step="1" min="0" value={champs.longueurCm ?? String(CARTON_STANDARD.longueurCm)} onChange={e => setChampBoxtal(id, 'longueurCm', e.target.value)} style={S.input} placeholder="Longueur (cm)" />
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 10 }}>
+                    <input type="number" step="1" min="0" value={champs.largeurCm ?? String(CARTON_STANDARD.largeurCm)} onChange={e => setChampBoxtal(id, 'largeurCm', e.target.value)} style={S.input} placeholder="Largeur (cm)" />
+                    <input type="number" step="1" min="0" value={champs.hauteurCm ?? String(CARTON_STANDARD.hauteurCm)} onChange={e => setChampBoxtal(id, 'hauteurCm', e.target.value)} style={S.input} placeholder="Hauteur (cm)" />
+                  </div>
+                  <button onClick={() => genererEtiquetteBoxtal(id)} disabled={busy} style={{ ...S.btnPrimary, width: '100%' }}>
+                    {busy ? 'Génération…' : "Générer l'étiquette via Boxtal"}
+                  </button>
+                  <div style={{ fontSize: 11, color: S.muted, marginTop: 4 }}>Ou saisissez un numéro de suivi manuellement ci-dessous.</div>
+                </div>
+              )
+            })()}
+
             {/* Tracking / expédition -- un bloc par colis (deux sur une
                 commande mixte tondeuse + standard, voir BlocExpedition). */}
             {commandeContientStandard(selected) && (() => {
               const cle = `${String(selected.id)}:standard`
-              const verrouille = selected.status === 'delivered' || selected.status === 'cancelled'
+              const id = String(selected.id)
+              const verrouille = selected.status === 'delivered' || selected.status === 'cancelled' ||
+                // Etiquette Boxtal en cours (chantier 2026-10-21) : la saisie
+                // manuelle est masquee pour eviter un double suivi tant que le
+                // webhook n'a pas rempli tracking_number -- voir le bloc
+                // dedie ci-dessus (annulation possible depuis ce bloc).
+                (!!selected.boxtal_order_id && !selected.tracking_number)
               return (
                 <BlocExpedition
                   titre={commandeContientDropshipping(selected) ? 'Expédition — colis standard' : 'Expédition'}
@@ -1516,6 +1703,7 @@ function TabCommandes() {
                   carrier={selected.carrier ? String(selected.carrier) : null}
                   dejaExpedie={!!selected.tracking_number}
                   verrouille={verrouille}
+                  labelUrl={selected.boxtal_label_url ? String(selected.boxtal_label_url) : null}
                   trackingInput={trackingInputs[cle] ?? ''}
                   onTrackingChange={v => setTrackingInputs(t => ({ ...t, [cle]: v }))}
                   carrierInput={carrierInputs[cle] ?? 'colissimo'}
@@ -1523,7 +1711,7 @@ function TabCommandes() {
                   shipping={shipping === cle}
                   shipOk={shipOk === cle}
                   shipErr={shipErr}
-                  onSubmit={() => markShipped(String(selected.id), 'standard')}
+                  onSubmit={() => markShipped(id, 'standard')}
                 />
               )
             })()}

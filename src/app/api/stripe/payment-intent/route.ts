@@ -114,10 +114,13 @@ type AdresseEnvoi = {
  */
 export async function PATCH(req: NextRequest) {
   try {
-    const { paymentIntentId, shipping, email }: {
+    const { paymentIntentId, shipping, email, phone, firstName, lastName }: {
       paymentIntentId?: unknown
       shipping?: AdresseEnvoi
       email?: unknown
+      phone?: unknown
+      firstName?: unknown
+      lastName?: unknown
     } = await req.json()
 
     if (typeof paymentIntentId !== 'string' || !paymentIntentId.startsWith('pi_')) {
@@ -140,6 +143,19 @@ export async function PATCH(req: NextRequest) {
           }
         : {}),
       ...(typeof email === 'string' && email ? { receipt_email: email } : {}),
+      // phone/firstName/lastName (2026-10-21, chantier Boxtal) : des cles de
+      // metadata EN PLUS de celles posees a la creation (source, items) --
+      // Stripe fusionne par cle, jamais un remplacement du tout, donc aucun
+      // risque d'effacer les premieres (voir /api/stripe/payment-intent POST).
+      ...((typeof phone === 'string' && phone) || (typeof firstName === 'string' && firstName) || (typeof lastName === 'string' && lastName)
+        ? {
+            metadata: {
+              ...(typeof phone === 'string' && phone ? { phone } : {}),
+              ...(typeof firstName === 'string' && firstName ? { firstName } : {}),
+              ...(typeof lastName === 'string' && lastName ? { lastName } : {}),
+            },
+          }
+        : {}),
     })
 
     return NextResponse.json({ ok: true })
