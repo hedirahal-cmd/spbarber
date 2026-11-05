@@ -35,6 +35,16 @@ export const SITE_CONTENT_DEFAULTS: Record<string, SiteContentBlock> = {
   tondeuse_pourquoi_marque: { text: 'Nous sélectionnons des tondeuses fiables et éprouvées, testées pour leur qualité de coupe et leur autonomie, pour une alternative professionnelle sans les tarifs du matériel haut de gamme.', visible: true },
   tondeuse_delai_livraison: { text: 'Livraison sous 2 semaines', visible: true },
   tondeuse_livraison_separee: { text: 'Commandée avec d\'autres produits du site ? Cette tondeuse est livrée séparément.', visible: true },
+  // Mode "bientot disponible" (2026-11-05, decision Hedi, urgent avant
+  // l'ouverture) -- `visible: false` ICI AU DEPART (pas true) : le site doit
+  // etre ferme des le deploiement de ce code, sans ecriture en base
+  // supplementaire. `visible` represente ici "la boutique est ouverte au
+  // public" (PAS "le bandeau de maintenance est affiche") -- choix delibere
+  // pour que le bouton generique Masquer/Afficher de cet onglet se comporte
+  // intuitivement : "Masquer" = fermer la boutique, "Afficher" = la rouvrir.
+  // Voir proxy.ts, qui lit cette meme cle (requete Supabase directe, cache
+  // ~30s, sans passer par getSiteContent()).
+  site_ouvert: { text: 'Le site ouvre samedi. Revenez bientôt.', visible: false },
 }
 
 export const SITE_CONTENT_LABELS: Record<string, string> = {
@@ -47,10 +57,12 @@ export const SITE_CONTENT_LABELS: Record<string, string> = {
   tondeuse_pourquoi_marque: 'Fiche tondeuse — Pourquoi cette marque',
   tondeuse_delai_livraison: 'Fiche tondeuse — Délai de livraison',
   tondeuse_livraison_separee: 'Fiche tondeuse — Livraison séparée si commande mixte',
+  site_ouvert: 'Boutique ouverte au public — décochez (Masquer) pour afficher la page « bientôt disponible » à la place du site. Le texte ci-contre est le message affiché sur cette page.',
 }
 
 /** Ordre d'affichage stable dans l'admin, et ordre des 4 reperes sur la fiche produit. */
 export const SITE_CONTENT_KEYS = [
+  'site_ouvert',
   'announcement_bar', 'home_cta_banner', 'trust_securise', 'trust_livraison', 'trust_retour', 'trust_france',
   'tondeuse_pourquoi_marque', 'tondeuse_delai_livraison', 'tondeuse_livraison_separee',
 ] as const
