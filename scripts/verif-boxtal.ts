@@ -372,6 +372,17 @@ async function main() {
   verifie('boxtal_order_id effacé', orders['cmd-6'].boxtal_order_id === null)
   verifie('boxtal_label_url effacé', orders['cmd-6'].boxtal_label_url === null)
 
+  console.log('\n--- F2. Annulation refusée par Boxtal : la VRAIE cause est affichée, pas une cause supposée ---')
+  orders = { 'cmd-6b': { ...commandeDeBase(), id: 'cmd-6b', boxtal_order_id: 'bxt_test_123', boxtal_label_url: 'https://exemple.test/label.pdf' } }
+  boxtalComportement = 'erreur400'
+  const f2 = await cancelLabel({ id: 'cmd-6b' })
+  verifie('=> 502', f2.statut === 502, 'obtenu ' + f2.statut)
+  verifie('le message contient la vraie réponse Boxtal (pas "colis déjà pris en charge" supposé)',
+    String(f2.corps.error ?? '').includes('offre invalide (bac a sable de test)') && !String(f2.corps.error ?? '').includes('déjà pris en charge'),
+    JSON.stringify(f2.corps))
+  verifie('commande inchangée (annulation refusée, rien effacé)', orders['cmd-6b'].boxtal_order_id === 'bxt_test_123')
+  boxtalComportement = 'ok'
+
   console.log('\n--- G. Annulation sans étiquette à annuler : refusée ---')
   orders = { 'cmd-7': { ...commandeDeBase(), id: 'cmd-7' } }
   const g = await cancelLabel({ id: 'cmd-7' })

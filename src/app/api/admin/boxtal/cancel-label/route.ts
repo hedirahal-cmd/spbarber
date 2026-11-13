@@ -9,8 +9,11 @@ import { annulerCommandeExpedition } from '@/lib/boxtal'
  * voir admin/page.tsx). Remet la commande en etat "repli manuel possible" :
  * boxtal_order_id/boxtal_label_url efface, statut et tracking_number
  * INCHANGES (un tracking deja recu reste valable meme apres annulation cote
- * nous -- Boxtal peut refuser l'annulation si le colis est deja pris en
- * charge, ce qui est traite comme un echec ci-dessous, pas ignore).
+ * nous). Boxtal peut refuser l'annulation pour plusieurs raisons (colis deja
+ * pris en charge, cle invalide, etc.) -- traite comme un echec ci-dessous,
+ * pas ignore, avec le message d'erreur REEL renvoye par Boxtal plutot qu'une
+ * cause supposee (2026-11-13, demande Hedi : un message errone pourrait
+ * laisser croire a tort que le colis est deja parti).
  */
 export async function POST(req: NextRequest) {
   if (!(await estAdmin())) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -25,8 +28,9 @@ export async function POST(req: NextRequest) {
   try {
     await annulerCommandeExpedition(order.boxtal_order_id)
   } catch (e) {
-    console.error('[Boxtal cancel-label] échec :', e instanceof Error ? e.message : String(e))
-    return NextResponse.json({ error: 'Annulation refusée par Boxtal (colis déjà pris en charge ?).' }, { status: 502 })
+    const detail = (e instanceof Error ? e.message : String(e)).slice(0, 300)
+    console.error('[Boxtal cancel-label] échec :', detail)
+    return NextResponse.json({ error: `Boxtal a refusé l'annulation : ${detail}` }, { status: 502 })
   }
 
   const { error: updateErr } = await supabase
