@@ -34,7 +34,7 @@ const ORGANIZATION = {
     '@type': 'ImageObject',
     url: `${BASE}/og-default.jpg`,
   },
-  sameAs: [],
+  sameAs: ['https://www.instagram.com/sp_barbershop_/'],
 }
 
 const WEBSITE = {
@@ -88,7 +88,7 @@ export function schemaOrganizationLocal() {
         servesCuisine: undefined,
         hasMap: 'https://maps.google.com/?q=48+Boulevard+Jean+Jaurès,+35300+Fougères',
         image: `${BASE}/og-default.jpg`,
-        sameAs: [],
+        sameAs: ['https://www.instagram.com/sp_barbershop_/'],
       },
     ],
   }
@@ -232,7 +232,7 @@ export function schemaSalon(salon: Salon) {
     priceRange: '€€',
     ...(salon.lien_google_maps ? { hasMap: salon.lien_google_maps } : {}),
     image,
-    sameAs: [],
+    sameAs: ['https://www.instagram.com/sp_barbershop_/'],
     ...(hasRating ? {
       aggregateRating: {
         '@type': 'AggregateRating',
