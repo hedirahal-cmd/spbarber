@@ -253,7 +253,8 @@ async function main() {
     BOXTAL_SANDBOX_SECRET_KEY: 'test-secret',
     BOXTAL_WEBHOOK_SECRET,
     BOXTAL_SENDER_PHONE: '+33600000000',
-    // Chronopost volontairement SANS code d'offre -- cas D ci-dessous.
+    // BOXTAL_OFFER_CODE_CHRONOPOST volontairement absente -- cas D verifie
+    // le repli sur la valeur par defaut CHRP-Chrono18 (src/lib/boxtal.ts).
     BOXTAL_OFFER_CODE_COLISSIMO: 'COLI-Test-Domicile',
   }
 
@@ -272,6 +273,12 @@ async function main() {
     arreter(); fauxSupabase.close(); fauxBoxtal.close(); process.exitCode = 1; return
   }
   console.log('  OK    trafic Supabase detourne vers le faux serveur')
+
+  console.log('\n--- 0bis. /api/admin/boxtal/status : configure=true quand les cles sont posees ---')
+  const statutRes = await fetch(base() + '/api/admin/boxtal/status', { headers: { Cookie: `spbarber_admin=${jetonAdminValide()}` } })
+  const statutCorps = await statutRes.json().catch(() => ({}))
+  verifie('=> 200', statutRes.status === 200, 'obtenu ' + statutRes.status)
+  verifie('configure=true', statutCorps.configure === true, JSON.stringify(statutCorps))
 
   const commandeDeBase = (): OrderRow => ({
     id: 'cmd-1',
@@ -332,10 +339,13 @@ async function main() {
   const c = await createLabel({ id: 'cmd-3', carrier: 'colissimo', poidsKg: 0.3, longueurCm: 25, largeurCm: 19, hauteurCm: 10 })
   verifie('=> 400', c.statut === 400, 'obtenu ' + c.statut)
 
-  console.log('\n--- D. Code d\'offre Boxtal manquant (Chronopost, volontairement non configuré) : refusée clairement ---')
+  console.log('\n--- D. Chronopost sans BOXTAL_OFFER_CODE_CHRONOPOST posée : repli sur le code par défaut CHRP-Chrono18 ---')
   orders = { 'cmd-4': { ...commandeDeBase(), id: 'cmd-4' } }
+  requetesBoxtal.length = 0
   const d = await createLabel({ id: 'cmd-4', carrier: 'chronopost', poidsKg: 0.3, longueurCm: 25, largeurCm: 19, hauteurCm: 10 })
-  verifie('=> 503 (config manquante, pas une erreur Boxtal)', d.statut === 503, 'obtenu ' + d.statut)
+  verifie('=> 200', d.statut === 200, 'obtenu ' + d.statut + ' ' + JSON.stringify(d.corps))
+  const requeteD = requetesBoxtal.find((r) => r.methode === 'POST' && r.chemin === '/v3.1/shipping-order')
+  verifie('code d\'offre par défaut Chronopost utilisé (CHRP-Chrono18)', requeteD?.corps.shippingOfferCode === 'CHRP-Chrono18', JSON.stringify(requeteD?.corps.shippingOfferCode))
 
   console.log('\n--- E. Boxtal refuse la commande (ex. mauvais code d\'offre réel) : erreur propre, pas un plantage ---')
   orders = { 'cmd-5': { ...commandeDeBase(), id: 'cmd-5' } }

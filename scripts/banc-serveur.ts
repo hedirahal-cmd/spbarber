@@ -48,7 +48,13 @@ export async function demarrerServeur(options: {
   env: NodeJS.ProcessEnv
   budgetSecondes?: number
 }): Promise<Demarrage> {
-  const { port, env } = options
+  const port = options.port
+  // SITE_OUVERT_FORCE (2026-11-11) : le mode maintenance (src/proxy.ts)
+  // bloquerait sinon TOUS les bancs qui chargent une vraie page -- aucun
+  // d'eux ne teste ce mode lui-meme, et le defaut production est
+  // volontairement ferme (aucune ligne site_content ne l'ouvre). Toujours
+  // injectee ici, jamais a documenter a Hedi.
+  const env: NodeJS.ProcessEnv = { ...options.env, SITE_OUVERT_FORCE: 'oui' }
   const budget = options.budgetSecondes ?? BUDGET_SECONDES_DEFAUT
   const rien = () => {}
 

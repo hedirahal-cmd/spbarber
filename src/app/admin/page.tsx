@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { PRODUCTS } from '@/lib/products'
 import { SITE_CONTENT_KEYS, SITE_CONTENT_LABELS, SITE_CONTENT_DEFAULTS, type SiteContentBlock } from '@/lib/site-content-data'
 import { CARTON_STANDARD, calculerPoidsSuggere } from '@/lib/colis'
+import { estCorse } from '@/lib/geo-france'
 
 type NavSection = 'produits' | 'commandes' | 'retractations' | 'legal' | 'avis' | 'salons' | 'barbers' | 'temoignages-pros' | 'contenu'
 
@@ -1264,6 +1265,13 @@ function commandeContientStandard(order: Record<string, unknown>): boolean {
  * de la liste de travail de Pablo/Sofiane des que le colis standard part,
  * alors que le colis tondeuse du fournisseur reste a faire.
  */
+/** Code postal du destinataire, quelle que soit la commande -- voir estCorse (chantier 2026-10-21). */
+function codePostalDestination(order: Record<string, unknown>): string | null {
+  const sa = (order.shipping_address ?? {}) as Record<string, unknown>
+  const adresse = (sa.address ?? {}) as Record<string, unknown>
+  return typeof adresse.postal_code === 'string' ? adresse.postal_code : null
+}
+
 function commandeResteAExpedier(order: Record<string, unknown>): boolean {
   if (order.status !== 'paid' && order.status !== 'shipped') return false
   const standardOk = !commandeContientStandard(order) || !!order.tracking_number
@@ -1278,7 +1286,7 @@ function commandeResteAExpedier(order: Record<string, unknown>): boolean {
  * suffit plus a savoir si CE colis precis est parti.
  */
 function BlocExpedition({
-  titre, tracking, carrier, dejaExpedie, verrouille, labelUrl,
+  titre, tracking, carrier, dejaExpedie, verrouille, labelUrl, corse,
   trackingInput, onTrackingChange, carrierInput, onCarrierChange,
   shipping, shipOk, shipErr, onSubmit,
 }: {
@@ -1289,6 +1297,8 @@ function BlocExpedition({
   verrouille: boolean
   /** Etiquette PDF Boxtal (chantier 2026-10-21) -- absente pour une expedition manuelle. */
   labelUrl?: string | null
+  /** Corse (2026-10-21, decision Hedi) : Chronopost retire du menu, Colissimo seul choix -- voir estCorse. */
+  corse: boolean
   trackingInput: string
   onTrackingChange: (v: string) => void
   carrierInput: string
@@ -1318,8 +1328,9 @@ function BlocExpedition({
         <>
           <select value={carrierInput} onChange={e => onCarrierChange(e.target.value)} style={{ ...S.input, marginBottom: 8 }}>
             <option value="colissimo">Colissimo</option>
-            <option value="chronopost">Chronopost</option>
+            {!corse && <option value="chronopost">Chronopost</option>}
           </select>
+          {corse && <div style={{ fontSize: 11, color: S.muted, marginTop: -4, marginBottom: 8 }}>Chronopost indisponible en Corse (tarif ×4 environ) — Colissimo uniquement.</div>}
           <input
             value={trackingInput}
             onChange={e => onTrackingChange(e.target.value)}
@@ -1354,6 +1365,11 @@ function TabCommandes() {
   // commande (jamais ":standard"/":tondeuse" -- Boxtal ne concerne jamais le
   // colis fournisseur, voir create-label/route.ts).
   const [produitsPoids, setProduitsPoids] = useState<Record<string, number | null>>({})
+  // null tant que la verification n'a pas repondu : on masque le panneau
+  // Boxtal par defaut (2026-11-11, decision Hedi) plutot que de l'afficher
+  // avant de savoir, pour ne jamais laisser Hedi cliquer dans le vide quand
+  // les cles Boxtal ne sont pas encore posees -- voir /api/admin/boxtal/status.
+  const [boxtalConfigure, setBoxtalConfigure] = useState<boolean | null>(null)
   const [boxtalInputs, setBoxtalInputs] = useState<Record<string, Partial<Record<'poidsKg' | 'longueurCm' | 'largeurCm' | 'hauteurCm' | 'carrier', string>>>>({})
   const [boxtalBusy, setBoxtalBusy] = useState<string | null>(null)
   const [boxtalErr, setBoxtalErr] = useState('')
@@ -1374,6 +1390,13 @@ function TabCommandes() {
     setLoading(false)
   }, [])
   useEffect(() => { load() }, [load])
+
+  useEffect(() => {
+    fetch('/api/admin/boxtal/status')
+      .then((r) => (r.ok ? r.json() : { configure: false }))
+      .then((d) => setBoxtalConfigure(!!d.configure))
+      .catch(() => setBoxtalConfigure(false))
+  }, [])
 
   useEffect(() => {
     fetch('/api/admin/products').then(r => r.json()).then((rows: Array<Record<string, unknown>>) => {
@@ -1631,19 +1654,33 @@ function TabCommandes() {
 
             {/* Étiquette automatique Boxtal -- UNIQUEMENT le colis standard
                 (jamais le colis fournisseur, voir create-label/route.ts).
-                Masquée une fois un numéro de suivi connu : le bloc
-                d'expédition classique ci-dessous reprend alors l'affichage,
-                lien d'étiquette inclus (voir labelUrl). */}
-            {commandeContientStandard(selected) && !selected.tracking_number && (() => {
+                Masquée tant que Boxtal n'est pas configuré (boxtalConfigure) :
+                le flux manuel ci-dessous reste alors le seul chemin, par
+                defaut. Le formulaire de GENERATION disparait une fois
+                boxtal_order_id pose (une etiquette existe deja) ; le bloc
+                "en cours" + bouton ANNULER, lui, reste affiche meme apres
+                l'arrivee du numero de suivi (2026-11-11, decision Hedi) --
+                la doc Boxtal ne precisant pas de facon lisible jusqu'a quel
+                statut l'annulation reste possible, mieux vaut laisser le
+                bouton visible et laisser Boxtal refuser proprement (502,
+                voir cancel-label/route.ts) que le masquer trop tot sur une
+                hypothese non confirmee. Il disparait seulement quand
+                boxtal_order_id est efface (annulation reussie). */}
+            {boxtalConfigure && commandeContientStandard(selected) && (!!selected.boxtal_order_id || !selected.tracking_number) && (() => {
               const id = String(selected.id)
               const busy = boxtalBusy === id
               const champs = boxtalInputs[id] ?? {}
 
               if (selected.boxtal_order_id) {
+                const suiviConnu = !!selected.tracking_number
                 return (
                   <div style={{ ...S.card_, padding: 14, marginBottom: 16, background: '#fffbeb', border: '1px solid #fde68a' }}>
-                    <div style={{ fontSize: 12, fontWeight: 600, color: S.text, marginBottom: 6 }}>Étiquette Boxtal en cours</div>
-                    <div style={{ fontSize: 12, color: '#92400e', marginBottom: 10 }}>Le numéro de suivi apparaîtra automatiquement dès que Boxtal l&apos;aura généré.</div>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: S.text, marginBottom: 6 }}>Étiquette Boxtal {suiviConnu ? '' : 'en cours'}</div>
+                    <div style={{ fontSize: 12, color: '#92400e', marginBottom: 10 }}>
+                      {suiviConnu
+                        ? "Suivi déjà généré (voir le bloc Expédition ci-dessous). L'annulation reste possible tant que le colis n'a pas été remis au transporteur — Boxtal la refusera sinon."
+                        : "Le numéro de suivi apparaîtra automatiquement dès que Boxtal l'aura généré."}
+                    </div>
                     {boxtalErr && <div style={{ fontSize: 12, color: '#b91c1c', marginBottom: 8 }}>Erreur : {boxtalErr}</div>}
                     {!!selected.boxtal_label_url && (
                       <a href={String(selected.boxtal_label_url)} target="_blank" rel="noreferrer" style={{ ...S.btnSecondary, display: 'block', textAlign: 'center', marginBottom: 8, textDecoration: 'none' }}>
@@ -1658,17 +1695,19 @@ function TabCommandes() {
               }
 
               const suggestion = calculerPoidsSuggere(lignesStandardDe(selected), produitsPoids)
+              const corseBoxtal = estCorse(codePostalDestination(selected))
               return (
                 <div style={{ ...S.card_, padding: 14, marginBottom: 16 }}>
                   <div style={{ fontSize: 12, fontWeight: 600, color: S.text, marginBottom: 8 }}>Étiquette automatique (Boxtal)</div>
                   {!!suggestion.manquants.length && (
-                    <div style={{ fontSize: 11, color: '#92400e', marginBottom: 8 }}>Poids inconnu pour {suggestion.manquants.length} article(s) — renseignez-le dans l&apos;onglet Produits pour un calcul exact.</div>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: '#b91c1c', marginBottom: 8 }}>Poids manquant pour {suggestion.manquants.length} article(s). Renseignez-le dans l&apos;onglet Produits, ou utilisez le suivi manuel ci-dessous.</div>
                   )}
                   {boxtalErr && <div style={{ fontSize: 12, color: '#b91c1c', marginBottom: 8 }}>Erreur : {boxtalErr}</div>}
                   <select value={champs.carrier ?? 'colissimo'} onChange={e => setChampBoxtal(id, 'carrier', e.target.value)} style={{ ...S.input, marginBottom: 8 }}>
                     <option value="colissimo">Colissimo</option>
-                    <option value="chronopost">Chronopost</option>
+                    {!corseBoxtal && <option value="chronopost">Chronopost</option>}
                   </select>
+                  {corseBoxtal && <div style={{ fontSize: 11, color: S.muted, marginTop: -4, marginBottom: 8 }}>Chronopost indisponible en Corse (tarif ×4 environ) — Colissimo uniquement.</div>}
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 8 }}>
                     <input type="number" step="0.01" min="0" value={champs.poidsKg ?? String(suggestion.poidsKg)} onChange={e => setChampBoxtal(id, 'poidsKg', e.target.value)} style={S.input} placeholder="Poids (kg)" />
                     <input type="number" step="1" min="0" value={champs.longueurCm ?? String(CARTON_STANDARD.longueurCm)} onChange={e => setChampBoxtal(id, 'longueurCm', e.target.value)} style={S.input} placeholder="Longueur (cm)" />
@@ -1677,7 +1716,11 @@ function TabCommandes() {
                     <input type="number" step="1" min="0" value={champs.largeurCm ?? String(CARTON_STANDARD.largeurCm)} onChange={e => setChampBoxtal(id, 'largeurCm', e.target.value)} style={S.input} placeholder="Largeur (cm)" />
                     <input type="number" step="1" min="0" value={champs.hauteurCm ?? String(CARTON_STANDARD.hauteurCm)} onChange={e => setChampBoxtal(id, 'hauteurCm', e.target.value)} style={S.input} placeholder="Hauteur (cm)" />
                   </div>
-                  <button onClick={() => genererEtiquetteBoxtal(id)} disabled={busy} style={{ ...S.btnPrimary, width: '100%' }}>
+                  <button
+                    onClick={() => genererEtiquetteBoxtal(id)}
+                    disabled={busy || !!suggestion.manquants.length}
+                    style={{ ...S.btnPrimary, width: '100%', ...(suggestion.manquants.length ? { opacity: 0.5, cursor: 'not-allowed' } : {}) }}
+                  >
                     {busy ? 'Génération…' : "Générer l'étiquette via Boxtal"}
                   </button>
                   <div style={{ fontSize: 11, color: S.muted, marginTop: 4 }}>Ou saisissez un numéro de suivi manuellement ci-dessous.</div>
@@ -1704,6 +1747,7 @@ function TabCommandes() {
                   dejaExpedie={!!selected.tracking_number}
                   verrouille={verrouille}
                   labelUrl={selected.boxtal_label_url ? String(selected.boxtal_label_url) : null}
+                  corse={estCorse(codePostalDestination(selected))}
                   trackingInput={trackingInputs[cle] ?? ''}
                   onTrackingChange={v => setTrackingInputs(t => ({ ...t, [cle]: v }))}
                   carrierInput={carrierInputs[cle] ?? 'colissimo'}
@@ -1726,6 +1770,7 @@ function TabCommandes() {
                   carrier={selected.carrier_fournisseur ? String(selected.carrier_fournisseur) : null}
                   dejaExpedie={!!selected.tracking_number_fournisseur}
                   verrouille={verrouille}
+                  corse={estCorse(codePostalDestination(selected))}
                   trackingInput={trackingInputs[cle] ?? ''}
                   onTrackingChange={v => setTrackingInputs(t => ({ ...t, [cle]: v }))}
                   carrierInput={carrierInputs[cle] ?? 'colissimo'}

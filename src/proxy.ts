@@ -38,6 +38,18 @@ let etatConnu: EtatSite | null = null
 let expireA = 0
 
 async function lireEtatSite(): Promise<EtatSite> {
+  // Echappatoire RESERVEE AUX BANCS DE VERIFICATION (jamais documentee a
+  // Hedi, meme principe que BOXTAL_API_BASE_URL dans src/lib/boxtal.ts) :
+  // sans elle, les ~18 scripts scripts/verif-*.ts -- qui testent des pages
+  // reelles sans jamais toucher au mode maintenance lui-meme -- se
+  // retrouvent tous bloques par ce proxy des que le vrai/faux
+  // `site_content.site_ouvert` n'existe pas (defaut volontairement ferme,
+  // voir plus bas). demarrerServeur() (scripts/banc-serveur.ts) pose
+  // toujours cette variable.
+  if (process.env.SITE_OUVERT_FORCE === 'oui') {
+    return { ouvert: true, message: SITE_CONTENT_DEFAULTS[CLE_CONTENU].text }
+  }
+
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
   const cle = process.env.SUPABASE_SERVICE_ROLE_KEY
   if (!url || !cle) throw new Error('configuration Supabase absente')
@@ -80,7 +92,7 @@ async function etatSiteAvecCache(): Promise<EtatSite> {
 }
 
 function pageAttenteHtml(message: string): string {
-  const instagram = 'https://www.instagram.com/spbarber'
+  const instagram = 'https://www.instagram.com/sp_barbershop_/'
   const texteEchappe = message
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')

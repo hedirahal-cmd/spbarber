@@ -78,17 +78,25 @@ export const BOXTAL_EXPEDITEUR_EMAIL = 'contact@spbarber.fr'
 export const BOXTAL_EXPEDITEUR_NOM = { prenom: 'SP Barber Shop', nom: 'Fougères' }
 
 /**
- * Codes d'offre Colissimo/Chronopost (livraison a domicile). AUCUNE valeur de
- * repli volontairement : les seuls codes confirmes dans le client tiers etudie
- * sont des exemples point-relais (Mondial Relay, Chronopost Shop2Shop), pas les
- * offres domicile que Hedi a reellement souscrites -- deviner une valeur
- * plausible mais fausse serait pire que refuser clairement. A determiner via
- * listerCodesOffre() une fois les cles bac a sable posees, puis a poser dans
- * Vercel/.env.local.
+ * Codes d'offre Colissimo/Chronopost (livraison a domicile), en dur par defaut
+ * (2026-11-11, decision Hedi -- rien a poser dans Vercel de ce cote) :
+ *   - POFR-ColissimoAccess : confirme par un devis reel passe directement a
+ *     l'API (Colissimo Domicile sans signature).
+ *   - CHRP-Chrono18 : recommandation faite a Hedi (Chronopost 18h, le niveau
+ *     "domicile standard" le plus proche de Colissimo parmi les offres
+ *     Chrono13/Chrono18/ChronoRelais etc.), jamais confirme par un devis reel
+ *     comme Colissimo -- a verifier au tout premier essai Chronopost.
+ * BOXTAL_OFFER_CODE_COLISSIMO/CHRONOPOST restent prioritaires si Hedi les
+ * pose dans Vercel (ex. pour changer d'offre sans redeployer), sinon ces
+ * valeurs par defaut s'appliquent.
  */
+const OFFER_CODES_PAR_DEFAUT: Record<'colissimo' | 'chronopost', string> = {
+  colissimo: 'POFR-ColissimoAccess',
+  chronopost: 'CHRP-Chrono18',
+}
 const OFFER_CODES: Record<'colissimo' | 'chronopost', string | undefined> = {
-  colissimo: process.env.BOXTAL_OFFER_CODE_COLISSIMO,
-  chronopost: process.env.BOXTAL_OFFER_CODE_CHRONOPOST,
+  colissimo: process.env.BOXTAL_OFFER_CODE_COLISSIMO || OFFER_CODES_PAR_DEFAUT.colissimo,
+  chronopost: process.env.BOXTAL_OFFER_CODE_CHRONOPOST || OFFER_CODES_PAR_DEFAUT.chronopost,
 }
 
 export function offerCodePour(transporteur: 'colissimo' | 'chronopost'): string | null {
