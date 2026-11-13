@@ -223,7 +223,7 @@ export default async function HomePage() {
         <div className="hero-trust-checks">
           <span className="hero-check-item"><span className="hero-check-v">✓</span> Formules utilisées par les barbiers pros</span>
           <span className="hero-check-item"><span className="hero-check-v">✓</span> Livraison offerte dès 59€</span>
-          <span className="hero-check-item"><span className="hero-check-v">✓</span> Retour 30 jours</span>
+          <span className="hero-check-item"><span className="hero-check-v">✓</span> Retour 14 jours</span>
         </div>
 
       </section>

@@ -166,7 +166,7 @@ export default async function CommandeConfirmeePage({
         {/* Délai */}
         <div className="confm-delay">
           <span className="confm-delay-icon">📦</span>
-          Expédition sous <strong>24–48h</strong> — vous recevrez un e-mail de suivi.
+          Préparation sous <strong>2 jours ouvrés</strong> — vous recevrez un e-mail de suivi.
         </div>
 
         {/* CTA */}

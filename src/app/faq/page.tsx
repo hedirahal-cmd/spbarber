@@ -1,11 +1,12 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { schemaFAQ, jsonLd } from '@/lib/schema'
+import { enumerationPaysLivrables } from '@/lib/shipping-countries'
 
 export const metadata: Metadata = {
   title: { absolute: 'FAQ — Questions Fréquentes SP Barber | Livraison, Retours, Produits' },
   description:
-    'Toutes les réponses à vos questions : commande, paiement, expédition sous 48h, retours 30 jours et informations produits SP Barber.',
+    'Toutes les réponses à vos questions : commande, paiement, expédition sous 48h, retours 14 jours et informations produits SP Barber.',
   alternates: { canonical: 'https://spbarber.fr/faq' },
   openGraph: {
     title: 'FAQ SP Barber — Questions Fréquentes',
@@ -24,7 +25,7 @@ const FAQS = [
       },
       {
         q: 'Quels moyens de paiement acceptez-vous ?',
-        a: 'Carte bancaire (Visa, Mastercard, Amex), PayPal, Apple Pay et Google Pay. Tous les paiements sont sécurisés via Stripe (certifié PCI DSS).',
+        a: 'Carte bancaire (Visa, Mastercard, Amex), Apple Pay et Google Pay. Tous les paiements sont sécurisés via Stripe (certifié PCI DSS).',
       },
       {
         q: 'Puis-je modifier ou annuler ma commande ?',
@@ -41,7 +42,7 @@ const FAQS = [
     items: [
       {
         q: 'Quel est le délai de livraison ?',
-        a: 'Vos commandes sont expédiées sous 24-48h ouvrées. La livraison prend ensuite 3 à 5 jours ouvrés selon votre adresse. Exception : les tondeuses (envoyées directement par notre fournisseur), livraison sous ~2 semaines.',
+        a: 'Vos commandes sont préparées sous 2 jours ouvrés. La livraison prend ensuite 3 à 5 jours ouvrés selon votre adresse. Exception : les tondeuses (envoyées directement par notre fournisseur), livraison sous ~2 semaines.',
       },
       {
         q: 'La livraison est-elle gratuite ?',
@@ -49,7 +50,7 @@ const FAQS = [
       },
       {
         q: 'Livrez-vous en dehors de France ?',
-        a: 'Nous livrons en France métropolitaine, Belgique, Suisse et Luxembourg.',
+        a: `Nous livrons en ${enumerationPaysLivrables()}, Corse comprise. Les départements et collectivités d'outre-mer ainsi que l'étranger ne sont pas desservis pour le moment.`,
       },
       {
         q: 'Comment suivre ma commande ?',
@@ -75,7 +76,7 @@ const FAQS = [
     items: [
       {
         q: 'Puis-je retourner un produit si je ne suis pas satisfait ?',
-        a: 'Oui, vous disposez de 30 jours pour retourner n\'importe quel produit et être remboursé intégralement, même si le produit a été ouvert.',
+        a: 'Oui, vous disposez de 14 jours à compter de la réception pour retourner n\'importe quel produit et être remboursé intégralement, même si le produit a été ouvert.',
       },
       {
         q: 'J\'ai reçu un produit endommagé. Que faire ?',

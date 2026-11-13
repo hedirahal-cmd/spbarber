@@ -20,7 +20,7 @@ export function getProductFAQ(product: Product): { q: string; a: string }[] {
       q: 'Quel est le délai de livraison ?',
       a: estTondeuse
         ? 'Cette tondeuse est envoyée directement par notre fournisseur : comptez environ 2 semaines de délai, colis séparé du reste de votre commande le cas échéant.'
-        : 'Votre commande est expédiée sous 24-48h ouvrées, puis livrée en 3 à 5 jours ouvrés selon votre adresse.',
+        : 'Votre commande est préparée sous 2 jours ouvrés, puis livrée en 3 à 5 jours ouvrés selon votre adresse.',
     },
     {
       q: 'La livraison est-elle offerte ?',
@@ -30,11 +30,11 @@ export function getProductFAQ(product: Product): { q: string; a: string }[] {
     },
     {
       q: 'Puis-je retourner ce produit ?',
-      a: 'Oui, vous disposez de 30 jours pour le retourner et être remboursé intégralement, même ouvert.',
+      a: 'Oui, vous disposez de 14 jours à compter de la réception pour le retourner et être remboursé intégralement, même ouvert.',
     },
     {
       q: 'Quels moyens de paiement acceptez-vous ?',
-      a: 'Carte bancaire, PayPal, Apple Pay et Google Pay, via paiement sécurisé Stripe.',
+      a: 'Carte bancaire (Visa, Mastercard, Amex), Apple Pay et Google Pay, via paiement sécurisé Stripe.',
     },
   ]
 }

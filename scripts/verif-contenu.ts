@@ -165,7 +165,7 @@ async function main() {
   const ficheCurl = await page('/products/creme-curl-control')
   // "France" masque par defaut depuis le 2026-10-01 (decision Hedi, formulation
   // a revoir) -- seuls 3 reperes sur 4 sont visibles tant qu'il reste masque.
-  verifie('les 3 reperes de confiance visibles par defaut sont presents', ['Sécurisé', 'Livraison 3-5 jours', 'Retour 30j'].every((t) => ficheCurl.includes(t)))
+  verifie('les 3 reperes de confiance visibles par defaut sont presents', ['Sécurisé', 'Livraison 3-5 jours', 'Retour 14j'].every((t) => ficheCurl.includes(t)))
   verifie('repere France masque par defaut', !ficheCurl.includes('🇫🇷'))
 
   console.log('\n--- B. Edition des bandeaux du site (site_content) ---')
@@ -206,7 +206,7 @@ async function main() {
   verifie('nouveau texte du repere Livraison applique dans la rangee', zoneTrust.includes('Livraison express 24h'))
   verifie('ancien texte "Livraison 3-5 jours" disparu de la rangee', !zoneTrust.includes('Livraison 3-5 jours'))
   verifie('repere Sécurisé masque (absent de la rangee)', !zoneTrust.includes('Sécurisé'))
-  verifie('le repere non touche reste present', zoneTrust.includes('Retour 30j'))
+  verifie('le repere non touche reste present', zoneTrust.includes('Retour 14j'))
 
   console.log('\n=======================================')
   console.log('  ' + ok + ' OK, ' + ko + ' ECHEC')

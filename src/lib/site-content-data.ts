@@ -26,7 +26,7 @@ export const SITE_CONTENT_DEFAULTS: Record<string, SiteContentBlock> = {
   // pas de livraison reelle (3-5 jours ouvres) -- deja le cas pour les
   // tondeuses, qui ont leur propre repere (tondeuse_delai_livraison).
   trust_livraison: { text: 'Livraison 3-5 jours', visible: true },
-  trust_retour: { text: 'Retour 30j', visible: true },
+  trust_retour: { text: 'Retour 14j', visible: true },
   // Masque pour l'instant (2026-10-01, decision Hedi) : formulation a revoir
   // avant de le remettre -- volontairement pas supprime pour garder le
   // reglage/l'historique dans l'onglet Contenu.
@@ -52,7 +52,7 @@ export const SITE_CONTENT_LABELS: Record<string, string> = {
   home_cta_banner: 'Bannière CTA (accueil, "Rejoignez X clients satisfaits")',
   trust_securise: 'Repère fiche produit — Sécurisé',
   trust_livraison: 'Repère fiche produit — Livraison 3-5 jours',
-  trust_retour: 'Repère fiche produit — Retour 30 jours',
+  trust_retour: 'Repère fiche produit — Retour 14 jours',
   trust_france: 'Repère fiche produit — France',
   tondeuse_pourquoi_marque: 'Fiche tondeuse — Pourquoi cette marque',
   tondeuse_delai_livraison: 'Fiche tondeuse — Délai de livraison',

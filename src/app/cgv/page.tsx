@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
+import { enumerationPaysLivrables } from '@/lib/shipping-countries'
 
 export const revalidate = 60
 
@@ -128,7 +129,7 @@ export default async function CGVPage() {
         <section className="legal-section">
           <h2>Article 7 — Livraison</h2>
           <p>
-            Les commandes sont expédiées depuis la France vers les destinations suivantes : France métropolitaine, Belgique, Suisse et Luxembourg.
+            Les commandes sont expédiées depuis la France vers les destinations suivantes : {enumerationPaysLivrables()}.
           </p>
           <p>
             <strong>Délais :</strong> Les commandes sont traitées et expédiées sous 24 à 48 heures ouvrées après confirmation du paiement. La livraison est ensuite effectuée sous 3 à 5 jours ouvrés selon le transporteur.
@@ -212,7 +213,7 @@ export default async function CGVPage() {
             Les présentes CGV sont soumises au droit français. En cas de litige relatif à une commande, le Client est invité à contacter le service client par e-mail à contact@spbarber.fr afin de trouver une solution amiable.
           </p>
           <p>
-            À défaut de règlement amiable, le Client peut recourir à la médiation de la consommation. Le Vendeur adhère au service de médiation proposé par la plateforme européenne de règlement en ligne des litiges accessible à l&apos;adresse : <strong>https://ec.europa.eu/consumers/odr</strong>.
+            À défaut de règlement amiable, le Client peut recourir gratuitement à un médiateur de la consommation, conformément aux articles L611-1 et suivants du Code de la consommation.
           </p>
           <p>
             En l&apos;absence de résolution amiable, les tribunaux compétents seront ceux du ressort du domicile du défendeur ou, au choix du consommateur, du lieu de livraison effective du produit.

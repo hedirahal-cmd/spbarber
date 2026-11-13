@@ -2,9 +2,9 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 
 export const metadata: Metadata = {
-  title: { absolute: 'Retours & Remboursements — SP Barber | 30 Jours Satisfait ou Remboursé' },
+  title: { absolute: 'Retours & Remboursements — SP Barber | 14 Jours Satisfait ou Remboursé' },
   description:
-    'Politique de retour SP Barber : 30 jours pour retourner vos produits, même ouverts, et être remboursé intégralement. Sans questions.',
+    'Politique de retour SP Barber : 14 jours pour retourner vos produits, même ouverts, et être remboursé intégralement. Sans questions.',
   alternates: { canonical: 'https://spbarber.fr/retours' },
 }
 
@@ -16,9 +16,9 @@ export default function RetoursPage() {
         <h1 className="legal-h1">Retours & Remboursements</h1>
 
         <section className="legal-section">
-          <h2>Garantie 30 jours satisfait ou remboursé</h2>
+          <h2>Garantie 14 jours satisfait ou remboursé</h2>
           <p>
-            SP Barber vous offre <strong>30 jours pour changer d&apos;avis</strong>. Si vous n&apos;êtes pas entièrement satisfait de votre achat, retournez-le et nous vous remboursons intégralement, sans questions.
+            SP Barber vous offre <strong>14 jours pour changer d&apos;avis</strong>, à compter de la réception. Si vous n&apos;êtes pas entièrement satisfait de votre achat, retournez-le et nous vous remboursons intégralement, sans questions.
           </p>
         </section>
 
@@ -45,7 +45,7 @@ export default function RetoursPage() {
         <section className="legal-section">
           <h2>Conditions de retour</h2>
           <ul>
-            <li>Produit retourné dans les 30 jours suivant la réception.</li>
+            <li>Produit retourné dans les 14 jours suivant la réception.</li>
             <li>Produit dans son emballage d&apos;origine (boîte, notice, accessoires inclus).</li>
             <li>Pour les produits déjà ouverts ou utilisés, la garantie satisfait ou remboursé s&apos;applique quand même — c&apos;est notre engagement qualité.</li>
           </ul>
@@ -54,7 +54,7 @@ export default function RetoursPage() {
         <section className="legal-section">
           <h2>Remboursement</h2>
           <p>
-            Le remboursement est effectué sur le moyen de paiement utilisé lors de la commande (carte bancaire, PayPal, etc.) dans un délai de <strong>5 à 10 jours ouvrés</strong> après réception du retour.
+            Le remboursement est effectué sur le moyen de paiement utilisé lors de la commande, dans un délai de <strong>5 à 10 jours ouvrés</strong> après réception du retour.
           </p>
         </section>
 
