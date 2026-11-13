@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server'
+import { NextResponse, after } from 'next/server'
 import { Resend } from 'resend'
 import { supabaseAdmin } from '@/lib/supabase'
 import { EXPEDITEUR_EMAIL } from '@/lib/email'
@@ -10,10 +10,11 @@ export const runtime = 'nodejs'
 /**
  * Webhook Boxtal -- deux evenements possibles (voir src/lib/boxtal.ts) :
  *
- * DOCUMENT_CREATED : l'etiquette (PDF) est prete. On la telecharge tout de
- * suite (l'URL Boxtal est signee et EXPIRE) et on la re-heberge dans notre
- * propre stockage -- boxtal_label_url pointe desormais vers une URL permanente,
- * a l'usage de Hedi (impression), jamais montree au client.
+ * DOCUMENT_CREATED : l'etiquette (PDF) est prete. On la telecharge (l'URL
+ * Boxtal est signee et EXPIRE) et on la re-heberge dans notre propre stockage
+ * -- boxtal_label_url pointe desormais vers une URL permanente, a l'usage de
+ * Hedi (impression), jamais montree au client. Ce travail est differe via
+ * after() (voir plus bas) : la reponse HTTP a Boxtal part sans l'attendre.
  *
  * TRACKING_CHANGED : le numero de suivi existe (ou son statut a change). On ne
  * l'avait pas a la creation de l'etiquette (Boxtal le genere de facon
@@ -68,27 +69,37 @@ export async function POST(req: Request) {
 
   if (evenement.type === 'DOCUMENT_CREATED') {
     const etiquette = evenement.documents.find((d) => d.type === 'LABEL')
-    if (!etiquette?.url) return NextResponse.json({ received: true })
+    // Telechargement + hebergement differes via after() (2026-11-13, demande
+    // Hedi) : Boxtal attend un accuse de reception rapide, or le telechargement
+    // du PDF + l'upload Supabase Storage n'ont aucune limite de temps propre et
+    // pouvaient depasser 2s selon le reseau. La reponse HTTP part donc AVANT ce
+    // travail -- after() continue de s'executer meme si la reponse est deja
+    // envoyee (supporte sur Vercel via waitUntil). Idempotence inchangee :
+    // l'upload reste upsert:true, le update reste rejouable sans effet de bord.
+    if (etiquette?.url) {
+      const urlEtiquette = etiquette.url
+      const orderId = order.id
+      after(async () => {
+        try {
+          const reponsePdf = await fetch(urlEtiquette)
+          if (!reponsePdf.ok) throw new Error(`telechargement etiquette -> ${reponsePdf.status}`)
+          const pdf = await reponsePdf.arrayBuffer()
 
-    try {
-      const reponsePdf = await fetch(etiquette.url)
-      if (!reponsePdf.ok) throw new Error(`telechargement etiquette -> ${reponsePdf.status}`)
-      const pdf = await reponsePdf.arrayBuffer()
+          const chemin = `labels/${orderId}.pdf`
+          const { error: uploadErr } = await supabaseAdmin.storage
+            .from('products')
+            .upload(chemin, pdf, { contentType: 'application/pdf', upsert: true })
+          if (uploadErr) throw new Error(uploadErr.message)
 
-      const chemin = `labels/${order.id}.pdf`
-      const { error: uploadErr } = await supabaseAdmin.storage
-        .from('products')
-        .upload(chemin, pdf, { contentType: 'application/pdf', upsert: true })
-      if (uploadErr) throw new Error(uploadErr.message)
-
-      const { data: urlData } = supabaseAdmin.storage.from('products').getPublicUrl(chemin)
-      await supabaseAdmin.from('orders').update({ boxtal_label_url: urlData.publicUrl }).eq('id', order.id)
-    } catch (e) {
-      // L'etiquette reste recuperable manuellement depuis le tableau de bord
-      // Boxtal -- on journalise plutot que de faire echouer l'accuse de
-      // reception (un 500 ferait retenter Boxtal sur un probleme qui ne se
-      // resoudra pas tout seul si c'est notre stockage qui est en cause).
-      console.error('[webhook boxtal] etiquette non recuperee pour la commande', order.id, ':', e instanceof Error ? e.message : String(e))
+          const { data: urlData } = supabaseAdmin.storage.from('products').getPublicUrl(chemin)
+          await supabaseAdmin.from('orders').update({ boxtal_label_url: urlData.publicUrl }).eq('id', orderId)
+        } catch (e) {
+          // L'etiquette reste recuperable manuellement depuis le tableau de bord
+          // Boxtal -- on journalise plutot que de faire planter ce travail
+          // differe (plus personne n'attend sa reponse HTTP a ce stade).
+          console.error('[webhook boxtal] etiquette non recuperee pour la commande', orderId, ':', e instanceof Error ? e.message : String(e))
+        }
+      })
     }
   }
 

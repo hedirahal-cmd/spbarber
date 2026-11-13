@@ -51,6 +51,16 @@ function verifie(nom: string, condition: boolean, detail?: string) {
   else { ko++; console.log('  ECHEC ' + nom + (detail ? '\n        ' + detail : '')) }
 }
 
+/** Attend qu'une condition devienne vraie -- necessaire pour le travail differe via after() (voir route du webhook Boxtal), qui continue apres la reponse HTTP. */
+async function attendreQue(condition: () => boolean, delaiMaxMs = 3000, intervalleMs = 50): Promise<boolean> {
+  const debut = Date.now()
+  while (Date.now() - debut < delaiMaxMs) {
+    if (condition()) return true
+    await new Promise((r) => setTimeout(r, intervalleMs))
+  }
+  return condition()
+}
+
 // ───── Faux Supabase (PostgREST + Storage) ─────
 type OrderRow = Record<string, unknown>
 let orders: Record<string, OrderRow> = {}
@@ -378,16 +388,31 @@ async function main() {
   verifie('=> 200', i === 200, 'obtenu ' + i)
   verifie('tracking_number enregistré', orders['cmd-8'].tracking_number === 'XX987654321FR')
 
-  console.log('\n--- J. Webhook Boxtal : DOCUMENT_CREATED => étiquette téléchargée et ré-hébergée ---')
+  console.log('\n--- J. Webhook Boxtal : DOCUMENT_CREATED => réponse immédiate, étiquette téléchargée/ré-hébergée en différé (after()) ---')
   orders = { 'cmd-9': { ...commandeDeBase(), id: 'cmd-9', boxtal_order_id: 'bxt_test_123' } }
+  const debutJ = Date.now()
   const j = await envoyerWebhookBoxtal({
     id: 'evt3',
     type: 'DOCUMENT_CREATED',
     shippingOrderId: 'bxt_test_123',
     payload: { documents: [{ type: 'LABEL', format: 'PDF', url: `http://127.0.0.1:${portBoxtal}/fake-label.pdf` }] },
   })
+  const dureeJ = Date.now() - debutJ
   verifie('=> 200', j === 200, 'obtenu ' + j)
-  verifie('boxtal_label_url renseigné (URL permanente, pas celle -- signée -- de Boxtal)', typeof orders['cmd-9'].boxtal_label_url === 'string' && !String(orders['cmd-9'].boxtal_label_url).includes('fake-label.pdf'), JSON.stringify(orders['cmd-9'].boxtal_label_url))
+  verifie('réponse en moins de 2 secondes (exigence Boxtal -- le téléchargement/upload est différé)', dureeJ < 2000, dureeJ + 'ms')
+  const aRecuEtiquette = await attendreQue(() => typeof orders['cmd-9'].boxtal_label_url === 'string')
+  verifie('boxtal_label_url renseigné en différé (URL permanente, pas celle -- signée -- de Boxtal)', aRecuEtiquette && !String(orders['cmd-9'].boxtal_label_url).includes('fake-label.pdf'), JSON.stringify(orders['cmd-9'].boxtal_label_url))
+
+  console.log('\n--- J2. Webhook Boxtal : DOCUMENT_CREATED rejoué (retry Boxtal) => idempotent, aucune corruption ---')
+  const j2 = await envoyerWebhookBoxtal({
+    id: 'evt3-retry',
+    type: 'DOCUMENT_CREATED',
+    shippingOrderId: 'bxt_test_123',
+    payload: { documents: [{ type: 'LABEL', format: 'PDF', url: `http://127.0.0.1:${portBoxtal}/fake-label.pdf` }] },
+  })
+  verifie('=> 200 (rejeu accepté sans erreur)', j2 === 200, 'obtenu ' + j2)
+  await attendreQue(() => typeof orders['cmd-9'].boxtal_label_url === 'string')
+  verifie('boxtal_label_url toujours correct après rejeu', typeof orders['cmd-9'].boxtal_label_url === 'string' && !String(orders['cmd-9'].boxtal_label_url).includes('fake-label.pdf'), JSON.stringify(orders['cmd-9'].boxtal_label_url))
 
   console.log('\n--- K. Checkout classique : téléphone + prénom/nom (custom_fields) jusque dans la commande enregistrée ---')
   recu.length = 0
