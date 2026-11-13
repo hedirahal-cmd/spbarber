@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { problemeConfigurationStripe, stripe } from '@/lib/stripe'
 import { CartValidationError, resolveCartItems } from '@/lib/pricing'
 import { imagesPourVariante } from '@/lib/products'
+import { PAYS_LIVRABLES } from '@/lib/shipping-countries'
 
 function getBaseUrl(): string {
   if (process.env.VERCEL_PROJECT_PRODUCTION_URL) return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
@@ -108,7 +109,7 @@ export async function POST(req: NextRequest) {
       success_url: `${base}/commande-confirmee?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${base}/cart`,
       locale: 'fr',
-      shipping_address_collection: { allowed_countries: ['FR', 'BE', 'CH', 'LU'] },
+      shipping_address_collection: { allowed_countries: PAYS_LIVRABLES },
       // Telephone + prenom/nom separes (2026-10-21, chantier Boxtal) : Boxtal
       // exige les deux pour generer une etiquette, et un decoupage automatise
       // d'un nom complet est fragile (noms composes, particules...). Stripe

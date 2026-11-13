@@ -5,7 +5,8 @@ import { useCart } from '@/hooks/useCart'
 import { formatPrice } from '@/lib/utils'
 import { getSessionId } from '@/lib/session'
 import { imagesPourVariante } from '@/lib/products'
-import { Trash2, Plus, Minus, Lock } from 'lucide-react'
+import { Trash2, Plus, Minus, Lock, MapPin } from 'lucide-react'
+import { MENTION_ZONE_LIVRABLE } from '@/lib/shipping-countries'
 
 export default function CartPage() {
   const { items, removeItem, updateQuantity, total } = useCart()
@@ -125,7 +126,11 @@ export default function CartPage() {
 
         {/* Récapitulatif */}
         <div className="cart-summary" style={{ padding: 24, background: 'var(--g)', border: '1px solid var(--gm)' }}>
-          <h2 style={{ fontFamily: 'var(--fs)', fontSize: 20, color: 'var(--b)', marginBottom: 24 }}>Récapitulatif</h2>
+          <h2 style={{ fontFamily: 'var(--fs)', fontSize: 20, color: 'var(--b)', marginBottom: 16 }}>Récapitulatif</h2>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: 12, color: 'var(--b)', marginBottom: 24, padding: '10px 12px', background: 'var(--gm)', border: '1px solid var(--gold)', borderRadius: 2 }}>
+            <MapPin size={14} style={{ flexShrink: 0, marginTop: 1, color: 'var(--gold)' }} />
+            <span>{MENTION_ZONE_LIVRABLE}</span>
+          </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontSize: 13, color: 'var(--gt)' }}>
             <span>Sous-total</span>
             <span style={{ color: 'var(--b)' }}>{formatPrice(cartTotal)}</span>

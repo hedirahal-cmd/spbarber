@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { getStripeClient } from '@/lib/stripe-client'
 import { diviserNomComplet } from '@/lib/noms'
+import { PAYS_LIVRABLES } from '@/lib/shipping-countries'
 import type {
   PaymentRequestPaymentMethodEvent,
   PaymentRequestShippingAddressEvent,
@@ -10,13 +11,6 @@ import type {
 } from '@stripe/stripe-js'
 
 const FRAIS_PORT = 590
-
-// Memes pays que le Checkout classique (src/app/api/stripe/checkout/route.ts,
-// shipping_address_collection.allowed_countries) -- a garder en sync. Dupliquee
-// ici plutot qu importee : cette liste doit vivre cote NAVIGATEUR (verification
-// faite dans l evenement shippingaddresschange, avant meme d appeler le serveur),
-// la aussi le seul fichier qui la partagerait reellement serait celui-ci.
-const PAYS_LIVRABLES = ['FR', 'BE', 'CH', 'LU']
 
 /**
  * Bouton de paiement express (Apple Pay / Google Pay) sur la fiche produit --
@@ -99,7 +93,7 @@ export function ExpressCheckoutButton({
       // livraison, a un tarif qui ne correspond a aucune offre reelle.
       paymentRequest.on('shippingaddresschange', (ev: PaymentRequestShippingAddressEvent) => {
         const pays = ev.shippingAddress.country
-        if (!pays || !PAYS_LIVRABLES.includes(pays)) {
+        if (!pays || !(PAYS_LIVRABLES as string[]).includes(pays)) {
           ev.updateWith({ status: 'invalid_shipping_address' })
           return
         }
@@ -136,7 +130,7 @@ export function ExpressCheckoutButton({
           // contrairement au Checkout classique (custom_fields dedies). Voir
           // le commentaire de diviserNomComplet pour la limite connue.
           const { prenom, nom } = diviserNomComplet(addr?.recipient || ev.payerName || 'Client SP Barber')
-          await fetch('/api/stripe/payment-intent', {
+          const maj = await fetch('/api/stripe/payment-intent', {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -159,6 +153,16 @@ export function ExpressCheckoutButton({
                 : undefined,
             }),
           })
+          // DOM-TOM (chantier 2026-10-21) : le serveur refuse ici, AVANT toute
+          // confirmation de paiement -- voir le controle dans le PATCH de
+          // /api/stripe/payment-intent. Sans cette verification du resultat,
+          // le paiement se confirmait quand meme (reponse ignoree jusqu'ici).
+          if (!maj.ok) {
+            const d = await maj.json().catch(() => ({}))
+            ev.complete('fail')
+            setErreur(d.error || 'Cette adresse de livraison n\'est pas prise en charge.')
+            return
+          }
 
           const { paymentIntent, error: erreurConfirm } = await stripe.confirmCardPayment(
             donnees.clientSecret,

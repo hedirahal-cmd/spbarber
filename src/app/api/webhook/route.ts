@@ -6,6 +6,8 @@ import { Resend } from 'resend'
 import { MODE_STRIPE, stripe } from '@/lib/stripe'
 import { EXPEDITEUR_EMAIL } from '@/lib/email'
 import { PRODUCTS } from '@/lib/products'
+import { estDomTom } from '@/lib/geo-france'
+import { nomsArticles, type ArticleAffiche, type LigneCommande } from '@/lib/shipping-email'
 
 export const runtime = 'nodejs'
 
@@ -130,6 +132,125 @@ async function alerterStockInsuffisant(
 }
 
 /**
+ * DOM-TOM (2026-10-21, decision Hedi) : derniere ligne de defense serveur --
+ * Boxtal n'a aucune offre vers ces destinations (verifie reellement sur la
+ * Martinique, voir estDomTom). Le flux express est deja bloque plus tot (PATCH
+ * de /api/stripe/payment-intent, AVANT la confirmation de paiement) ; le
+ * Checkout classique n'a pas d'equivalent cote Stripe -- l'adresse n'existe
+ * qu'APRES la creation de la session, saisie sur la page hebergee Stripe, sans
+ * webhook d'adresse pour la valider en cours de route. Ce point-ci, juste
+ * apres l'encaissement, est donc le plus tot possible pour ce flux : on
+ * rembourse immediatement, on n'enregistre jamais la commande, on alerte Hedi.
+ */
+/**
+ * E-mail CLIENT explicatif (2026-10-21, decision Hedi) -- en plus de l'alerte
+ * interne ci-dessous. Le client doit comprendre pourquoi il est rembourse,
+ * pas seulement voir un remboursement sans explication sur son releve.
+ */
+function emailRemboursementDomTomHtml(montant: number): string {
+  return `<!DOCTYPE html>
+<html lang="fr">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#0c0c0c;font-family:system-ui,-apple-system,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#0c0c0c;padding:40px 0;">
+    <tr><td align="center">
+      <table width="560" cellpadding="0" cellspacing="0" style="background:#1a1a1a;border-radius:8px;overflow:hidden;max-width:560px;width:100%;">
+        <tr>
+          <td style="background:#0c0c0c;padding:28px 40px;border-bottom:1px solid #2a2a2a;text-align:center;">
+            <span style="font-family:Georgia,serif;font-size:22px;letter-spacing:6px;color:#f8f6f3;">
+              SP<span style="color:#b8903a;">.</span>BARBER
+            </span>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:36px 40px;">
+            <h1 style="color:#f8f6f3;font-size:20px;font-weight:600;margin:0 0 8px;">Votre commande a été remboursée</h1>
+            <p style="color:#9a9590;font-size:14px;line-height:1.6;margin:0 0 20px;">
+              Bonjour, nous livrons actuellement uniquement en France métropolitaine (Corse incluse).
+              L&rsquo;adresse de livraison indiquée pour votre commande se trouve en dehors de cette zone —
+              nous ne pouvons malheureusement pas l&rsquo;expédier.
+            </p>
+            <div style="background:#0c0c0c;border:1px solid #2a2a2a;border-radius:6px;padding:20px 24px;margin-bottom:28px;">
+              <div style="font-size:11px;color:#9a9590;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;">Montant remboursé</div>
+              <div style="font-size:22px;font-weight:700;color:#b8903a;">${(montant / 100).toFixed(2).replace('.', ',')} €</div>
+            </div>
+            <p style="color:#9a9590;font-size:13px;line-height:1.6;margin:0 0 8px;">
+              L&rsquo;intégralité du montant vous a été remboursée automatiquement. Le remboursement apparaîtra sur votre compte sous quelques jours ouvrés, selon votre banque.
+            </p>
+            <p style="color:#9a9590;font-size:13px;line-height:1.6;margin:0;">
+              Si vous pensez qu&rsquo;il s&rsquo;agit d&rsquo;une erreur, répondez simplement à cet e-mail ou écrivez-nous à contact@spbarber.fr.
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:20px 40px;border-top:1px solid #2a2a2a;text-align:center;">
+            <span style="color:#4a4a4a;font-size:12px;">SP Barber Shop — Fougères &amp; Ernée</span>
+          </td>
+        </tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`
+}
+
+async function envoyerEmailClientDomTom(email: string, montant: number): Promise<void> {
+  const apiKey = process.env.RESEND_API_KEY
+  if (!apiKey || !email) return
+  try {
+    const resend = new Resend(apiKey)
+    await resend.emails.send({
+      from: EXPEDITEUR_EMAIL,
+      to: [email],
+      subject: 'Votre commande SP Barber — remboursement intégral',
+      html: emailRemboursementDomTomHtml(montant),
+    })
+  } catch (e) {
+    console.error('[webhook] e-mail client DOM-TOM non envoyé:', e)
+  }
+}
+
+async function remboursementSiDomTom(
+  paymentIntentId: string | null,
+  shipping: AdresseLivraison,
+  reference: string,
+  montant: number,
+  email: string,
+): Promise<boolean> {
+  const codePostal = shipping?.address?.postal_code
+  if (!codePostal || !estDomTom(codePostal)) return false
+
+  console.error('[webhook] adresse DOM-TOM detectee apres paiement, remboursement :', reference, codePostal)
+
+  if (paymentIntentId) {
+    try {
+      await stripe.refunds.create({ payment_intent: paymentIntentId })
+    } catch (e) {
+      console.error('[webhook] remboursement DOM-TOM impossible:', e instanceof Error ? e.message : String(e))
+    }
+  }
+
+  await envoyerAlerteOperationnelle(
+    'Commande DOM-TOM remboursée automatiquement',
+    'Une adresse DOM-TOM a été saisie au paiement — Boxtal ne peut livrer aucun transporteur ' +
+      'vers ces destinations (vérifié sur la Martinique). Le paiement a été remboursé ' +
+      'automatiquement, aucune commande n&rsquo;a été enregistrée. Le client a reçu un e-mail ' +
+      'explicatif séparé.',
+    [
+      ['Référence', reference],
+      ['Payment intent', paymentIntentId ?? '(aucun)'],
+      ['Code postal', codePostal],
+      ['Montant', (montant / 100).toFixed(2) + ' EUR'],
+      ['Client', email || '(inconnu)'],
+      ['Horodatage', new Date().toISOString()],
+    ],
+    'commande DOM-TOM remboursée, référence ' + reference,
+  )
+  await envoyerEmailClientDomTom(email, montant)
+  return true
+}
+
+/**
  * phone/prenom/nom (2026-10-21, chantier Boxtal) : jamais lus par
  * enregistrerCommande lui-meme, simplement portes dans shipping_address --
  * seule la route de creation d'etiquette (/api/admin/boxtal/create-label) les
@@ -150,6 +271,116 @@ type AdresseLivraison = {
 function champPersonnalise(session: Stripe.Checkout.Session, cle: string): string | null {
   const champ = session.custom_fields?.find((c) => c.key === cle)
   return champ?.text?.value ?? null
+}
+
+/**
+ * E-mail "Nouvelle commande" a l'equipe (2026-11-11, decision Hedi) --
+ * separe d'ALERT_EMAIL (qui reste reserve aux pannes, voir plus haut) :
+ * NOTIF_EQUIPE_EMAIL peut contenir plusieurs adresses separees par une
+ * virgule (ex. Pablo ET Sofiane). Best-effort comme toutes les notifications
+ * de ce fichier : ne bloque jamais, ne fait jamais echouer l'enregistrement
+ * de la commande.
+ */
+function notificationEquipeHtml(orderId: string, email: string, montant: number, adresse: AdresseLivraison, articles: ArticleAffiche[]): string {
+  const blocAdresse = adresse
+    ? [
+        adresse.name,
+        adresse.address?.line1,
+        adresse.address?.line2,
+        [adresse.address?.postal_code, adresse.address?.city].filter(Boolean).join(' '),
+        adresse.address?.country,
+        adresse.phone ? `Tél : ${adresse.phone}` : null,
+      ].filter((l): l is string => !!l && l.trim().length > 0).map(echapper).join('<br>')
+    : 'Adresse non renseignée'
+
+  const listeArticles = articles.length
+    ? `<table width="100%" cellpadding="0" cellspacing="0">
+        ${articles
+          .map(
+            (a, i) => `<tr>
+              <td style="font-size:15px;color:#f8f6f3;font-weight:500;padding:8px 0;${i < articles.length - 1 ? 'border-bottom:1px solid #2a2a2a;' : ''}">${echapper(a.nom)}</td>
+              <td align="right" style="font-size:13px;color:#9a9590;white-space:nowrap;padding:8px 0;${i < articles.length - 1 ? 'border-bottom:1px solid #2a2a2a;' : ''}">× ${a.qty}</td>
+            </tr>`,
+          )
+          .join('')}
+      </table>`
+    : '<p style="color:#9a9590;font-size:13px;">Aucun article (format inattendu).</p>'
+
+  return `<!DOCTYPE html>
+<html lang="fr">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#0c0c0c;font-family:system-ui,-apple-system,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#0c0c0c;padding:40px 0;">
+    <tr><td align="center">
+      <table width="560" cellpadding="0" cellspacing="0" style="background:#1a1a1a;border-radius:8px;overflow:hidden;max-width:560px;width:100%;">
+        <tr>
+          <td style="background:#0c0c0c;padding:28px 40px;border-bottom:1px solid #2a2a2a;text-align:center;">
+            <span style="font-family:Georgia,serif;font-size:22px;letter-spacing:6px;color:#f8f6f3;">
+              SP<span style="color:#b8903a;">.</span>BARBER
+            </span>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:36px 40px;">
+            <h1 style="color:#f8f6f3;font-size:20px;font-weight:600;margin:0 0 8px;">Nouvelle commande reçue</h1>
+            <p style="color:#9a9590;font-size:14px;line-height:1.6;margin:0 0 20px;">
+              Commande <strong style="color:#f8f6f3;">#${echapper(orderId.slice(0, 8))}</strong> — payée par ${echapper(email || '(e-mail inconnu)')}. À préparer.
+            </p>
+            <div style="background:#0c0c0c;border:1px solid #2a2a2a;border-radius:6px;padding:16px 20px;margin-bottom:20px;">
+              <div style="font-size:11px;color:#9a9590;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;">Articles commandés</div>
+              ${listeArticles}
+            </div>
+            <div style="background:#0c0c0c;border:1px solid #2a2a2a;border-radius:6px;padding:16px 20px;margin-bottom:20px;">
+              <div style="font-size:11px;color:#9a9590;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;">Adresse de livraison</div>
+              <div style="font-size:14px;color:#f8f6f3;line-height:1.6;">${blocAdresse}</div>
+            </div>
+            <div style="background:#0c0c0c;border:1px solid #2a2a2a;border-radius:6px;padding:20px 24px;">
+              <div style="font-size:11px;color:#9a9590;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;">Montant</div>
+              <div style="font-size:22px;font-weight:700;color:#b8903a;">${(montant / 100).toFixed(2).replace('.', ',')} €</div>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:20px 40px;border-top:1px solid #2a2a2a;text-align:center;">
+            <span style="color:#4a4a4a;font-size:12px;">SP Barber Shop — Fougères &amp; Ernée</span>
+          </td>
+        </tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`
+}
+
+async function envoyerNotificationEquipe(
+  orderId: string,
+  email: string,
+  montant: number,
+  adresse: AdresseLivraison,
+  items: LigneCommande[],
+): Promise<void> {
+  const apiKey = process.env.RESEND_API_KEY
+  const destinataires = (process.env.NOTIF_EQUIPE_EMAIL ?? '')
+    .split(',')
+    .map((a) => a.trim())
+    .filter(Boolean)
+
+  if (!destinataires.length || !apiKey) {
+    console.error('[webhook] notification equipe NON ENVOYEE (NOTIF_EQUIPE_EMAIL ou RESEND_API_KEY absent)')
+    return
+  }
+
+  try {
+    const resend = new Resend(apiKey)
+    await resend.emails.send({
+      from: EXPEDITEUR_EMAIL,
+      to: destinataires,
+      subject: `Nouvelle commande — ${(montant / 100).toFixed(2).replace('.', ',')} € — #${orderId.slice(0, 8)}`,
+      html: notificationEquipeHtml(orderId, email, montant, adresse, nomsArticles(items)),
+    })
+  } catch (e) {
+    console.error('[webhook] notification equipe non envoyee:', e)
+  }
 }
 
 /**
@@ -179,15 +410,19 @@ async function enregistrerCommande(params: {
     console.warn('[webhook] evenement sans payment_intent, doublon possible:', params.reference)
   }
 
-  const { error } = await supabaseAdmin.from('orders').insert({
-    email: params.email,
-    items: parsedItems,
-    total: params.total,
-    status: 'paid',
-    stripe_payment_intent_id: params.paymentIntentId,
-    shipping_address: params.shippingAddress,
-    created_at: new Date().toISOString(),
-  })
+  const { data: inserted, error } = await supabaseAdmin
+    .from('orders')
+    .insert({
+      email: params.email,
+      items: parsedItems,
+      total: params.total,
+      status: 'paid',
+      stripe_payment_intent_id: params.paymentIntentId,
+      shipping_address: params.shippingAddress,
+      created_at: new Date().toISOString(),
+    })
+    .select('id')
+    .single()
 
   const ctx: ContexteAlerte = {
     reference: params.reference,
@@ -253,6 +488,9 @@ async function enregistrerCommande(params: {
     }
   }
 
+  const orderId = typeof inserted?.id === 'string' ? inserted.id : params.reference
+  await envoyerNotificationEquipe(orderId, params.email, params.total, params.shippingAddress, parsedItems as LigneCommande[])
+
   return NextResponse.json({ received: true })
 }
 
@@ -310,6 +548,15 @@ export async function POST(req: Request) {
         ? { name: session.customer_details.name ?? null, address: session.customer_details.address, phone: telephone, prenom, nom }
         : null
 
+    const rembourse = await remboursementSiDomTom(
+      idPaiement(session),
+      shipping,
+      session.id,
+      session.amount_total ?? 0,
+      session.customer_details?.email ?? '',
+    )
+    if (rembourse) return NextResponse.json({ received: true, refunded: 'dom-tom' })
+
     return await enregistrerCommande({
       email: session.customer_details?.email ?? '',
       rawItems: session.metadata?.items ?? '[]',
@@ -332,20 +579,34 @@ export async function POST(req: Request) {
       return NextResponse.json({ received: true, ignored: true })
     }
 
+    const shippingExpress = paymentIntent.shipping
+      ? {
+          name: paymentIntent.shipping.name,
+          address: paymentIntent.shipping.address,
+          phone: paymentIntent.metadata?.phone ?? null,
+          prenom: paymentIntent.metadata?.firstName ?? null,
+          nom: paymentIntent.metadata?.lastName ?? null,
+        }
+      : null
+
+    // Filet de securite seulement -- le PATCH de /api/stripe/payment-intent
+    // bloque deja ce cas AVANT la confirmation de paiement. Ce point-ci ne
+    // couvre qu'un contournement du PATCH (appel direct a confirmCardPayment).
+    const rembourseExpress = await remboursementSiDomTom(
+      paymentIntent.id,
+      shippingExpress,
+      paymentIntent.id,
+      paymentIntent.amount,
+      paymentIntent.receipt_email ?? '',
+    )
+    if (rembourseExpress) return NextResponse.json({ received: true, refunded: 'dom-tom' })
+
     return await enregistrerCommande({
       email: paymentIntent.receipt_email ?? '',
       rawItems: paymentIntent.metadata?.items ?? '[]',
       total: paymentIntent.amount,
       paymentIntentId: paymentIntent.id,
-      shippingAddress: paymentIntent.shipping
-        ? {
-            name: paymentIntent.shipping.name,
-            address: paymentIntent.shipping.address,
-            phone: paymentIntent.metadata?.phone ?? null,
-            prenom: paymentIntent.metadata?.firstName ?? null,
-            nom: paymentIntent.metadata?.lastName ?? null,
-          }
-        : null,
+      shippingAddress: shippingExpress,
       reference: paymentIntent.id,
     })
   }

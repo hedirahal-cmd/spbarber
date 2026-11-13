@@ -2801,6 +2801,17 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
 .chk-input:focus { border-color: var(--gold); }
 .chk-input::placeholder { color: var(--gt); }
 /* Trust */
+/* Zone de livraison (2026-10-21, decision Hedi) : France uniquement au
+   lancement -- mention visible AVANT paiement, pas une mention discrete
+   parmi les garanties ci-dessous. */
+.chk-zone-notice {
+  display: flex; align-items: flex-start; gap: 8px;
+  font-size: 12px; color: var(--b); font-family: var(--fb);
+  padding: 10px 12px; margin-bottom: 18px;
+  background: var(--gm); border: 1px solid var(--gold); border-radius: 2px;
+}
+.chk-zone-notice svg { flex-shrink: 0; margin-top: 1px; color: var(--gold); }
+
 .chk-trust {
   display: flex; flex-wrap: wrap; gap: 8px;
   margin-bottom: 18px;

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { problemeConfigurationStripe, stripe } from '@/lib/stripe'
 import { CartValidationError, resolveCartItems } from '@/lib/pricing'
+import { estDomTom } from '@/lib/geo-france'
 
 // Paiement express (Apple Pay / Google Pay) depuis la fiche produit -- chemin
 // VOLONTAIREMENT independant du panier (decision Hedi, 2026-10-01) : toujours
@@ -125,6 +126,18 @@ export async function PATCH(req: NextRequest) {
 
     if (typeof paymentIntentId !== 'string' || !paymentIntentId.startsWith('pi_')) {
       return NextResponse.json({ error: 'Paiement invalide.' }, { status: 400 })
+    }
+
+    // DOM-TOM (2026-10-21, decision Hedi) : refuse ICI, avant toute
+    // confirmation de paiement cote navigateur -- le seul point du flux
+    // express ou l'adresse complete (donc le code postal) est connue avant
+    // que stripe.confirmCardPayment() soit appele. Monaco (98000) n'est PAS
+    // concerne, voir estDomTom.
+    if (shipping?.address?.postal_code && estDomTom(shipping.address.postal_code)) {
+      return NextResponse.json(
+        { error: 'La livraison n’est pas disponible pour cette adresse (DOM-TOM) — contactez-nous pour une solution adaptée.' },
+        { status: 400 },
+      )
     }
 
     await stripe.paymentIntents.update(paymentIntentId, {

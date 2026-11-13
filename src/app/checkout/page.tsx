@@ -4,12 +4,13 @@ import { useState } from 'react'
 import { getSessionId } from '@/lib/session'
 import Link from 'next/link'
 import {
-  Lock, Truck, RotateCcw, ArrowLeft,
+  Lock, Truck, RotateCcw, ArrowLeft, MapPin,
   Scissors, Droplets, User, Zap, Sparkles, Cog,
 } from 'lucide-react'
 import { PaymentLogos } from '@/components/PaymentLogos'
 import { formatPrice } from '@/lib/utils'
 import { imagesPourVariante } from '@/lib/products'
+import { MENTION_ZONE_LIVRABLE } from '@/lib/shipping-countries'
 
 function euros(cents: number) {
   return (cents / 100).toFixed(2).replace('.', ',') + ' €'
@@ -204,6 +205,12 @@ export default function CheckoutPage() {
             />
           </div>
 
+          {/* Zone de livraison (France uniquement au lancement) */}
+          <div className="chk-zone-notice">
+            <MapPin size={14} strokeWidth={2} />
+            <span>{MENTION_ZONE_LIVRABLE}</span>
+          </div>
+
           {/* Garanties */}
           <div className="chk-trust">
             <div className="chk-trust-item">
@@ -213,7 +220,7 @@ export default function CheckoutPage() {
               <Truck size={12} strokeWidth={2} /> Colissimo 3-5 jours ouvrés
             </div>
             <div className="chk-trust-item">
-              <RotateCcw size={12} strokeWidth={2} /> Retours 30 jours
+              <RotateCcw size={12} strokeWidth={2} /> Retours 14 jours
             </div>
           </div>
 

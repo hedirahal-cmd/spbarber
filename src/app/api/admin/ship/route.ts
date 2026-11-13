@@ -4,6 +4,7 @@ import { Resend } from 'resend'
 import { estAdmin } from '@/lib/admin-auth'
 import { EXPEDITEUR_EMAIL } from '@/lib/email'
 import { type Transporteur, type LigneCommande, lignesDuColis, nomsArticles, shipEmailHtml } from '@/lib/shipping-email'
+import { estCorse } from '@/lib/geo-france'
 
 type Colis = 'standard' | 'tondeuse'
 
@@ -30,10 +31,20 @@ export async function POST(req: NextRequest) {
 
   const { data: order, error: fetchErr } = await supabase
     .from('orders')
-    .select('email, items')
+    .select('email, items, shipping_address')
     .eq('id', id)
     .single()
   if (fetchErr || !order) return NextResponse.json({ error: 'Commande introuvable' }, { status: 404 })
+
+  // Corse (2026-10-20, decision Hedi) : Chronopost y coute environ 4x le
+  // tarif metropole (devis reel) -- jamais autorise, meme par un appel direct
+  // qui contournerait le formulaire admin (voir admin/page.tsx, ou le menu ne
+  // propose meme plus l'option). Colissimo reste le seul choix possible.
+  const sa = (order.shipping_address ?? {}) as Record<string, unknown>
+  const adresseDest = (sa.address ?? {}) as Record<string, unknown>
+  if (carrier === 'chronopost' && estCorse(typeof adresseDest.postal_code === 'string' ? adresseDest.postal_code : null)) {
+    return NextResponse.json({ error: 'Chronopost indisponible en Corse (tarif ×4 environ) — Colissimo uniquement.' }, { status: 400 })
+  }
 
   const items = Array.isArray(order.items) ? (order.items as LigneCommande[]) : []
   const articlesDeCeColis = lignesDuColis(items, colis)

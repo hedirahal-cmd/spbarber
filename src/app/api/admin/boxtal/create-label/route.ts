@@ -4,6 +4,7 @@ import { estAdmin } from '@/lib/admin-auth'
 import { PRODUCTS } from '@/lib/products'
 import { lignesDuColis, type LigneCommande } from '@/lib/shipping-email'
 import { diviserNomComplet } from '@/lib/noms'
+import { estCorse } from '@/lib/geo-france'
 import {
   BOXTAL_EXPEDITEUR_EMAIL,
   BOXTAL_EXPEDITEUR_NOM,
@@ -79,6 +80,12 @@ export async function POST(req: NextRequest) {
   }
   if (!adresse.line1 || !adresse.postal_code || !adresse.city) {
     return NextResponse.json({ error: 'Adresse de livraison incomplète — utilisez le suivi manuel.' }, { status: 400 })
+  }
+  // Corse : meme regle que le suivi manuel (/api/admin/ship) -- Chronopost y
+  // coute environ 4x le tarif metropole (devis reel), jamais autorise ici non
+  // plus, meme par un appel direct qui contournerait le panneau admin.
+  if (transporteur === 'chronopost' && estCorse(typeof adresse.postal_code === 'string' ? adresse.postal_code : null)) {
+    return NextResponse.json({ error: 'Chronopost indisponible en Corse (tarif ×4 environ) — Colissimo uniquement.' }, { status: 400 })
   }
 
   let prenom = typeof sa.prenom === 'string' ? sa.prenom.trim() : ''
