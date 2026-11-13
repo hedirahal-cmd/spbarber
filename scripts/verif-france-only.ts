@@ -10,26 +10,44 @@
  *
  * SECURITE — faux PostgREST local pour Supabase (meme pre-verification que
  * les autres bancs) et faux serveur pour Boxtal (meme principe que
- * verif-boxtal.ts). STRIPE_SECRET_KEY est VOLONTAIREMENT ecrasee par une
- * fausse cle de test ici (contrairement a verif-stock.ts/verif-express-
- * checkout.ts) : ce banc ne depend pas d'un vrai appel Stripe reussi -- le
- * remboursement DOM-TOM est concu pour tolerer un echec de l'appel reel
- * (voir remboursementSiDomTom dans webhook/route.ts), seules les consequences
- * observables (aucune commande enregistree, alerte journalisee) sont
- * verifiees ici.
+ * verif-boxtal.ts). STRIPE_SECRET_KEY n'est PAS ecrasee (meme principe que
+ * le cas F de verif-images.ts) : les cas I/K (remboursement DOM-TOM) restent
+ * valables meme si le vrai appel Stripe echoue (payment_intent factice,
+ * voir remboursementSiDomTom dans webhook/route.ts, qui tolere cet echec),
+ * et le cas O en a besoin pour relire une vraie session.
  *
- * CE QUE CE BANC NE PROUVE PAS : que la Checkout Session Stripe classique
- * cree reellement un formulaire d'adresse limite a la France -- ca a ete
- * verifie a la main contre un vrai build de production (curl sur /faq,
- * /livraison, /cgv, qui n'affichent plus que la France), pas via un appel
- * Stripe reel ici (necessiterait une cle de test valide, ce que ce banc
- * n'a justement pas besoin de supposer).
+ * Cas O (2026-11-13, suite a la demande de confirmation de Hedi) : appelle
+ * REELLEMENT l'API Stripe pour relire la vraie session creee et confirmer
+ * que shipping_address_collection.allowed_countries vaut exactement ['FR'],
+ * jamais ['FR','BE','CH','LU']. Ignore proprement (pas un ECHEC) si
+ * STRIPE_SECRET_KEY est absente de .env.local.
  */
 import http from 'node:http'
 import type { AddressInfo } from 'node:net'
 import { createHmac } from 'node:crypto'
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import Stripe from 'stripe'
 import { demarrerServeur } from './banc-serveur'
+import { PAYS_LIVRABLES } from '../src/lib/shipping-countries'
+
+/**
+ * Next.js charge .env.local pour le SERVEUR qu'il demarre lui-meme (voir
+ * demarrerServeur) -- mais PAS pour ce script orchestrateur. Le cas O a
+ * besoin de la vraie cle ici aussi, pour relire la session Stripe reelle
+ * creee par le serveur. Lecture minimale volontaire (pas de dependance
+ * dotenv) : une seule ligne nous interesse.
+ */
+function lireCleStripeLocale(): string | null {
+  try {
+    const contenu = readFileSync(join(__dirname, '..', '.env.local'), 'utf8')
+    const ligne = contenu.split('\n').find((l) => l.trim().startsWith('STRIPE_SECRET_KEY='))
+    if (!ligne) return null
+    return ligne.split('=').slice(1).join('=').trim().replace(/^['"]|['"]$/g, '') || null
+  } catch {
+    return null
+  }
+}
 
 const PORT_NEXT = 3116
 const ADMIN_SECRET = 'banc_france_only_secret_de_test_1234567890abcdef'
@@ -212,9 +230,8 @@ async function main() {
     ADMIN_SESSION_SECRET: ADMIN_SECRET,
     ALERT_EMAIL: '',
     RESEND_API_KEY: '',
-    // Ecrasee volontairement (voir en-tete) : ce banc ne suppose jamais une
-    // vraie cle de test valide dans .env.local.
-    STRIPE_SECRET_KEY: 'sk_test_banc_france_only_0000000000000000000000000000000000',
+    // STRIPE_SECRET_KEY volontairement PAS ecrasee (voir en-tete) : le cas O
+    // a besoin de la vraie cle de .env.local pour un appel Stripe reel.
     STRIPE_WEBHOOK_SECRET,
     BOXTAL_API_BASE_URL: 'http://127.0.0.1:' + portBoxtal,
     BOXTAL_SANDBOX_ACCESS_KEY: 'test-access',
@@ -288,7 +305,7 @@ async function main() {
 
   console.log('\n--- G. Monaco (98000) : PAS bloqué par le contrôle DOM-TOM ---')
   const g1 = await patchPaymentIntent({ paymentIntentId: 'pi_test_fake', shipping: { name: 'X', address: { line1: '1 rue', city: 'Monaco', postal_code: '98000', country: 'FR' } } })
-  verifie('pas le refus DOM-TOM (une autre erreur -- cle Stripe factice -- est acceptable)', g1.statut !== 400 || !String(g1.corps.error ?? '').includes('DOM-TOM'), 'obtenu ' + g1.statut + ' ' + JSON.stringify(g1.corps))
+  verifie('pas le refus DOM-TOM (une autre erreur -- payment_intent factice inexistant -- est acceptable)', g1.statut !== 400 || !String(g1.corps.error ?? '').includes('DOM-TOM'), 'obtenu ' + g1.statut + ' ' + JSON.stringify(g1.corps))
 
   console.log('\n--- H. France métropolitaine (75001) : PAS bloqué par le contrôle DOM-TOM ---')
   const h1 = await patchPaymentIntent({ paymentIntentId: 'pi_test_fake', shipping: { name: 'X', address: { line1: '1 rue', city: 'Paris', postal_code: '75001', country: 'FR' } } })
@@ -319,6 +336,34 @@ async function main() {
   console.log('\n--- M. Saint-Martin (97150) : bloqué par le contrôle DOM-TOM (ajout 2026-10-21) ---')
   const m1 = await patchPaymentIntent({ paymentIntentId: 'pi_test_fake', shipping: { name: 'X', address: { line1: '1 rue', city: 'Marigot', postal_code: '97150', country: 'FR' } } })
   verifie('=> 400 refus DOM-TOM', m1.statut === 400 && String(m1.corps.error ?? '').includes('DOM-TOM'), 'obtenu ' + m1.statut + ' ' + JSON.stringify(m1.corps))
+
+  console.log('\n--- N. PAYS_LIVRABLES (source unique partagée par le Checkout classique et le paiement express) : France uniquement ---')
+  verifie('PAYS_LIVRABLES = [\'FR\'] exactement (Belgique/Suisse/Luxembourg désactivés)', PAYS_LIVRABLES.length === 1 && PAYS_LIVRABLES[0] === 'FR', JSON.stringify(PAYS_LIVRABLES))
+
+  console.log('\n--- O. Vraie session Stripe (Checkout classique) : la vraie API Stripe confirme allowed_countries = [FR] ---')
+  const cleStripeLocale = lireCleStripeLocale()
+  if (!cleStripeLocale) {
+    console.log('  IGNORÉ : STRIPE_SECRET_KEY absente de .env.local -- impossible de vérifier contre la vraie API Stripe ici.')
+  } else {
+    const rCheckout = await fetch(base() + '/api/stripe/checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ items: [{ product: { id: '2' }, quantity: 1 }] }),
+    })
+    const corpsCheckout = await rCheckout.json().catch(() => ({}))
+    if (rCheckout.status !== 200) console.log('    corps reçu :', JSON.stringify(corpsCheckout))
+    verifie('session Stripe réelle créée (200)', rCheckout.status === 200, 'obtenu ' + rCheckout.status)
+
+    const idSession = String(corpsCheckout.url ?? '').match(/\/pay\/(cs_[a-zA-Z0-9_]+)/)?.[1] ?? null
+    verifie('id de session extrait de l\'URL retournée', !!idSession, JSON.stringify(corpsCheckout.url))
+
+    if (idSession) {
+      const stripeReel = new Stripe(cleStripeLocale, { apiVersion: '2026-05-27.dahlia' })
+      const session = await stripeReel.checkout.sessions.retrieve(idSession)
+      const pays = session.shipping_address_collection?.allowed_countries ?? []
+      verifie('la vraie session Stripe n\'autorise QUE la France (pas BE/CH/LU)', pays.length === 1 && pays[0] === 'FR', JSON.stringify(pays))
+    }
+  }
 
   console.log('\n=======================================')
   console.log('  ' + ok + ' OK, ' + ko + ' ECHEC')
