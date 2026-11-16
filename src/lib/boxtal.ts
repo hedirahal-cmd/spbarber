@@ -74,7 +74,7 @@ if (PROBLEME) {
 }
 
 /** Expediteur fixe (2026-10-21, decision Hedi) : toujours Fougeres, jamais de choix de salon. */
-export const BOXTAL_EXPEDITEUR_EMAIL = 'contact@spbarber.fr'
+export const BOXTAL_EXPEDITEUR_EMAIL = 'spbarbershopexploitation@hotmail.com'
 export const BOXTAL_EXPEDITEUR_NOM = { prenom: 'SP Barber Shop', nom: 'Fougères' }
 
 /**

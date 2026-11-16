@@ -45,7 +45,7 @@ export default async function PolitiqueConfidentialitePage() {
             Le responsable du traitement de vos données personnelles est :<br />
             <strong>SP Barber</strong><br />
             48 Boulevard Jean Jaurès, 35300 Fougères, France<br />
-            E-mail : contact@spbarber.fr
+            E-mail : spbarbershopexploitation@hotmail.com
           </p>
           <p>
             SP Barber s&apos;engage à traiter vos données personnelles dans le respect du Règlement Général sur la Protection des Données (RGPD) n°2016/679 du 27 avril 2016 et de la loi n°78-17 du 6 janvier 1978 modifiée relative à l&apos;informatique, aux fichiers et aux libertés.
@@ -183,7 +183,7 @@ export default async function PolitiqueConfidentialitePage() {
             <li><strong>Droit de définir des directives post-mortem</strong> : définir le sort de vos données après votre décès.</li>
           </ul>
           <p>
-            Pour exercer ces droits, contactez SP Barber par e-mail à <strong>contact@spbarber.fr</strong> en indiquant votre nom, prénom, adresse e-mail et la nature de votre demande. Une réponse vous sera apportée dans un délai maximum de 30 jours.
+            Pour exercer ces droits, contactez SP Barber par e-mail à <strong>spbarbershopexploitation@hotmail.com</strong> en indiquant votre nom, prénom, adresse e-mail et la nature de votre demande. Une réponse vous sera apportée dans un délai maximum de 30 jours.
           </p>
           <p>
             En cas de réponse insatisfaisante, vous avez le droit de déposer une plainte auprès de la <strong>CNIL</strong> (Commission Nationale de l&apos;Informatique et des Libertés), 3 place de Fontenoy, TSA 80715, 75334 Paris Cedex 07 — www.cnil.fr.
@@ -232,7 +232,7 @@ export default async function PolitiqueConfidentialitePage() {
         </section>
 
         <div className="legal-contact">
-          <strong>Contact DPO :</strong> contact@spbarber.fr — SP Barber, 48 Boulevard Jean Jaurès, 35300 Fougères
+          <strong>Contact DPO :</strong> spbarbershopexploitation@hotmail.com — SP Barber, 48 Boulevard Jean Jaurès, 35300 Fougères
         </div>
       </div>
     </div>

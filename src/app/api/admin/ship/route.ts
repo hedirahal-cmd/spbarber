@@ -5,6 +5,7 @@ import { estAdmin } from '@/lib/admin-auth'
 import { EXPEDITEUR_EMAIL } from '@/lib/email'
 import { type Transporteur, type LigneCommande, lignesDuColis, nomsArticles, shipEmailHtml } from '@/lib/shipping-email'
 import { estCorse } from '@/lib/geo-france'
+import { envoyerAlerteOperationnelle } from '@/lib/alerte-operationnelle'
 
 type Colis = 'standard' | 'tondeuse'
 
@@ -65,14 +66,32 @@ export async function POST(req: NextRequest) {
   if (apiKey && order.email) {
     try {
       const resend = new Resend(apiKey)
-      await resend.emails.send({
+      // resend.emails.send() ne rejette jamais sur une erreur API, elle
+      // revient dans { error } sans exception (voir src/lib/alerte-
+      // operationnelle.ts) -- controle explicite indispensable.
+      const { error } = await resend.emails.send({
         from: EXPEDITEUR_EMAIL,
         to: [order.email],
         subject: `Votre commande SP Barber est expédiée — ${tracking_number.trim()}`,
         html: shipEmailHtml(tracking_number.trim(), transporteur, nomsArticles(articlesDeCeColis)),
       })
+      if (error) throw new Error(error.message ?? JSON.stringify(error))
     } catch (e) {
-      console.error('[Resend ship email]', e)
+      const detail = e instanceof Error ? e.message : String(e)
+      console.error('[Resend ship email]', detail)
+      await envoyerAlerteOperationnelle(
+        'E-mail d\'expédition non envoyé',
+        'La commande a bien été marquée expédiée, mais l&rsquo;e-mail "commande expédiée" au client n&rsquo;a pas pu partir.',
+        [
+          ['Commande', String(id)],
+          ['Client', order.email],
+          ['Numéro de suivi', tracking_number.trim()],
+          ['Transporteur', transporteur],
+          ['Erreur', detail],
+          ['Horodatage', new Date().toISOString()],
+        ],
+        'e-mail expédition (manuel) non envoyé, commande ' + id,
+      )
     }
   }
 

@@ -4,7 +4,7 @@ import Link from 'next/link'
 export const metadata: Metadata = {
   title: { absolute: 'Contact SP Barber — Barbier Fougères 35300 | Réponse sous 24h' },
   description:
-    'Contactez SP Barber : contact@spbarber.fr ou visitez notre salon barbier à Fougères (35300). Réponse sous 24h ouvrées, lundi au samedi.',
+    'Contactez SP Barber : spbarbershopexploitation@hotmail.com ou visitez notre salon barbier à Fougères (35300). Réponse sous 24h ouvrées, lundi au samedi.',
   alternates: { canonical: 'https://spbarber.fr/contact' },
   openGraph: {
     title: 'Contact SP Barber — Fougères',
@@ -26,7 +26,7 @@ export default function ContactPage() {
             Pour toute question relative à votre commande, un produit ou un retour, contactez-nous par e-mail :
           </p>
           <p style={{ fontSize: 18, fontWeight: 700, color: '#b8903a' }}>
-            contact@spbarber.fr
+            spbarbershopexploitation@hotmail.com
           </p>
           <p>Nous répondons sous 24h ouvrées, du lundi au samedi.</p>
         </section>
@@ -59,7 +59,7 @@ export default function ContactPage() {
         </section>
 
         <div className="legal-contact">
-          <strong>E-mail :</strong> contact@spbarber.fr &nbsp;·&nbsp; <strong>Adresse :</strong> 48 Bd Jean Jaurès, 35300 Fougères
+          <strong>E-mail :</strong> spbarbershopexploitation@hotmail.com &nbsp;·&nbsp; <strong>Adresse :</strong> 48 Bd Jean Jaurès, 35300 Fougères
         </div>
       </div>
     </div>

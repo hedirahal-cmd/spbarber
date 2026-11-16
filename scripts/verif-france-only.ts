@@ -129,6 +129,28 @@ const fauxBoxtal = http.createServer((req, res) => {
   })
 })
 
+// ───── Faux Resend ─────
+type RequeteResend = { to: string[]; subject: string; html: string }
+let requetesResend: RequeteResend[] = []
+/** Les requetes adressees a une adresse de cette liste echouent (400) -- simule un refus Resend pour UN SEUL destinataire. */
+let adressesEnEchec: string[] = []
+
+const fauxResend = http.createServer((req, res) => {
+  let corps = ''
+  req.on('data', (c) => (corps += c))
+  req.on('end', () => {
+    const payload = JSON.parse(corps || '{}') as RequeteResend
+    requetesResend.push(payload)
+    if (payload.to?.some((t) => adressesEnEchec.includes(t))) {
+      res.writeHead(400, { 'Content-Type': 'application/json' })
+      res.end(JSON.stringify({ name: 'validation_error', message: 'Domaine non vérifié (simulation de banc).' }))
+      return
+    }
+    res.writeHead(200, { 'Content-Type': 'application/json' })
+    res.end(JSON.stringify({ id: 'email-test-' + Math.random().toString(36).slice(2, 10) }))
+  })
+})
+
 const base = () => 'http://127.0.0.1:' + PORT_NEXT
 
 async function shipManuel(body: Record<string, unknown>) {
@@ -219,8 +241,11 @@ async function main() {
   const portSupabase = (fauxSupabase.address() as AddressInfo).port
   await new Promise<void>((r) => fauxBoxtal.listen(0, '127.0.0.1', r))
   const portBoxtal = (fauxBoxtal.address() as AddressInfo).port
+  await new Promise<void>((r) => fauxResend.listen(0, '127.0.0.1', r))
+  const portResend = (fauxResend.address() as AddressInfo).port
   console.log('  faux PostgREST sur 127.0.0.1:' + portSupabase)
   console.log('  faux Boxtal sur 127.0.0.1:' + portBoxtal)
+  console.log('  faux Resend sur 127.0.0.1:' + portResend)
 
   const env = {
     ...process.env,
@@ -228,8 +253,9 @@ async function main() {
     NEXT_PUBLIC_SUPABASE_ANON_KEY: 'anon-factice',
     SUPABASE_SERVICE_ROLE_KEY: 'service-factice',
     ADMIN_SESSION_SECRET: ADMIN_SECRET,
-    ALERT_EMAIL: '',
-    RESEND_API_KEY: '',
+    ALERT_EMAIL: 'alerte@exemple.test',
+    RESEND_API_KEY: 'test-key',
+    RESEND_BASE_URL: 'http://127.0.0.1:' + portResend,
     // STRIPE_SECRET_KEY volontairement PAS ecrasee (voir en-tete) : le cas O
     // a besoin de la vraie cle de .env.local pour un appel Stripe reel.
     STRIPE_WEBHOOK_SECRET,
@@ -245,7 +271,7 @@ async function main() {
   const demarrage = await demarrerServeur({ port: PORT_NEXT, env })
   if (!demarrage.ok) {
     console.log('  ARRET : ' + demarrage.motif)
-    demarrage.arreter(); fauxSupabase.close(); fauxBoxtal.close(); process.exitCode = 1; return
+    demarrage.arreter(); fauxSupabase.close(); fauxBoxtal.close(); fauxResend.close(); process.exitCode = 1; return
   }
   const arreter = demarrage.arreter
 
@@ -254,7 +280,7 @@ async function main() {
   await fetch(base() + '/products').catch(() => {})
   if (!recu.some((r) => r.chemin.includes('product_overrides'))) {
     console.log('  ARRET : le faux PostgREST n a recu aucune requete. Abandon.')
-    arreter(); fauxSupabase.close(); fauxBoxtal.close(); process.exitCode = 1; return
+    arreter(); fauxSupabase.close(); fauxBoxtal.close(); fauxResend.close(); process.exitCode = 1; return
   }
   console.log('  OK    trafic Supabase detourne vers le faux serveur')
 
@@ -279,6 +305,17 @@ async function main() {
   orders = { 'cmd-fo-1': commandeDeBase('20000') }
   const b1 = await shipManuel({ id: 'cmd-fo-1', tracking_number: 'XX2', carrier: 'colissimo' })
   verifie('=> 200', b1.statut === 200, 'obtenu ' + b1.statut + ' ' + JSON.stringify(b1.corps))
+
+  console.log('\n--- B2. E-mail "commande expédiée" (suivi manuel) refusé par Resend ({error}, pas une exception) => alerte déclenchée, statut quand même mis à jour ---')
+  orders = { 'cmd-fo-2': { ...commandeDeBase('75001'), id: 'cmd-fo-2', email: 'client-echec@exemple.test' } }
+  requetesResend = []
+  adressesEnEchec = ['client-echec@exemple.test']
+  const b2 = await shipManuel({ id: 'cmd-fo-2', tracking_number: 'XX2B', carrier: 'colissimo' })
+  verifie('=> 200 (jamais bloqué par un échec d\'e-mail)', b2.statut === 200, 'obtenu ' + b2.statut + ' ' + JSON.stringify(b2.corps))
+  verifie('statut "shipped" quand même enregistré', orders['cmd-fo-2'].status === 'shipped' && orders['cmd-fo-2'].tracking_number === 'XX2B')
+  const alerteExpeditionManuelle = requetesResend.find((r) => r.to?.includes('alerte@exemple.test'))
+  verifie('alerte déclenchée pour l\'e-mail d\'expédition non envoyé', !!alerteExpeditionManuelle, JSON.stringify(requetesResend.map((r) => r.to)))
+  adressesEnEchec = []
 
   console.log('\n--- C. Hors Corse (75001) : Chronopost reste accepte par le suivi manuel ---')
   orders = { 'cmd-fo-1': commandeDeBase('75001') }
@@ -316,6 +353,18 @@ async function main() {
   const i1 = await envoyerWebhookStripe(evenementCheckoutComplete('97200'))
   verifie('=> 200', i1 === 200, 'obtenu ' + i1)
   verifie('aucune insertion dans orders', !recu.some((r) => r.methode === 'POST' && r.chemin.includes('/orders')))
+
+  console.log('\n--- I2. E-mail client DOM-TOM refusé par Resend ({error}, pas une exception) => alerte déclenchée, remboursement/non-enregistrement inchangés ---')
+  recu.length = 0
+  requetesResend = []
+  adressesEnEchec = ['client-fo@exemple.test']
+  const i2 = await envoyerWebhookStripe(evenementCheckoutComplete('97200'))
+  verifie('=> 200 (jamais bloqué par un échec d\'e-mail)', i2 === 200, 'obtenu ' + i2)
+  verifie('toujours aucune insertion dans orders', !recu.some((r) => r.methode === 'POST' && r.chemin.includes('/orders')))
+  const alertesDomTom = requetesResend.filter((r) => r.to?.includes('alerte@exemple.test'))
+  verifie('2 alertes envoyées (événement DOM-TOM + échec de l\'e-mail client, pas une seule)', alertesDomTom.length === 2, JSON.stringify(alertesDomTom.map((r) => r.subject)))
+  verifie('l\'une des deux alertes concerne spécifiquement l\'échec d\'envoi de l\'e-mail client', alertesDomTom.some((r) => /non envoyé/i.test(r.html)), JSON.stringify(alertesDomTom.map((r) => r.subject)))
+  adressesEnEchec = []
 
   console.log('\n--- J. Webhook Checkout classique : adresse normale (75001) => commande enregistrée normalement ---')
   recu.length = 0
@@ -371,6 +420,7 @@ async function main() {
   arreter()
   fauxSupabase.close()
   fauxBoxtal.close()
+  fauxResend.close()
   process.exitCode = ko === 0 ? 0 : 1
 }
 

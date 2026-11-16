@@ -29,7 +29,7 @@ const FAQS = [
       },
       {
         q: 'Puis-je modifier ou annuler ma commande ?',
-        a: 'Contactez-nous dans les 2 heures suivant votre commande à contact@spbarber.fr. Passé ce délai, la commande est déjà en préparation et ne peut plus être modifiée.',
+        a: 'Contactez-nous dans les 2 heures suivant votre commande à spbarbershopexploitation@hotmail.com. Passé ce délai, la commande est déjà en préparation et ne peut plus être modifiée.',
       },
       {
         q: 'Est-ce que je dois créer un compte pour commander ?',
@@ -80,7 +80,7 @@ const FAQS = [
       },
       {
         q: 'J\'ai reçu un produit endommagé. Que faire ?',
-        a: 'Contactez-nous sous 48h à contact@spbarber.fr avec une photo du produit endommagé. Nous vous renvoyons un nouveau produit sans frais.',
+        a: 'Contactez-nous sous 48h à spbarbershopexploitation@hotmail.com avec une photo du produit endommagé. Nous vous renvoyons un nouveau produit sans frais.',
       },
     ],
   },
@@ -115,7 +115,7 @@ export default function FAQPage() {
         ))}
 
         <div className="legal-contact">
-          <strong>Vous ne trouvez pas votre réponse ?</strong> Écrivez-nous : contact@spbarber.fr
+          <strong>Vous ne trouvez pas votre réponse ?</strong> Écrivez-nous : spbarbershopexploitation@hotmail.com
         </div>
       </div>
     </div>

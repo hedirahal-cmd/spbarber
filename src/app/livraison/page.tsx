@@ -61,7 +61,7 @@ export default function LivraisonPage() {
         <section className="legal-section">
           <h2>Colis endommagé ou perdu</h2>
           <p>
-            En cas de colis endommagé à la réception, notez les dommages en présence du livreur et contactez-nous sous 48h à <strong>contact@spbarber.fr</strong>.
+            En cas de colis endommagé à la réception, notez les dommages en présence du livreur et contactez-nous sous 48h à <strong>spbarbershopexploitation@hotmail.com</strong>.
           </p>
           <p>
             En cas de non-livraison après 15 jours ouvrés, contactez-nous : nous ouvrirons une enquête auprès du transporteur et vous proposerons un réenvoi ou un remboursement complet.
@@ -69,7 +69,7 @@ export default function LivraisonPage() {
         </section>
 
         <div className="legal-contact">
-          <strong>Une question sur votre livraison ?</strong> Contactez-nous : contact@spbarber.fr
+          <strong>Une question sur votre livraison ?</strong> Contactez-nous : spbarbershopexploitation@hotmail.com
         </div>
       </div>
     </div>

@@ -8,6 +8,7 @@ import { EXPEDITEUR_EMAIL } from '@/lib/email'
 import { PRODUCTS } from '@/lib/products'
 import { estDomTom } from '@/lib/geo-france'
 import { nomsArticles, type ArticleAffiche, type LigneCommande } from '@/lib/shipping-email'
+import { envoyerAlerteOperationnelle } from '@/lib/alerte-operationnelle'
 
 export const runtime = 'nodejs'
 
@@ -24,49 +25,25 @@ function echapper(v: string): string {
     .replace(/"/g, '&quot;')
 }
 
+/**
+ * Base du lien "Voir ma commande" de la confirmation client -- NEXT_PUBLIC_SITE_URL
+ * EN PRIORITE (2026-11-16, demande Hedi : jamais un domaine *.vercel.app dans un
+ * e-mail client). VERCEL_PROJECT_PRODUCTION_URL seulement en repli si cette
+ * variable manquait ; VERCEL_URL (toujours le domaine de deploiement, y compris
+ * en production) n'est volontairement PAS utilisee ici, a la difference de
+ * /api/stripe/checkout (success_url, un lien de redirection immediate plutot
+ * qu'un lien dans un e-mail -- le risque n'est pas le meme).
+ */
+function getBaseUrl(): string {
+  if (process.env.NEXT_PUBLIC_SITE_URL) return process.env.NEXT_PUBLIC_SITE_URL
+  if (process.env.VERCEL_PROJECT_PRODUCTION_URL) return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+  return 'http://localhost:3000'
+}
+
 function idPaiement(session: Stripe.Checkout.Session): string | null {
   return typeof session.payment_intent === 'string'
     ? session.payment_intent
     : (session.payment_intent as Stripe.PaymentIntent | null)?.id ?? null
-}
-
-/**
- * Envoi d'une alerte operationnelle par e-mail, mecanique partagee par les deux
- * cas ci-dessous.
- *
- * Ne leve jamais et ne bloque jamais l'appelant : une alerte qui casse la route
- * serait pire que pas d'alerte. Si la configuration manque, elle le DIT dans le
- * journal plutot que de se taire -- le silence est precisement le defaut que
- * cette fonction existe pour supprimer.
- */
-async function envoyerAlerteOperationnelle(
-  sujet: string,
-  intro: string,
-  lignes: [string, string][],
-  motifJournal: string,
-): Promise<void> {
-  const destinataire = process.env.ALERT_EMAIL
-  const apiKey = process.env.RESEND_API_KEY
-
-  if (!destinataire || !apiKey) {
-    console.error('[webhook] ALERTE NON ENVOYEE (ALERT_EMAIL ou RESEND_API_KEY absent) —', motifJournal)
-    return
-  }
-
-  const html =
-    '<h2>' + echapper(sujet) + '</h2>' +
-    '<p>' + intro + '</p><table cellpadding="6">' +
-    lignes
-      .map(([cle, valeur]) => '<tr><td><b>' + echapper(cle) + '</b></td><td>' + echapper(valeur) + '</td></tr>')
-      .join('') +
-    '</table>'
-
-  try {
-    const resend = new Resend(apiKey)
-    await resend.emails.send({ from: EXPEDITEUR_EMAIL, to: [destinataire], subject: sujet, html })
-  } catch (e) {
-    console.error('[webhook] envoi de l alerte impossible:', e instanceof Error ? e.message : String(e))
-  }
 }
 
 /** Contexte minimal partage par les deux chemins de paiement (Checkout classique
@@ -178,7 +155,7 @@ function emailRemboursementDomTomHtml(montant: number): string {
               L&rsquo;intégralité du montant vous a été remboursée automatiquement. Le remboursement apparaîtra sur votre compte sous quelques jours ouvrés, selon votre banque.
             </p>
             <p style="color:#9a9590;font-size:13px;line-height:1.6;margin:0;">
-              Si vous pensez qu&rsquo;il s&rsquo;agit d&rsquo;une erreur, répondez simplement à cet e-mail ou écrivez-nous à contact@spbarber.fr.
+              Si vous pensez qu&rsquo;il s&rsquo;agit d&rsquo;une erreur, répondez simplement à cet e-mail ou écrivez-nous à spbarbershopexploitation@hotmail.com.
             </p>
           </td>
         </tr>
@@ -194,19 +171,35 @@ function emailRemboursementDomTomHtml(montant: number): string {
 </html>`
 }
 
-async function envoyerEmailClientDomTom(email: string, montant: number): Promise<void> {
+async function envoyerEmailClientDomTom(email: string, montant: number, reference: string): Promise<void> {
   const apiKey = process.env.RESEND_API_KEY
   if (!apiKey || !email) return
   try {
     const resend = new Resend(apiKey)
-    await resend.emails.send({
+    // Voir le commentaire de envoyerAlerteOperationnelle (src/lib/alerte-
+    // operationnelle.ts) : resend.emails.send() ne rejette jamais sur une
+    // erreur API, elle revient dans { error } sans exception.
+    const { error } = await resend.emails.send({
       from: EXPEDITEUR_EMAIL,
       to: [email],
       subject: 'Votre commande SP Barber — remboursement intégral',
       html: emailRemboursementDomTomHtml(montant),
     })
+    if (error) throw new Error(error.message ?? JSON.stringify(error))
   } catch (e) {
-    console.error('[webhook] e-mail client DOM-TOM non envoyé:', e)
+    const detail = e instanceof Error ? e.message : String(e)
+    console.error('[webhook] e-mail client DOM-TOM non envoyé:', detail)
+    await envoyerAlerteOperationnelle(
+      'E-mail client DOM-TOM non envoyé',
+      'Le remboursement DOM-TOM a bien eu lieu, mais l&rsquo;e-mail explicatif au client n&rsquo;a pas pu partir.',
+      [
+        ['Référence', reference],
+        ['Client', email],
+        ['Erreur', detail],
+        ['Horodatage', new Date().toISOString()],
+      ],
+      'e-mail client DOM-TOM non envoyé, référence ' + reference,
+    )
   }
 }
 
@@ -246,7 +239,7 @@ async function remboursementSiDomTom(
     ],
     'commande DOM-TOM remboursée, référence ' + reference,
   )
-  await envoyerEmailClientDomTom(email, montant)
+  await envoyerEmailClientDomTom(email, montant, reference)
   return true
 }
 
@@ -372,14 +365,193 @@ async function envoyerNotificationEquipe(
 
   try {
     const resend = new Resend(apiKey)
-    await resend.emails.send({
+    // Voir le commentaire de envoyerAlerteOperationnelle (src/lib/alerte-
+    // operationnelle.ts) : resend.emails.send() ne rejette jamais sur une
+    // erreur API, elle revient dans { error } sans exception.
+    const { error } = await resend.emails.send({
       from: EXPEDITEUR_EMAIL,
       to: destinataires,
       subject: `Nouvelle commande — ${(montant / 100).toFixed(2).replace('.', ',')} € — #${orderId.slice(0, 8)}`,
       html: notificationEquipeHtml(orderId, email, montant, adresse, nomsArticles(items)),
     })
+    if (error) throw new Error(error.message ?? JSON.stringify(error))
   } catch (e) {
-    console.error('[webhook] notification equipe non envoyee:', e)
+    const detail = e instanceof Error ? e.message : String(e)
+    console.error('[webhook] notification equipe non envoyee:', detail)
+    await envoyerAlerteOperationnelle(
+      'E-mail "Nouvelle commande" (équipe) non envoyé',
+      'La notification "Nouvelle commande" destinée à l&rsquo;équipe (NOTIF_EQUIPE_EMAIL) n&rsquo;a pas pu être envoyée.',
+      [
+        ['Commande', orderId],
+        ['Client', email],
+        ['Montant', (montant / 100).toFixed(2) + ' EUR'],
+        ['Erreur', detail],
+        ['Horodatage', new Date().toISOString()],
+      ],
+      'notification équipe non envoyée, commande ' + orderId,
+    )
+  }
+}
+
+/**
+ * E-mail de confirmation de commande au CLIENT (2026-11-16, demande Hedi).
+ * N'avait JAMAIS ete code -- /commande-confirmee affirme pourtant depuis le
+ * debut "un e-mail de confirmation a ete envoye a ...", une promesse fausse
+ * tant que cette fonction n'existait pas (voir le constat de Hedi : aucune
+ * tentative cote Resend).
+ *
+ * Best-effort comme les autres notifications de ce fichier : ne bloque et ne
+ * fait jamais echouer l'enregistrement de la commande. Contrairement a
+ * envoyerNotificationEquipe (NOTIF_EQUIPE_EMAIL, une notification business,
+ * pas une panne), un e-mail de confirmation client qui ne part pas EST une
+ * panne a corriger -- toute erreur declenche donc EN PLUS l'alerte
+ * operationnelle existante (ALERT_EMAIL, voir envoyerAlerteOperationnelle),
+ * plutot qu'un simple console.error qui passerait inapercu.
+ */
+function confirmationClientHtml(orderRef: string, montant: number, adresse: AdresseLivraison, articles: ArticleAffiche[], lienCommande: string): string {
+  const blocAdresse = adresse
+    ? [
+        adresse.name,
+        adresse.address?.line1,
+        adresse.address?.line2,
+        [adresse.address?.postal_code, adresse.address?.city].filter(Boolean).join(' '),
+        adresse.address?.country,
+      ].filter((l): l is string => !!l && l.trim().length > 0).map(echapper).join('<br>')
+    : null
+
+  const listeArticles = articles.length
+    ? `<table width="100%" cellpadding="0" cellspacing="0">
+        ${articles
+          .map(
+            (a, i) => `<tr>
+              <td style="font-size:15px;color:#f8f6f3;font-weight:500;padding:8px 0;${i < articles.length - 1 ? 'border-bottom:1px solid #2a2a2a;' : ''}">${echapper(a.nom)}</td>
+              <td align="right" style="font-size:13px;color:#9a9590;white-space:nowrap;padding:8px 0;${i < articles.length - 1 ? 'border-bottom:1px solid #2a2a2a;' : ''}">× ${a.qty}</td>
+            </tr>`,
+          )
+          .join('')}
+      </table>`
+    : '<p style="color:#9a9590;font-size:13px;">Détail indisponible.</p>'
+
+  return `<!DOCTYPE html>
+<html lang="fr">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#0c0c0c;font-family:system-ui,-apple-system,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#0c0c0c;padding:40px 0;">
+    <tr><td align="center">
+      <table width="560" cellpadding="0" cellspacing="0" style="background:#1a1a1a;border-radius:8px;overflow:hidden;max-width:560px;width:100%;">
+        <tr>
+          <td style="background:#0c0c0c;padding:28px 40px;border-bottom:1px solid #2a2a2a;text-align:center;">
+            <span style="font-family:Georgia,serif;font-size:22px;letter-spacing:6px;color:#f8f6f3;">
+              SP<span style="color:#b8903a;">.</span>BARBER
+            </span>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:36px 40px;">
+            <h1 style="color:#f8f6f3;font-size:20px;font-weight:600;margin:0 0 8px;">Votre commande est confirmée</h1>
+            <p style="color:#9a9590;font-size:14px;line-height:1.6;margin:0 0 20px;">
+              Merci pour votre achat ! Commande <strong style="color:#f8f6f3;">#${echapper(orderRef)}</strong> — voici son récapitulatif.
+            </p>
+            <div style="background:#0c0c0c;border:1px solid #2a2a2a;border-radius:6px;padding:16px 20px;margin-bottom:20px;">
+              <div style="font-size:11px;color:#9a9590;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;">Votre commande</div>
+              ${listeArticles}
+            </div>
+            ${blocAdresse ? `<div style="background:#0c0c0c;border:1px solid #2a2a2a;border-radius:6px;padding:16px 20px;margin-bottom:20px;">
+              <div style="font-size:11px;color:#9a9590;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;">Livraison à</div>
+              <div style="font-size:14px;color:#f8f6f3;line-height:1.6;">${blocAdresse}</div>
+            </div>` : ''}
+            <div style="background:#0c0c0c;border:1px solid #2a2a2a;border-radius:6px;padding:20px 24px;margin-bottom:20px;">
+              <div style="font-size:11px;color:#9a9590;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;">Total payé</div>
+              <div style="font-size:22px;font-weight:700;color:#b8903a;">${(montant / 100).toFixed(2).replace('.', ',')} €</div>
+            </div>
+            <p style="color:#9a9590;font-size:13px;line-height:1.6;margin:0 0 24px;">
+              📦 Préparation sous <strong style="color:#f8f6f3;">2 jours ouvrés</strong>. Vous recevrez un e-mail séparé avec votre numéro de suivi dès l&rsquo;expédition.
+            </p>
+            <table cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
+              <tr>
+                <td style="border-radius:4px;background:#b8903a;">
+                  <a href="${lienCommande}" target="_blank"
+                    style="display:inline-block;padding:13px 28px;color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;letter-spacing:0.5px;">
+                    Voir ma commande →
+                  </a>
+                </td>
+              </tr>
+            </table>
+            <p style="color:#9a9590;font-size:13px;line-height:1.6;margin:0;">
+              Une question ? Répondez simplement à cet e-mail ou écrivez-nous à spbarbershopexploitation@hotmail.com.
+              Conditions générales de vente : <a href="https://spbarber.fr/cgv" style="color:#b8903a;">spbarber.fr/cgv</a>.
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:20px 40px;border-top:1px solid #2a2a2a;text-align:center;">
+            <span style="color:#4a4a4a;font-size:12px;">SP Barber Shop — Fougères &amp; Ernée</span>
+          </td>
+        </tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`
+}
+
+async function envoyerConfirmationClient(
+  orderRef: string,
+  email: string,
+  montant: number,
+  adresse: AdresseLivraison,
+  items: LigneCommande[],
+  lienCommande: string,
+): Promise<void> {
+  const apiKey = process.env.RESEND_API_KEY
+
+  if (!apiKey || !email) {
+    console.error('[webhook] confirmation client NON ENVOYEE (RESEND_API_KEY ou e-mail client absent) — référence', orderRef)
+    await envoyerAlerteOperationnelle(
+      'E-mail de confirmation client non envoyé',
+      'La confirmation de commande au client n&rsquo;a pas pu partir (configuration manquante).',
+      [
+        ['Référence', orderRef],
+        ['Client', email || '(inconnu)'],
+        ['Horodatage', new Date().toISOString()],
+      ],
+      'confirmation client non envoyée (configuration), référence ' + orderRef,
+    )
+    return
+  }
+
+  try {
+    const resend = new Resend(apiKey)
+    // resend.emails.send() ne REJETTE jamais sur une erreur cote API (domaine
+    // non verifie, adresse invalide...) -- elle revient dans { error }, sans
+    // exception (voir resend/dist : fetchRequest ne leve que sur un echec
+    // reseau). Sans ce controle explicite, une erreur API passerait pour un
+    // succes et l'alerte equipe ci-dessous ne se declencherait jamais.
+    const { error: erreurResend } = await resend.emails.send({
+      from: EXPEDITEUR_EMAIL,
+      // EXPEDITEUR_EMAIL est une adresse "noreply" (voir src/lib/email.ts) --
+      // une reponse du client doit arriver sur la vraie boite de contact,
+      // pas se perdre (2026-11-16, demande Hedi).
+      replyTo: 'spbarbershopexploitation@hotmail.com',
+      to: [email],
+      subject: `Votre commande SP Barber #${orderRef} est confirmée`,
+      html: confirmationClientHtml(orderRef, montant, adresse, nomsArticles(items), lienCommande),
+    })
+    if (erreurResend) throw new Error(erreurResend.message ?? JSON.stringify(erreurResend))
+  } catch (e) {
+    const detail = e instanceof Error ? e.message : String(e)
+    console.error('[webhook] confirmation client non envoyee:', detail, '— référence', orderRef)
+    await envoyerAlerteOperationnelle(
+      'E-mail de confirmation client non envoyé',
+      'L&rsquo;envoi de la confirmation de commande au client a échoué.',
+      [
+        ['Référence', orderRef],
+        ['Client', email],
+        ['Erreur', detail],
+        ['Horodatage', new Date().toISOString()],
+      ],
+      'confirmation client non envoyée, référence ' + orderRef,
+    )
   }
 }
 
@@ -397,6 +569,7 @@ async function enregistrerCommande(params: {
   paymentIntentId: string | null
   shippingAddress: AdresseLivraison
   reference: string
+  lienCommande: string
 }): Promise<NextResponse> {
   let parsedItems: unknown[] = []
   try {
@@ -489,6 +662,7 @@ async function enregistrerCommande(params: {
   }
 
   const orderId = typeof inserted?.id === 'string' ? inserted.id : params.reference
+  await envoyerConfirmationClient(orderId.slice(0, 8), params.email, params.total, params.shippingAddress, parsedItems as LigneCommande[], params.lienCommande)
   await envoyerNotificationEquipe(orderId, params.email, params.total, params.shippingAddress, parsedItems as LigneCommande[])
 
   return NextResponse.json({ received: true })
@@ -564,6 +738,7 @@ export async function POST(req: Request) {
       paymentIntentId: idPaiement(session),
       shippingAddress: shipping,
       reference: session.id,
+      lienCommande: `${getBaseUrl()}/commande-confirmee?session_id=${session.id}`,
     })
   }
 
@@ -608,6 +783,7 @@ export async function POST(req: Request) {
       paymentIntentId: paymentIntent.id,
       shippingAddress: shippingExpress,
       reference: paymentIntent.id,
+      lienCommande: `${getBaseUrl()}/commande-confirmee?payment_intent=${paymentIntent.id}`,
     })
   }
 

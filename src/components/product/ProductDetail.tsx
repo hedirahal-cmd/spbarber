@@ -425,7 +425,7 @@ export function ProductDetail({ product, relatedProducts = [], reviews: productR
 
           {/* Contact contextualise -- objet pre-rempli avec le nom du produit */}
           <a
-            href={`mailto:contact@spbarber.fr?subject=${encodeURIComponent(`Question sur ${product.name}`)}`}
+            href={`mailto:spbarbershopexploitation@hotmail.com?subject=${encodeURIComponent(`Question sur ${product.name}`)}`}
             className="sn-contact-link"
           >
             Une question sur ce produit ? →

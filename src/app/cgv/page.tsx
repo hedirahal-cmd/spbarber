@@ -48,7 +48,7 @@ export default async function CGVPage() {
             <strong>SP Barber</strong><br />
             48 Boulevard Jean Jaurès<br />
             35300 Fougères, France<br />
-            E-mail : contact@spbarber.fr<br />
+            E-mail : spbarbershopexploitation@hotmail.com<br />
             (ci-après « le Vendeur »)
           </p>
         </section>
@@ -141,7 +141,7 @@ export default async function CGVPage() {
             <strong>Suivi :</strong> Un e-mail de confirmation d&apos;expédition avec numéro de suivi est envoyé au Client dès l&apos;envoi du colis.
           </p>
           <p>
-            En cas de retard de livraison, le Client peut contacter le service client à contact@spbarber.fr. Si le colis n&apos;est pas livré dans un délai de 15 jours ouvrés suivant la date d&apos;expédition (hors cas de force majeure), le Client peut demander la résolution de la vente conformément à l&apos;article L. 216-2 du Code de la consommation.
+            En cas de retard de livraison, le Client peut contacter le service client à spbarbershopexploitation@hotmail.com. Si le colis n&apos;est pas livré dans un délai de 15 jours ouvrés suivant la date d&apos;expédition (hors cas de force majeure), le Client peut demander la résolution de la vente conformément à l&apos;article L. 216-2 du Code de la consommation.
           </p>
           <p>
             Le transfert des risques de perte et de détérioration des produits s&apos;effectue à la livraison au Client ou en point relais. Le Client est invité à vérifier l&apos;état du colis à la réception en présence du transporteur.
@@ -154,7 +154,7 @@ export default async function CGVPage() {
             Conformément aux articles L. 221-18 et suivants du Code de la consommation, le Client consommateur dispose d&apos;un droit de rétractation de <strong>14 jours calendaires</strong> à compter de la réception des produits, sans avoir à motiver sa décision.
           </p>
           <p>
-            <strong>Exercice du droit de rétractation :</strong> Le Client notifie sa décision de se rétracter en contactant le Vendeur par e-mail à contact@spbarber.fr, en précisant le numéro de commande et les articles concernés. Il peut également utiliser le formulaire de rétractation type prévu à l&apos;annexe du Code de la consommation.
+            <strong>Exercice du droit de rétractation :</strong> Le Client notifie sa décision de se rétracter en contactant le Vendeur par e-mail à spbarbershopexploitation@hotmail.com, en précisant le numéro de commande et les articles concernés. Il peut également utiliser le formulaire de rétractation type prévu à l&apos;annexe du Code de la consommation.
           </p>
           <p>
             <strong>Retour des produits :</strong> Le Client retourne les produits dans leur emballage d&apos;origine, en parfait état, non utilisés, dans un délai de 14 jours suivant la notification de rétractation. Les frais de retour sont à la charge du Client.
@@ -210,7 +210,7 @@ export default async function CGVPage() {
         <section className="legal-section">
           <h2>Article 13 — Droit applicable et litiges</h2>
           <p>
-            Les présentes CGV sont soumises au droit français. En cas de litige relatif à une commande, le Client est invité à contacter le service client par e-mail à contact@spbarber.fr afin de trouver une solution amiable.
+            Les présentes CGV sont soumises au droit français. En cas de litige relatif à une commande, le Client est invité à contacter le service client par e-mail à spbarbershopexploitation@hotmail.com afin de trouver une solution amiable.
           </p>
           <p>
             À défaut de règlement amiable, le Client peut recourir gratuitement à un médiateur de la consommation, conformément aux articles L611-1 et suivants du Code de la consommation.
@@ -221,7 +221,7 @@ export default async function CGVPage() {
         </section>
 
         <div className="legal-contact">
-          <strong>Contact :</strong> contact@spbarber.fr — SP Barber, 48 Boulevard Jean Jaurès, 35300 Fougères
+          <strong>Contact :</strong> spbarbershopexploitation@hotmail.com — SP Barber, 48 Boulevard Jean Jaurès, 35300 Fougères
         </div>
       </div>
     </div>

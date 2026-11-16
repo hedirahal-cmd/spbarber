@@ -4,6 +4,7 @@ import { supabaseAdmin } from '@/lib/supabase'
 import { EXPEDITEUR_EMAIL } from '@/lib/email'
 import { lignesDuColis, nomsArticles, shipEmailHtml, type LigneCommande, type Transporteur } from '@/lib/shipping-email'
 import { analyserWebhook, verifierSignatureWebhook } from '@/lib/boxtal'
+import { envoyerAlerteOperationnelle } from '@/lib/alerte-operationnelle'
 
 export const runtime = 'nodejs'
 
@@ -117,14 +118,31 @@ export async function POST(req: Request) {
           // fournisseur (tondeuse dropshippee), voir lignesDuColis.
           const articlesDeCeColis = lignesDuColis(items, 'standard')
           const resend = new Resend(apiKey)
-          await resend.emails.send({
+          // resend.emails.send() ne rejette jamais sur une erreur API, elle
+          // revient dans { error } sans exception (voir src/lib/alerte-
+          // operationnelle.ts) -- controle explicite indispensable.
+          const { error: erreurResend } = await resend.emails.send({
             from: EXPEDITEUR_EMAIL,
             to: [order.email],
             subject: `Votre commande SP Barber est expédiée — ${suivi.trackingNumber}`,
             html: shipEmailHtml(suivi.trackingNumber, transporteur, nomsArticles(articlesDeCeColis)),
           })
+          if (erreurResend) throw new Error(erreurResend.message ?? JSON.stringify(erreurResend))
         } catch (e) {
-          console.error('[webhook boxtal] e-mail de suivi non envoye:', e)
+          const detail = e instanceof Error ? e.message : String(e)
+          console.error('[webhook boxtal] e-mail de suivi non envoye:', detail)
+          await envoyerAlerteOperationnelle(
+            'E-mail d\'expédition non envoyé',
+            'Le numéro de suivi Boxtal a bien été enregistré, mais l&rsquo;e-mail "commande expédiée" au client n&rsquo;a pas pu partir.',
+            [
+              ['Commande', order.id],
+              ['Client', order.email],
+              ['Numéro de suivi', suivi.trackingNumber],
+              ['Erreur', detail],
+              ['Horodatage', new Date().toISOString()],
+            ],
+            'e-mail expédition (Boxtal) non envoyé, commande ' + order.id,
+          )
         }
       }
     }

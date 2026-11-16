@@ -22,8 +22,13 @@
  * incertitudes documentees dans src/lib/boxtal.ts. Il verifie ce que notre
  * code fait CORRECTEMENT avec ce que Boxtal est cense renvoyer d'apres la
  * documentation/le client tiers etudies, pas la conformite reelle de Boxtal
- * lui-meme. Ne verifie pas non plus l'envoi reel des e-mails Resend
- * (RESEND_API_KEY volontairement vide, meme convention que les autres bancs).
+ * lui-meme.
+ *
+ * Resend EST intercepte ici (2026-11-16, voir fauxResend) via RESEND_BASE_URL
+ * -- une variable officiellement supportee par le SDK resend (node_modules/
+ * resend/dist/index.mjs, getDefaultBaseUrl), jamais documentee a Hedi, meme
+ * principe que BOXTAL_API_BASE_URL -- pour verifier le controle explicite du
+ * champ { error } sur l'e-mail "commande expediee" (cas I2).
  */
 import http from 'node:http'
 import type { AddressInfo } from 'node:net'
@@ -171,6 +176,28 @@ const fauxBoxtal = http.createServer((req, res) => {
   })
 })
 
+// ───── Faux Resend ─────
+type RequeteResend = { to: string[]; subject: string; html: string }
+let requetesResend: RequeteResend[] = []
+/** Les requetes adressees a une adresse de cette liste echouent (400) -- simule un refus Resend pour UN SEUL destinataire. */
+let adressesEnEchec: string[] = []
+
+const fauxResend = http.createServer((req, res) => {
+  let corps = ''
+  req.on('data', (c) => (corps += c))
+  req.on('end', () => {
+    const payload = JSON.parse(corps || '{}') as RequeteResend
+    requetesResend.push(payload)
+    if (payload.to?.some((t) => adressesEnEchec.includes(t))) {
+      res.writeHead(400, { 'Content-Type': 'application/json' })
+      res.end(JSON.stringify({ name: 'validation_error', message: 'Domaine non vérifié (simulation de banc).' }))
+      return
+    }
+    res.writeHead(200, { 'Content-Type': 'application/json' })
+    res.end(JSON.stringify({ id: 'email-test-' + Math.random().toString(36).slice(2, 10) }))
+  })
+})
+
 const base = () => 'http://127.0.0.1:' + PORT_NEXT
 
 async function createLabel(body: Record<string, unknown>): Promise<{ statut: number; corps: Record<string, unknown> }> {
@@ -246,8 +273,11 @@ async function main() {
   const portSupabase = (fauxSupabase.address() as AddressInfo).port
   await new Promise<void>((r) => fauxBoxtal.listen(0, '127.0.0.1', r))
   const portBoxtal = (fauxBoxtal.address() as AddressInfo).port
+  await new Promise<void>((r) => fauxResend.listen(0, '127.0.0.1', r))
+  const portResend = (fauxResend.address() as AddressInfo).port
   console.log('  faux PostgREST sur 127.0.0.1:' + portSupabase)
   console.log('  faux Boxtal sur 127.0.0.1:' + portBoxtal)
+  console.log('  faux Resend sur 127.0.0.1:' + portResend)
 
   const env = {
     ...process.env,
@@ -255,8 +285,10 @@ async function main() {
     NEXT_PUBLIC_SUPABASE_ANON_KEY: 'anon-factice',
     SUPABASE_SERVICE_ROLE_KEY: 'service-factice',
     ADMIN_SESSION_SECRET: ADMIN_SECRET,
-    ALERT_EMAIL: '',
-    RESEND_API_KEY: '',
+    ALERT_EMAIL: 'alerte@exemple.test',
+    NOTIF_EQUIPE_EMAIL: 'equipe@exemple.test',
+    RESEND_API_KEY: 'test-key',
+    RESEND_BASE_URL: 'http://127.0.0.1:' + portResend,
     STRIPE_WEBHOOK_SECRET,
     BOXTAL_API_BASE_URL: 'http://127.0.0.1:' + portBoxtal,
     BOXTAL_SANDBOX_ACCESS_KEY: 'test-access',
@@ -271,7 +303,7 @@ async function main() {
   const demarrage = await demarrerServeur({ port: PORT_NEXT, env })
   if (!demarrage.ok) {
     console.log('  ARRET : ' + demarrage.motif)
-    demarrage.arreter(); fauxSupabase.close(); fauxBoxtal.close(); process.exitCode = 1; return
+    demarrage.arreter(); fauxSupabase.close(); fauxBoxtal.close(); fauxResend.close(); process.exitCode = 1; return
   }
   const arreter = demarrage.arreter
 
@@ -280,7 +312,7 @@ async function main() {
   await fetch(base() + '/products').catch(() => {})
   if (!recu.some((r) => r.chemin.includes('product_overrides'))) {
     console.log('  ARRET : le faux PostgREST n a recu aucune requete. Abandon.')
-    arreter(); fauxSupabase.close(); fauxBoxtal.close(); process.exitCode = 1; return
+    arreter(); fauxSupabase.close(); fauxBoxtal.close(); fauxResend.close(); process.exitCode = 1; return
   }
   console.log('  OK    trafic Supabase detourne vers le faux serveur')
 
@@ -399,6 +431,17 @@ async function main() {
   verifie('=> 200', i === 200, 'obtenu ' + i)
   verifie('tracking_number enregistré', orders['cmd-8'].tracking_number === 'XX987654321FR')
 
+  console.log('\n--- I2. E-mail "commande expédiée" refusé par Resend ({error}, pas une exception) => alerte déclenchée, tracking quand même enregistré ---')
+  orders = { 'cmd-8b': { ...commandeDeBase(), id: 'cmd-8b', boxtal_order_id: 'bxt_test_123', email: 'client-echec@exemple.test' } }
+  requetesResend = []
+  adressesEnEchec = ['client-echec@exemple.test']
+  const i2 = await envoyerWebhookBoxtal({ id: 'evt2b', type: 'TRACKING_CHANGED', shippingOrderId: 'bxt_test_123', payload: { trackings: [{ trackingNumber: 'XX111222333FR', packageTrackingUrl: 'https://x', status: 'IN_TRANSIT', message: '' }] } })
+  verifie('=> 200 (jamais bloqué par un échec d\'e-mail)', i2 === 200, 'obtenu ' + i2)
+  verifie('tracking_number quand même enregistré', orders['cmd-8b'].tracking_number === 'XX111222333FR')
+  const alerteExpedition = requetesResend.find((r) => r.to?.includes('alerte@exemple.test'))
+  verifie('alerte déclenchée pour l\'e-mail d\'expédition non envoyé', !!alerteExpedition, JSON.stringify(requetesResend.map((r) => r.to)))
+  adressesEnEchec = []
+
   console.log('\n--- J. Webhook Boxtal : DOCUMENT_CREATED => réponse immédiate, étiquette téléchargée/ré-hébergée en différé (after()) ---')
   orders = { 'cmd-9': { ...commandeDeBase(), id: 'cmd-9', boxtal_order_id: 'bxt_test_123' } }
   const debutJ = Date.now()
@@ -447,6 +490,7 @@ async function main() {
   arreter()
   fauxSupabase.close()
   fauxBoxtal.close()
+  fauxResend.close()
   process.exitCode = ko === 0 ? 0 : 1
 }
 

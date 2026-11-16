@@ -27,7 +27,7 @@ export default function RetoursPage() {
           <ol>
             <li>
               Faites votre demande de rétractation <Link href="/retractation">directement en ligne</Link> (sans
-              compte ni connexion), ou par e-mail à <strong>contact@spbarber.fr</strong> avec votre numéro de commande.
+              compte ni connexion), ou par e-mail à <strong>spbarbershopexploitation@hotmail.com</strong> avec votre numéro de commande.
             </li>
             <li>Nous vous communiquons les instructions de retour sous 24h.</li>
             <li>Renvoyez le produit dans son emballage d&apos;origine.</li>
@@ -59,7 +59,7 @@ export default function RetoursPage() {
         </section>
 
         <div className="legal-contact">
-          <strong>Initier un retour :</strong> contact@spbarber.fr — mentionnez votre numéro de commande
+          <strong>Initier un retour :</strong> spbarbershopexploitation@hotmail.com — mentionnez votre numéro de commande
         </div>
       </div>
     </div>
