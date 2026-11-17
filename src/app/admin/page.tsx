@@ -4,6 +4,8 @@ import { PRODUCTS } from '@/lib/products'
 import { SITE_CONTENT_KEYS, SITE_CONTENT_LABELS, SITE_CONTENT_DEFAULTS, type SiteContentBlock } from '@/lib/site-content-data'
 import { CARTON_STANDARD, calculerPoidsSuggere } from '@/lib/colis'
 import { estCorse } from '@/lib/geo-france'
+import { lignesDuColis, nomsArticles, type LigneCommande } from '@/lib/shipping-email'
+import { lienAliExpressPour, construireBlocLivraisonFournisseur } from '@/lib/fournisseur-dropshipping'
 
 type NavSection = 'produits' | 'commandes' | 'retractations' | 'legal' | 'avis' | 'salons' | 'barbers' | 'temoignages-pros' | 'contenu'
 
@@ -1203,8 +1205,8 @@ function TabSalons() {
 }
 
 // ─── Tab Commandes ─────────────────────────────────────────────
-/** Une ligne de commande, telle que stockee : juste de quoi retrouver le produit -- pas son nom, prix ou image (cf. bloc Stock, limite 500 caracteres des metadonnees Stripe). */
-type LigneCommande = { id?: unknown; variantId?: unknown; qty?: unknown }
+// LigneCommande importe desormais de @/lib/shipping-email (2026-11-17) --
+// meme forme exacte que l'ancienne definition locale, duplication retiree.
 
 function OrderItemsList({ items }: { items: unknown }) {
   const lignes = Array.isArray(items) ? (items as LigneCommande[]) : []
@@ -1422,6 +1424,13 @@ function TabCommandes() {
   const [filtre, setFiltre] = useState<'paid' | 'label_ready' | 'shipped' | 'delivered' | 'toutes' | 'tondeuses'>('paid')
   const [fournisseurUpdating, setFournisseurUpdating] = useState<string | null>(null)
   const [fournisseurErr, setFournisseurErr] = useState('')
+  // Copie des infos de livraison fournisseur (2026-11-17, demande Hedi) --
+  // copieOk : id de la commande juste copiee (affiche "Copié", disparait
+  // seul) ; copieRepli : texte a afficher pour copie manuelle si
+  // navigator.clipboard est refuse par le navigateur (contexte non HTTPS,
+  // permission refusee...).
+  const [copieOk, setCopieOk] = useState<string | null>(null)
+  const [copieRepli, setCopieRepli] = useState<string | null>(null)
   // Suppression definitive (2026-11-17, demande Hedi) : eligibilite verifiee
   // cote serveur (commande de TEST uniquement, via Stripe en direct -- voir
   // /api/admin/orders/delete) a chaque changement de commande selectionnee,
@@ -1457,6 +1466,32 @@ function TabCommandes() {
     setFournisseurErr('')
     setShipErr(''); setShipOk(null)
     setSuppressionEligible(null); setSuppressionConfirmation(false); setSuppressionErr('')
+    setCopieOk(null); setCopieRepli(null)
+  }
+
+  /**
+   * Copie les infos de livraison fournisseur (2026-11-17, demande Hedi) --
+   * bloc de texte construit par une fonction PURE (voir @/lib/fournisseur-
+   * dropshipping), jamais assemble ici : testable sans navigateur. Repli
+   * lisible (textarea affichee) si navigator.clipboard est refuse --
+   * jamais un simple echec silencieux.
+   */
+  async function copierInfosLivraison(order: Record<string, unknown>) {
+    const id = String(order.id)
+    setCopieRepli(null)
+    const lignesTondeuse = lignesDuColis(Array.isArray(order.items) ? (order.items as LigneCommande[]) : [], 'tondeuse')
+    const texte = construireBlocLivraisonFournisseur({
+      shippingAddress: (order.shipping_address ?? null) as Record<string, unknown> | null,
+      email: typeof order.email === 'string' ? order.email : null,
+      lignesTondeuse,
+    })
+    try {
+      await navigator.clipboard.writeText(texte)
+      setCopieOk(id)
+      setTimeout(() => setCopieOk((c) => (c === id ? null : c)), 2500)
+    } catch {
+      setCopieRepli(texte)
+    }
   }
 
   // Eligibilite a la suppression (2026-11-17) : revérifiée a chaque commande
@@ -2034,6 +2069,54 @@ function TabCommandes() {
                   />
                   Commande passée chez le fournisseur
                 </label>
+
+                {/* Liens AliExpress + copie des infos de livraison (2026-11-17,
+                    demande Hedi) -- un bouton par ligne tondeuse (une commande
+                    peut en contenir plusieurs, produits et/ou coloris
+                    differents) ; le coloris est affiche a cote du bouton, JAMAIS
+                    dans l'URL (choisi par Hedi lui-meme sur la page AliExpress). */}
+                {(() => {
+                  const lignesTondeuse = lignesDuColis(Array.isArray(selected.items) ? (selected.items as LigneCommande[]) : [], 'tondeuse')
+                  const articles = nomsArticles(lignesTondeuse)
+                  return (
+                    <div style={{ marginTop: 12, paddingTop: 12, borderTop: `1px solid ${S.border}` }}>
+                      {lignesTondeuse.map((ligne, i) => {
+                        const produitId = typeof ligne.id === 'string' ? ligne.id : null
+                        const lien = produitId ? lienAliExpressPour(produitId) : null
+                        const libelle = articles[i]?.nom ?? 'Tondeuse'
+                        const qty = articles[i]?.qty ?? 1
+                        if (!lien) return null
+                        return (
+                          <a
+                            key={i}
+                            href={lien}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{ ...S.btnSecondary, display: 'block', textAlign: 'center', marginBottom: 8, textDecoration: 'none' }}
+                          >
+                            Ouvrir chez AliExpress — {libelle} × {qty}
+                          </a>
+                        )
+                      })}
+                      <button onClick={() => copierInfosLivraison(selected)} style={{ ...S.btnSecondary, width: '100%' }}>
+                        {copieOk === String(selected.id) ? '✓ Copié' : 'Copier les infos de livraison'}
+                      </button>
+                      {copieRepli && (
+                        <div style={{ marginTop: 8 }}>
+                          <div style={{ fontSize: 11, color: '#b91c1c', marginBottom: 4 }}>
+                            Le presse-papiers a été refusé par le navigateur — sélectionne et copie le texte ci-dessous à la main.
+                          </div>
+                          <textarea
+                            readOnly
+                            value={copieRepli}
+                            onFocus={(e) => e.currentTarget.select()}
+                            style={{ ...S.input, width: '100%', minHeight: 140, fontFamily: 'monospace', fontSize: 12 }}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  )
+                })()}
               </div>
             )}
 
