@@ -159,7 +159,11 @@ export const PRODUCTS: Product[] = [
     skip_dsers_redirect: true,
     // Lien DSers = note interne pour Hedi, PAS pour le client (voir ci-dessus).
     // Pas encore importe dans son compte DSers ; reference AliExpress pour lui
-    // seul, jamais a exposer publiquement : https://fr.aliexpress.com/item/1005006825951304.html
+    // seul, jamais a exposer publiquement : https://fr.aliexpress.com/item/1005008034684971.html
+    // (confirme par Hedi le 2026-11-17 -- voir aussi LIENS_ALIEXPRESS_PAR_PRODUIT
+    // dans src/lib/fournisseur-dropshipping.ts, utilise par le bouton admin
+    // "Ouvrir chez AliExpress". Un ancien lien different, 1005006825951304,
+    // figurait ici par erreur/obsolescence -- retire, plus de contradiction.)
     actif: false,
     benefit: 'Lames titane, 90 min d\'autonomie',
     usageTag: 'Finitions précises et dégradés',
