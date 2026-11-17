@@ -66,6 +66,30 @@ export async function demarrerServeur(options: {
   const budget = options.budgetSecondes ?? BUDGET_SECONDES_DEFAUT
   const rien = () => {}
 
+  // GARDE-FOU (2026-11-17, demande Hedi, preparation du passage Stripe en
+  // LIVE) : aucun banc ne doit jamais toucher le mode reel. Un sk_live_/
+  // rk_live_ herite de l'environnement reel (Hedi lancerait un banc une
+  // fois la cle live posee en local) ferait sinon tourner `next dev` avec
+  // cette cle -- le PATCH `env` ci-dessus ne retire rien de ce qui vient de
+  // `options.env`. Exception ETROITE, reservee au banc qui doit justement
+  // EPROUVER ce garde-fou cote application (verif-stripe-live-guard.ts) :
+  // si STRIPE_API_BASE_URL pointe deja vers 127.0.0.1/localhost, AUCUNE
+  // requete ne peut materiellement atteindre Stripe quelle que soit la cle
+  // -- l'exception ne vaut donc QUE si ce redirecteur est deja en place.
+  const cleStripe = env.STRIPE_SECRET_KEY
+  const baseStripe = env.STRIPE_API_BASE_URL
+  const stripeRedirigeVersLocal = !!baseStripe && /^https?:\/\/(127\.0\.0\.1|localhost)(:|\/|$)/.test(baseStripe)
+  if (cleStripe && /^(sk|rk)_live_/.test(cleStripe) && !stripeRedirigeVersLocal) {
+    return {
+      ok: false,
+      arreter: rien,
+      motif:
+        'STRIPE_SECRET_KEY commence par sk_live_/rk_live_ : ce banc REFUSE de demarrer pour ne jamais ' +
+        'risquer un appel reel a Stripe. Si c est volontaire (banc qui eprouve justement ce garde-fou), ' +
+        'pose aussi STRIPE_API_BASE_URL vers 127.0.0.1/localhost avant d appeler demarrerServeur().',
+    }
+  }
+
   if (!(await portLibre(port))) {
     return {
       ok: false,
