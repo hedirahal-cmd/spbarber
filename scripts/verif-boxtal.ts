@@ -242,7 +242,9 @@ const fauxSupabase = http.createServer((req, res) => {
 })
 
 // ───── Faux Boxtal ─────
-let boxtalComportement: 'ok' | 'erreur400' = 'ok'
+let boxtalComportement: 'ok' | 'erreur400' | 'erreur422SansMessage' = 'ok'
+/** Statut renvoye par GET /v3.1/shipping-order/:id (2026-11-17) -- lecture d'etat avant annulation, voir cas F3/F4. */
+let etatLectureBoxtal: 'EN_COURS' | 'CANCELLED' = 'EN_COURS'
 const requetesBoxtal: { methode: string; chemin: string; corps: Record<string, unknown> }[] = []
 
 const fauxBoxtal = http.createServer((req, res) => {
@@ -264,6 +266,14 @@ const fauxBoxtal = http.createServer((req, res) => {
       res.end(JSON.stringify({ message: 'offre invalide (bac a sable de test)' }))
       return
     }
+    if (boxtalComportement === 'erreur422SansMessage') {
+      // Reproduit le VRAI 422 observe en production sur l'annulation (2026-
+      // 11-17) : aucun champ "message" lisible, seulement un code -- voir
+      // messageLisibleErreurBoxtal dans boxtal.ts, cas F4.
+      res.writeHead(422, { 'Content-Type': 'application/json' })
+      res.end(JSON.stringify({ code: 'InvalidRequestException', parameters: [] }))
+      return
+    }
     if (req.method === 'POST' && req.url === '/v3.1/shipping-order') {
       res.writeHead(200, { 'Content-Type': 'application/json' })
       res.end(JSON.stringify({ content: { id: 'bxt_test_123', status: 'PENDING' } }))
@@ -272,6 +282,13 @@ const fauxBoxtal = http.createServer((req, res) => {
     if (req.method === 'DELETE' && req.url?.startsWith('/v3.1/shipping-order/')) {
       res.writeHead(200, { 'Content-Type': 'application/json' })
       res.end(JSON.stringify({ content: { id: 'bxt_test_123', status: 'CANCELLED' } }))
+      return
+    }
+    if (req.method === 'GET' && req.url?.startsWith('/v3.1/shipping-order/')) {
+      // Lecture d'etat avant annulation (2026-11-17, demande Hedi) --
+      // etatLectureBoxtal configurable par cas de test, voir plus bas.
+      res.writeHead(200, { 'Content-Type': 'application/json' })
+      res.end(JSON.stringify({ content: { id: 'bxt_test_123', status: etatLectureBoxtal } }))
       return
     }
     if (req.method === 'GET' && req.url?.startsWith('/v3.1/content-category')) {
@@ -597,6 +614,8 @@ async function main() {
       tracking_number: 'XX_AVANT_ANNULATION', carrier: 'colissimo', shipped_at: '2026-11-17T10:00:00.000Z',
     },
   }
+  etatLectureBoxtal = 'EN_COURS'
+  requetesBoxtal.length = 0
   const f = await cancelLabel({ id: 'cmd-6' })
   verifie('=> 200', f.statut === 200, 'obtenu ' + f.statut)
   verifie('statut revenu à "paid"', orders['cmd-6'].status === 'paid', String(orders['cmd-6'].status))
@@ -605,6 +624,8 @@ async function main() {
   verifie('tracking_number effacé', orders['cmd-6'].tracking_number === null)
   verifie('carrier effacé', orders['cmd-6'].carrier === null)
   verifie('shipped_at effacé', orders['cmd-6'].shipped_at === null)
+  verifie('pas de message "déjà annulée" dans ce cas normal', !f.corps.dejaAnnulee, JSON.stringify(f.corps))
+  verifie('un DELETE a bien été envoyé à Boxtal (pas déjà annulée)', requetesBoxtal.some((r) => r.methode === 'DELETE'), JSON.stringify(requetesBoxtal.map((r) => r.methode)))
 
   console.log('\n--- F2. Annulation refusée par Boxtal : la VRAIE cause est affichée, pas une cause supposée, RIEN n\'est effacé ---')
   orders = { 'cmd-6b': { ...commandeDeBase(), id: 'cmd-6b', status: 'label_ready', boxtal_order_id: 'bxt_test_123', boxtal_label_url: 'labels/cmd-6b.pdf' } }
@@ -614,7 +635,36 @@ async function main() {
   verifie('le message contient la vraie réponse Boxtal (pas "colis déjà pris en charge" supposé)',
     String(f2.corps.error ?? '').includes('offre invalide (bac a sable de test)') && !String(f2.corps.error ?? '').includes('déjà pris en charge'),
     JSON.stringify(f2.corps))
+  verifie('le message ne contient PAS le JSON brut (ni le chemin, ni des accolades)',
+    !String(f2.corps.error ?? '').includes('/v3.1/shipping-order') && !String(f2.corps.error ?? '').includes('{'),
+    JSON.stringify(f2.corps))
   verifie('commande inchangée (annulation refusée, rien effacé)', orders['cmd-6b'].boxtal_order_id === 'bxt_test_123' && orders['cmd-6b'].status === 'label_ready')
+  boxtalComportement = 'ok'
+
+  console.log('\n--- F3. Étiquette DÉJÀ annulée côté Boxtal (ex. à la main sur leur site) : traité comme un succès, AUCUN appel DELETE ---')
+  orders = { 'cmd-6c': { ...commandeDeBase(), id: 'cmd-6c', status: 'label_ready', boxtal_order_id: 'bxt_test_123', boxtal_label_url: 'labels/cmd-6c.pdf' } }
+  etatLectureBoxtal = 'CANCELLED'
+  requetesBoxtal.length = 0
+  const f3 = await cancelLabel({ id: 'cmd-6c' })
+  verifie('=> 200', f3.statut === 200, 'obtenu ' + f3.statut + ' ' + JSON.stringify(f3.corps))
+  verifie('dejaAnnulee = true', f3.corps.dejaAnnulee === true, JSON.stringify(f3.corps))
+  verifie('message "déjà annulée côté Boxtal, commande remise à payée"', String(f3.corps.message ?? '').includes('déjà annulée côté Boxtal'), JSON.stringify(f3.corps))
+  verifie('statut revenu à "paid" (même reset complet que F)', orders['cmd-6c'].status === 'paid', String(orders['cmd-6c'].status))
+  verifie('boxtal_order_id effacé', orders['cmd-6c'].boxtal_order_id === null)
+  verifie('UN GET a été envoyé (lecture d\'état)', requetesBoxtal.some((r) => r.methode === 'GET' && r.chemin?.startsWith('/v3.1/shipping-order/')), JSON.stringify(requetesBoxtal))
+  verifie('AUCUN DELETE envoyé (inutile, déjà annulée)', !requetesBoxtal.some((r) => r.methode === 'DELETE'), JSON.stringify(requetesBoxtal.map((r) => r.methode)))
+  etatLectureBoxtal = 'EN_COURS'
+
+  console.log('\n--- F4. 422 réel observé en production (code sans message lisible) : message propre, AUCUN JSON brut, corps complet journalisé ---')
+  orders = { 'cmd-6d': { ...commandeDeBase(), id: 'cmd-6d', status: 'label_ready', boxtal_order_id: 'bxt_test_123', boxtal_label_url: 'labels/cmd-6d.pdf' } }
+  boxtalComportement = 'erreur422SansMessage'
+  const f4 = await cancelLabel({ id: 'cmd-6d' })
+  verifie('=> 502', f4.statut === 502, 'obtenu ' + f4.statut)
+  verifie('le message reprend le VRAI code Boxtal (InvalidRequestException)', String(f4.corps.error ?? '').includes('InvalidRequestException'), JSON.stringify(f4.corps))
+  verifie('le message ne contient PAS le JSON brut (ni "parameters", ni accolades, ni le chemin)',
+    !String(f4.corps.error ?? '').includes('parameters') && !String(f4.corps.error ?? '').includes('{') && !String(f4.corps.error ?? '').includes('/v3.1/shipping-order'),
+    JSON.stringify(f4.corps))
+  verifie('commande inchangée (annulation refusée, rien effacé)', orders['cmd-6d'].boxtal_order_id === 'bxt_test_123')
   boxtalComportement = 'ok'
 
   console.log('\n--- G. Annulation sans étiquette à annuler : refusée ---')

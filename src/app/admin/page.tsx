@@ -1393,7 +1393,18 @@ function TabCommandes() {
   const [categoriesBoxtalLoading, setCategoriesBoxtalLoading] = useState(false)
   const [boxtalInputs, setBoxtalInputs] = useState<Record<string, Partial<Record<'poidsKg' | 'longueurCm' | 'largeurCm' | 'hauteurCm' | 'carrier', string>>>>({})
   const [boxtalBusy, setBoxtalBusy] = useState<string | null>(null)
-  const [boxtalErr, setBoxtalErr] = useState('')
+  // Propre a chaque commande (2026-11-17, demande Hedi -- bug : l'erreur
+  // d'annulation restait affichee en changeant de commande, un seul string
+  // partage par tout le panneau). { id, message } : affiche uniquement si
+  // id === la commande actuellement selectionnee -- voir selectionnerCommande
+  // (efface aussi explicitement a chaque changement de commande, en plus de
+  // cette garde) et le debut de genererEtiquetteBoxtal/annulerEtiquetteBoxtal
+  // (efface avant de relancer une action).
+  const [boxtalErr, setBoxtalErr] = useState<{ id: string; message: string } | null>(null)
+  // Message de succes particulier (2026-11-17) : annulation reussie parce que
+  // l'etiquette etait DEJA annulee cote Boxtal -- distinct d'une erreur, voir
+  // annulerEtiquetteBoxtal.
+  const [boxtalInfo, setBoxtalInfo] = useState<{ id: string; message: string } | null>(null)
   // Telechargement d'etiquette (2026-11-17) : lien signe genere a la demande, bucket "etiquettes" prive -- voir telechargerEtiquette.
   const [telechargementEtiquette, setTelechargementEtiquette] = useState<string | null>(null)
   const [telechargementErr, setTelechargementErr] = useState('')
@@ -1411,6 +1422,14 @@ function TabCommandes() {
   const [filtre, setFiltre] = useState<'paid' | 'label_ready' | 'shipped' | 'delivered' | 'toutes' | 'tondeuses'>('paid')
   const [fournisseurUpdating, setFournisseurUpdating] = useState<string | null>(null)
   const [fournisseurErr, setFournisseurErr] = useState('')
+  // Suppression definitive (2026-11-17, demande Hedi) : eligibilite verifiee
+  // cote serveur (commande de TEST uniquement, via Stripe en direct -- voir
+  // /api/admin/orders/delete) a chaque changement de commande selectionnee,
+  // pour afficher le bouton actif ou grise AVANT meme un clic.
+  const [suppressionEligible, setSuppressionEligible] = useState<{ id: string; supprimable: boolean; raison: string } | null>(null)
+  const [suppressionConfirmation, setSuppressionConfirmation] = useState(false)
+  const [suppressionBusy, setSuppressionBusy] = useState(false)
+  const [suppressionErr, setSuppressionErr] = useState('')
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -1419,6 +1438,58 @@ function TabCommandes() {
     setLoading(false)
   }, [])
   useEffect(() => { load() }, [load])
+
+  /**
+   * Change la commande affichee dans le panneau de detail -- efface aussi
+   * tous les messages d'erreur/succes transitoires propres a l'ancienne
+   * commande (2026-11-17, demande Hedi : l'erreur d'annulation Boxtal
+   * restait affichee apres avoir change de commande). boxtalErr est de
+   * toute facon desormais propre a chaque id (voir sa declaration), mais
+   * les autres etats de ce panneau (mise a jour statut, fournisseur,
+   * suivi manuel, telechargement) n'ont pas cette garde -- les effacer ici
+   * aussi evite la meme classe de bug partout ailleurs dans ce panneau.
+   */
+  function selectionnerCommande(o: Record<string, unknown> | null) {
+    setSelected(o)
+    setBoxtalErr(null); setBoxtalInfo(null)
+    setTelechargementErr('')
+    setUpdateErr('')
+    setFournisseurErr('')
+    setShipErr(''); setShipOk(null)
+    setSuppressionEligible(null); setSuppressionConfirmation(false); setSuppressionErr('')
+  }
+
+  // Eligibilite a la suppression (2026-11-17) : revérifiée a chaque commande
+  // selectionnee -- jamais mise en cache entre deux commandes differentes.
+  useEffect(() => {
+    if (!selected) return
+    const id = String(selected.id)
+    let annule = false
+    fetch('/api/admin/orders/delete?id=' + encodeURIComponent(id))
+      .then(r => r.json().catch(() => ({})))
+      .then(d => { if (!annule) setSuppressionEligible({ id, supprimable: !!d.supprimable, raison: d.raison ?? '' }) })
+      .catch(() => { if (!annule) setSuppressionEligible({ id, supprimable: false, raison: 'Vérification impossible.' }) })
+    return () => { annule = true }
+  }, [selected?.id])
+
+  async function supprimerCommande(id: string) {
+    setSuppressionBusy(true); setSuppressionErr('')
+    try {
+      const res = await fetch('/api/admin/orders/delete', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) })
+      if (res.ok) {
+        setSuppressionConfirmation(false)
+        selectionnerCommande(null)
+        await load()
+      } else {
+        const d = await res.json().catch(() => ({}))
+        setSuppressionErr(d.error ?? `Erreur ${res.status}`)
+      }
+    } catch {
+      setSuppressionErr('Erreur réseau')
+    } finally {
+      setSuppressionBusy(false)
+    }
+  }
 
   useEffect(() => {
     fetch('/api/admin/boxtal/status')
@@ -1460,7 +1531,7 @@ function TabCommandes() {
       largeurCm: champs.largeurCm ?? String(CARTON_STANDARD.largeurCm),
       hauteurCm: champs.hauteurCm ?? String(CARTON_STANDARD.hauteurCm),
     }
-    setBoxtalBusy(id); setBoxtalErr('')
+    setBoxtalBusy(id); setBoxtalErr(null)
     try {
       const res = await fetch('/api/admin/boxtal/create-label', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(corps) })
       const d = await res.json().catch(() => ({}))
@@ -1471,19 +1542,20 @@ function TabCommandes() {
         // (voir webhook/boxtal/route.ts, evenement TRACKING_CHANGED).
         setSelected(s => s && String(s.id) === id ? { ...s, status: 'label_ready', carrier: corps.carrier, boxtal_order_id: d.boxtal_order_id ?? s.boxtal_order_id } : s)
       } else {
-        setBoxtalErr(d.error ?? `Erreur ${res.status}`)
+        setBoxtalErr({ id, message: d.error ?? `Erreur ${res.status}` })
       }
     } catch {
-      setBoxtalErr('Erreur réseau')
+      setBoxtalErr({ id, message: 'Erreur réseau' })
     } finally {
       setBoxtalBusy(null)
     }
   }
 
   async function annulerEtiquetteBoxtal(id: string) {
-    setBoxtalBusy(id); setBoxtalErr('')
+    setBoxtalBusy(id); setBoxtalErr(null); setBoxtalInfo(null)
     try {
       const res = await fetch('/api/admin/boxtal/cancel-label', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) })
+      const d = await res.json().catch(() => ({}))
       if (res.ok) {
         await load()
         // Retour integral a "paid" (2026-11-17, demande Hedi) -- voir le
@@ -1491,12 +1563,15 @@ function TabCommandes() {
         setSelected(s => s && String(s.id) === id
           ? { ...s, status: 'paid', boxtal_order_id: null, boxtal_label_url: null, tracking_number: null, carrier: null, shipped_at: null }
           : s)
+        // Etiquette deja annulee cote Boxtal (2026-11-17) : succes, mais
+        // message distinct pour que Hedi comprenne pourquoi aucun appel
+        // d'annulation n'a ete necessaire.
+        if (d.dejaAnnulee && d.message) setBoxtalInfo({ id, message: d.message })
       } else {
-        const d = await res.json().catch(() => ({}))
-        setBoxtalErr(d.error ?? `Erreur ${res.status}`)
+        setBoxtalErr({ id, message: d.error ?? `Erreur ${res.status}` })
       }
     } catch {
-      setBoxtalErr('Erreur réseau')
+      setBoxtalErr({ id, message: 'Erreur réseau' })
     } finally {
       setBoxtalBusy(null)
     }
@@ -1729,7 +1804,7 @@ function TabCommandes() {
                     const badge = statusBadge(String(o.status ?? ''))
                     const isActive = selected && String(selected.id) === String(o.id)
                     return (
-                      <tr key={String(o.id)} onClick={() => setSelected(o)} style={{ borderBottom: `1px solid ${S.border}`, cursor: 'pointer', background: isActive ? '#fdf8f0' : 'transparent' }}
+                      <tr key={String(o.id)} onClick={() => selectionnerCommande(o)} style={{ borderBottom: `1px solid ${S.border}`, cursor: 'pointer', background: isActive ? '#fdf8f0' : 'transparent' }}
                         onMouseEnter={e => { if (!isActive) (e.currentTarget as HTMLElement).style.background = S.bg }}
                         onMouseLeave={e => { if (!isActive) (e.currentTarget as HTMLElement).style.background = 'transparent' }}>
                         <td style={{ padding: '14px 16px', fontWeight: 500, color: S.text }}>#{String(o.id ?? '').slice(0, 8)}</td>
@@ -1756,7 +1831,7 @@ function TabCommandes() {
         <div style={{ width: 360, background: S.card, borderLeft: `1px solid ${S.border}`, display: 'flex', flexDirection: 'column', height: '100%', overflowY: 'auto', flexShrink: 0 }}>
           <div style={{ padding: '16px 20px', borderBottom: `1px solid ${S.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div style={{ fontSize: 15, fontWeight: 600, color: S.text }}>Commande #{String(selected.id ?? '').slice(0, 8)}</div>
-            <button onClick={() => setSelected(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, color: S.muted }}>×</button>
+            <button onClick={() => selectionnerCommande(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, color: S.muted }}>×</button>
           </div>
           <div style={{ padding: 20 }}>
             <div style={{ fontSize: 12, color: S.muted, marginBottom: 4 }}>Client</div>
@@ -1830,7 +1905,8 @@ function TabCommandes() {
                           ? "Numéro de suivi connu, mais le transporteur n'a pas encore confirmé la prise en charge — l'e-mail client n'est pas encore parti."
                           : "Le numéro de suivi apparaîtra automatiquement dès que Boxtal l'aura généré."}
                     </div>
-                    {boxtalErr && <div style={{ fontSize: 12, color: '#b91c1c', marginBottom: 8 }}>Erreur : {boxtalErr}</div>}
+                    {boxtalInfo?.id === id && <div style={{ fontSize: 12, color: '#15803d', marginBottom: 8, fontWeight: 500 }}>{boxtalInfo.message}</div>}
+                    {boxtalErr?.id === id && <div style={{ fontSize: 12, color: '#b91c1c', marginBottom: 8 }}>Erreur : {boxtalErr.message}</div>}
                     {telechargementErr && <div style={{ fontSize: 12, color: '#b91c1c', marginBottom: 8 }}>Erreur : {telechargementErr}</div>}
                     {!!selected.boxtal_label_url && (
                       <button
@@ -1861,7 +1937,7 @@ function TabCommandes() {
                   {!!suggestion.manquants.length && (
                     <div style={{ fontSize: 12, fontWeight: 600, color: '#b91c1c', marginBottom: 8 }}>Poids manquant pour {suggestion.manquants.length} article(s). Renseignez-le dans l&apos;onglet Produits, ou utilisez le suivi manuel ci-dessous.</div>
                   )}
-                  {boxtalErr && <div style={{ fontSize: 12, color: '#b91c1c', marginBottom: 8 }}>Erreur : {boxtalErr}</div>}
+                  {boxtalErr?.id === id && <div style={{ fontSize: 12, color: '#b91c1c', marginBottom: 8 }}>Erreur : {boxtalErr.message}</div>}
                   <select value={champs.carrier ?? 'colissimo'} onChange={e => setChampBoxtal(id, 'carrier', e.target.value)} style={{ ...S.input, marginBottom: 8 }}>
                     <option value="colissimo">Colissimo</option>
                     {!corseBoxtal && <option value="chronopost">Chronopost</option>}
@@ -1960,6 +2036,54 @@ function TabCommandes() {
                 </label>
               </div>
             )}
+
+            {/* Suppression definitive (2026-11-17, demande Hedi) -- EN BAS de
+                chaque commande. Garde-fous reels cote serveur (voir /api/
+                admin/orders/delete) : ce qui suit n'est qu'un AFFICHAGE
+                (actif/grise) reflet d'une verification serveur, jamais la
+                decision finale -- le POST revérifie tout au moment du clic. */}
+            {(() => {
+              const id = String(selected.id)
+              const eligibilite = suppressionEligible?.id === id ? suppressionEligible : null
+              const chargement = !eligibilite
+              const supprimable = !!eligibilite?.supprimable
+              return (
+                <div style={{ ...S.card_, padding: 14, border: '1px solid #fca5a5' }}>
+                  {!suppressionConfirmation ? (
+                    <>
+                      <button
+                        onClick={() => setSuppressionConfirmation(true)}
+                        disabled={chargement || !supprimable}
+                        style={{
+                          ...S.btnSecondary, width: '100%', color: '#b91c1c', borderColor: '#fca5a5',
+                          ...(chargement || !supprimable ? { opacity: 0.5, cursor: 'not-allowed' } : {}),
+                        }}
+                      >
+                        Supprimer la commande
+                      </button>
+                      {!chargement && !supprimable && (
+                        <div style={{ fontSize: 11, color: S.muted, marginTop: 6 }}>{eligibilite?.raison}</div>
+                      )}
+                    </>
+                  ) : (
+                    <div>
+                      <div style={{ fontSize: 13, color: S.text, marginBottom: 10, fontWeight: 500 }}>
+                        Voulez-vous vraiment supprimer cette commande ? Cette action est définitive.
+                      </div>
+                      {suppressionErr && <div style={{ fontSize: 12, color: '#b91c1c', marginBottom: 8 }}>Erreur : {suppressionErr}</div>}
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        <button onClick={() => setSuppressionConfirmation(false)} disabled={suppressionBusy} style={{ ...S.btnSecondary, flex: 1 }}>
+                          Annuler
+                        </button>
+                        <button onClick={() => supprimerCommande(id)} disabled={suppressionBusy} style={{ ...S.btnPrimary, flex: 1, background: '#b91c1c', borderColor: '#b91c1c' }}>
+                          {suppressionBusy ? 'Suppression…' : 'Supprimer'}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )
+            })()}
           </div>
         </div>
       )}

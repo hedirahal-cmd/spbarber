@@ -181,10 +181,28 @@ function colisVersJson(c: BoxtalColis): Record<string, unknown> {
 }
 
 export class BoxtalApiError extends Error {
-  constructor(message: string, readonly statut: number) {
+  /** corps : reponse JSON deja parsee de Boxtal (ou {} si non-JSON) -- permet aux appelants de construire un message LISIBLE sans echoer le JSON brut (voir messageLisibleErreurBoxtal), tout en gardant la VRAIE cause Boxtal plutot qu'une cause supposee (2026-11-13/2026-11-17, demande Hedi). Le corps COMPLET, lui, est deja journalise en entier par appelBoxtal avant ce throw. */
+  constructor(message: string, readonly statut: number, readonly corps: Record<string, unknown> = {}) {
     super(message)
     this.name = 'BoxtalApiError'
   }
+}
+
+/**
+ * Message lisible pour l'admin a partir d'une erreur Boxtal -- JAMAIS le
+ * JSON brut (2026-11-17, demande Hedi : "Boxtal DELETE /v3.1/... -> 422
+ * {\"code\":\"InvalidRequestException\",\"parameters\":[]}" affiche tel
+ * quel n'est pas lisible), mais JAMAIS une cause INVENTEE non plus (2026-
+ * 11-13, demande Hedi : un message errone pourrait laisser croire a tort
+ * que le colis est deja parti) -- reprend le champ message/code REEL de la
+ * reponse Boxtal quand il existe, sans l'enrober du contexte methode/chemin/
+ * statut HTTP. Le corps complet reste consultable dans les logs serveur
+ * (appelBoxtal le journalise integralement a chaque erreur).
+ */
+export function messageLisibleErreurBoxtal(e: BoxtalApiError): string {
+  if (typeof e.corps.message === 'string' && e.corps.message) return e.corps.message
+  if (typeof e.corps.code === 'string' && e.corps.code) return `code Boxtal : ${e.corps.code}`
+  return `statut HTTP ${e.statut}`
 }
 
 /**
@@ -249,7 +267,7 @@ async function appelBoxtal(chemin: string, methode: string, corps?: unknown): Pr
     // c'est la reponse du PRESTATAIRE, distincte de notre propre requete
     // juste au-dessus, deja masquee, elle).
     console.error('[Boxtal] erreur', reponse.status, methode, chemin, '-- corps de la réponse :', texte.slice(0, 2000))
-    throw new BoxtalApiError(`Boxtal ${methode} ${chemin} -> ${reponse.status} : ${texte.slice(0, 500)}`, reponse.status)
+    throw new BoxtalApiError(`Boxtal ${methode} ${chemin} -> ${reponse.status} : ${texte.slice(0, 500)}`, reponse.status, data)
   }
 
   return data.content ?? {}
@@ -345,6 +363,28 @@ export async function recupererSuivi(shippingOrderId: string): Promise<BoxtalSui
 /** Possible uniquement avant remise au transporteur (verrouille cote admin, voir admin/page.tsx). */
 export async function annulerCommandeExpedition(shippingOrderId: string): Promise<void> {
   await appelBoxtal(`/v3.1/shipping-order/${encodeURIComponent(shippingOrderId)}`, 'DELETE')
+}
+
+export type BoxtalEtatCommandeExpedition = { id: string; status: string }
+
+/**
+ * Lit l'etat ACTUEL d'une commande d'expedition (GET, endpoint confirme
+ * dans la specification officielle v3.1) -- utilisee avant une annulation
+ * (2026-11-17, demande Hedi) pour detecter une etiquette DEJA annulee cote
+ * Boxtal (ex. a la main sur leur propre interface), ce qui fait sinon
+ * echouer notre DELETE avec un 422 generique ("InvalidRequestException",
+ * sans detail de champ -- observe en production). 'CANCELLED' est la
+ * valeur deja utilisee dans ce fichier pour le statut renvoye par une
+ * annulation reussie (voir le faux Boxtal du banc de verification) --
+ * reprise ici par coherence, jamais re-confirmee de facon independante sur
+ * ce point precis contre la specification complete (perdue au compactage
+ * d'une session precedente). Le statut REEL lu est journalise cote serveur
+ * (voir cancel-label/route.ts) pour verifier/corriger cette valeur si
+ * besoin au prochain cas reel.
+ */
+export async function lireCommandeExpedition(shippingOrderId: string): Promise<BoxtalEtatCommandeExpedition> {
+  const content = (await appelBoxtal(`/v3.1/shipping-order/${encodeURIComponent(shippingOrderId)}`, 'GET')) as Record<string, unknown>
+  return { id: String(content.id ?? ''), status: String(content.status ?? '') }
 }
 
 export type BoxtalCategorieContenu = { id: string; label: string }

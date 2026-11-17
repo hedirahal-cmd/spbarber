@@ -60,7 +60,21 @@ if (PROBLEME) {
  * quand la configuration manque : aucune requete ne partira, les appelants
  * consultant problemeConfigurationStripe() avant d'agir.
  */
+// Overridable UNIQUEMENT pour les bancs de verification (faux serveur local) --
+// jamais documente a Hedi, meme principe que BOXTAL_API_BASE_URL (src/lib/
+// boxtal.ts) et RESEND_BASE_URL (SDK resend) -- voir scripts/verif-suppression-
+// commande.ts (simule un PaymentIntent en mode LIVE, impossible a creer
+// reellement dans un banc de test).
+const BASE_URL_TEST = process.env.STRIPE_API_BASE_URL?.trim()
+const optionsHoteTest = BASE_URL_TEST
+  ? (() => {
+      const u = new URL(BASE_URL_TEST)
+      return { host: u.hostname, port: u.port || (u.protocol === 'https:' ? '443' : '80'), protocol: u.protocol.replace(':', '') as 'http' | 'https' }
+    })()
+  : {}
+
 export const stripe = new Stripe(CLE || 'sk_test_configuration_absente', {
   apiVersion: '2026-05-27.dahlia',
   typescript: true,
+  ...optionsHoteTest,
 })
