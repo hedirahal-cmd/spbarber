@@ -25,6 +25,24 @@ export function jsonLd(donnees: unknown): string {
     .replace(/&/g, '\\u0026')
 }
 
+/**
+ * Valide note_google/nombre_avis AVANT de les emettre en aggregateRating
+ * (2026-11-17, demande Hedi) -- une simple presence ne suffit pas : note
+ * DOIT etre un nombre entre 1 et 5 inclus, nombre_avis DOIT etre un entier
+ * >= 1. Toute valeur incoherente (texte non numerique, note hors bornes,
+ * zero/negatif, decimal pour le compte d'avis) fait OMETTRE le champ
+ * entier plutot que publier une donnee fausse ou invraisemblable aux
+ * moteurs de recherche.
+ */
+function avisGoogleValides(noteGoogle: string | null | undefined, nombreAvis: string | null | undefined): boolean {
+  if (!noteGoogle || !nombreAvis) return false
+  const note = Number(noteGoogle)
+  const nombre = Number(nombreAvis)
+  if (!Number.isFinite(note) || note < 1 || note > 5) return false
+  if (!Number.isInteger(nombre) || nombre < 1) return false
+  return true
+}
+
 const ORGANIZATION = {
   '@type': 'Organization',
   '@id': `${BASE}/#organization`,
@@ -95,7 +113,7 @@ const WEBSITE = {
  * DEFAULT_SALONS -- jamais un bloc invente a part.
  */
 export function schemaOrganizationLocal(salonPrincipal?: Salon) {
-  const hasRating = !!(salonPrincipal?.note_google && salonPrincipal?.nombre_avis)
+  const hasRating = avisGoogleValides(salonPrincipal?.note_google, salonPrincipal?.nombre_avis)
   const hasGeo = salonPrincipal?.latitude != null && salonPrincipal?.longitude != null
   const openingHours = openingHoursDepuisTexte(salonPrincipal?.horaires)
 
@@ -256,7 +274,7 @@ export function schemaProduct(product: Product, reviewSummary?: { count: number;
  * structure -- decision actee au bloc Salons plutot que d'inventer des horaires).
  */
 export function schemaSalon(salon: Salon) {
-  const hasRating = !!(salon.note_google && salon.nombre_avis)
+  const hasRating = avisGoogleValides(salon.note_google, salon.nombre_avis)
   const hasGeo = salon.latitude != null && salon.longitude != null
   const image = salon.photos?.[0]?.startsWith('http') ? salon.photos[0] : `${BASE}/og-default.jpg`
   const openingHours = openingHoursDepuisTexte(salon.horaires)

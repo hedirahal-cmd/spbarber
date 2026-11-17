@@ -58,6 +58,16 @@ export const metadata: Metadata = {
   alternates: {
     canonical: 'https://spbarber.fr',
   },
+  // images SUPPRIME des deux blocs ci-dessous (2026-11-17, demande Hedi) --
+  // opengraph-image.tsx ET twitter-image.tsx (file conventions Next.js)
+  // genèrent desormais la MEME image pour og:image et twitter:image (voir
+  // src/lib/og-image-content.tsx), et gagnent de toute facon la priorite
+  // sur une reference statique ici (confirme par inspection directe du
+  // HTML rendu, 2026-11-17 : og:image ignorait deja cette reference avant
+  // meme l'ajout de twitter-image.tsx). og-default.jpg reste utilise
+  // ailleurs (logo/image de repli dans les donnees structurees, voir
+  // src/lib/schema.ts) -- le fichier n'est pas retire, seule cette
+  // reference-ci, devenue inerte, l'est.
   openGraph: {
     type: 'website',
     locale: 'fr_FR',
@@ -66,20 +76,11 @@ export const metadata: Metadata = {
     title: 'SP Barber — Produits Capillaires Premium pour Hommes',
     description:
       'Les formules professionnelles des barbiers, expédiées sous 48h. Livraison offerte dès 59€.',
-    images: [
-      {
-        url: 'https://spbarber.fr/og-default.jpg',
-        width: 1200,
-        height: 630,
-        alt: 'SP Barber — Produits capillaires premium pour hommes',
-      },
-    ],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'SP Barber — Produits Capillaires Premium pour Hommes',
     description: 'Les formules pro des barbiers, expédiées sous 48h. Livraison offerte dès 59€.',
-    images: ['https://spbarber.fr/og-default.jpg'],
   },
   robots: {
     index: true,
