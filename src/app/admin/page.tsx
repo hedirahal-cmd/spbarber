@@ -1385,6 +1385,13 @@ function TabCommandes() {
   // avant de savoir, pour ne jamais laisser Hedi cliquer dans le vide quand
   // les cles Boxtal ne sont pas encore posees -- voir /api/admin/boxtal/status.
   const [boxtalConfigure, setBoxtalConfigure] = useState<boolean | null>(null)
+  // Outil de diagnostic (2026-11-18, demande Hedi suite au premier essai
+  // reel refuse) : lecture seule des VRAIES categories de contenu de son
+  // compte Boxtal, sans qu'il ait a partager ses cles -- voir
+  // /api/admin/boxtal/content-categories (jamais d'etiquette creee).
+  const [categoriesBoxtal, setCategoriesBoxtal] = useState<{ id: string; label: string }[] | null>(null)
+  const [categoriesBoxtalErr, setCategoriesBoxtalErr] = useState('')
+  const [categoriesBoxtalLoading, setCategoriesBoxtalLoading] = useState(false)
   const [boxtalInputs, setBoxtalInputs] = useState<Record<string, Partial<Record<'poidsKg' | 'longueurCm' | 'largeurCm' | 'hauteurCm' | 'carrier', string>>>>({})
   const [boxtalBusy, setBoxtalBusy] = useState<string | null>(null)
   const [boxtalErr, setBoxtalErr] = useState('')
@@ -1478,6 +1485,20 @@ function TabCommandes() {
       setBoxtalErr('Erreur réseau')
     } finally {
       setBoxtalBusy(null)
+    }
+  }
+
+  async function verifierCategoriesBoxtal() {
+    setCategoriesBoxtalLoading(true); setCategoriesBoxtalErr(''); setCategoriesBoxtal(null)
+    try {
+      const res = await fetch('/api/admin/boxtal/content-categories')
+      const d = await res.json().catch(() => ({}))
+      if (res.ok) setCategoriesBoxtal(d.categories ?? [])
+      else setCategoriesBoxtalErr(d.error ?? `Erreur ${res.status}`)
+    } catch {
+      setCategoriesBoxtalErr('Erreur réseau')
+    } finally {
+      setCategoriesBoxtalLoading(false)
     }
   }
 
@@ -1576,6 +1597,37 @@ function TabCommandes() {
               </button>
             ))}
           </div>
+
+          {boxtalConfigure && (
+            <div style={{ ...S.card_, padding: 14, marginTop: 16 }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: S.text, marginBottom: 6 }}>Outil Boxtal — Catégories de contenu réelles</div>
+              <div style={{ fontSize: 11, color: S.muted, marginBottom: 8 }}>
+                Lecture seule : vérifie si « content:v1:30100 » (utilisé pour générer les étiquettes) existe réellement sur votre compte. N&apos;appelle jamais la création d&apos;étiquette.
+              </div>
+              <button onClick={verifierCategoriesBoxtal} disabled={categoriesBoxtalLoading} style={{ ...S.btnSecondary, fontSize: 12 }}>
+                {categoriesBoxtalLoading ? 'Vérification…' : 'Vérifier les catégories de contenu Boxtal'}
+              </button>
+              {categoriesBoxtalErr && <div style={{ fontSize: 12, color: '#b91c1c', marginTop: 8 }}>Erreur : {categoriesBoxtalErr}</div>}
+              {categoriesBoxtal && (
+                <div style={{ marginTop: 8, maxHeight: 180, overflowY: 'auto' }}>
+                  {categoriesBoxtal.length === 0 ? (
+                    <div style={{ fontSize: 12, color: S.muted }}>Aucune catégorie renvoyée par Boxtal.</div>
+                  ) : (
+                    <table style={{ width: '100%', fontSize: 12 }}>
+                      <tbody>
+                        {categoriesBoxtal.map((c) => (
+                          <tr key={c.id} style={{ color: c.id === 'content:v1:30100' ? '#15803d' : S.text, fontWeight: c.id === 'content:v1:30100' ? 600 : 400 }}>
+                            <td style={{ padding: '2px 8px 2px 0' }}>{c.id}</td>
+                            <td style={{ padding: '2px 0', color: S.muted }}>{c.label}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {loading ? (

@@ -4,30 +4,37 @@ import { createHmac, timingSafeEqual } from 'node:crypto'
  * Client Boxtal (API v3, etiquettes Colissimo/Chronopost) -- chantier
  * 2026-10-21, demande Hedi.
  *
- * L'API officielle (developer.boxtal.com) est une appli JS illisible par nos
- * outils de recherche -- la forme exacte des requetes/reponses ci-dessous vient
- * d'un client tiers open-source bien maintenu (ErnadoO/boxtal sur GitHub), qui
- * implemente et teste reellement cette API, RECOUPEE avec ce que Hedi a lu
- * directement sur la doc officielle (guides developer.boxtal.com/fr/fr/apiv3/
- * guide/ : sandbox-api-v3, auth-api-v3, order-api-v3, document-events-api-v3,
- * list-shipping-offer-code-api-v3) :
- *   - bac a sable confirme sur https://api.boxtal.build/shipping, avec un
- *     compte de test SEPARE et ses propres cles -- les cles de production n y
- *     fonctionnent pas ;
- *   - aucune facturation en bac a sable, seuls les bordereaux sont generes,
- *     et les evenements de suivi FACTICES arrivent toutes les ~20 minutes
- *     (Colissimo et Chronopost inclus) -- le webhook se declenchera donc tout
- *     seul lors d'un vrai essai, sans action manuelle ;
- *   - authentification Basic (confirme) ou bearer token (alternative non
- *     implementee ici, Basic suffit) ;
- *   - un point d'acces liste les codes d'offre reels du compte (voir
- *     listerCodesOffre plus bas) -- a appeler une fois les cles de test
- *     posees pour remplacer les BOXTAL_OFFER_CODE_* par les vraies valeurs.
+ * 2026-11-18 : premier essai REEL en production refuse (400 BAD_REQUEST,
+ * sans detail de champ). Hedi a fourni le fichier OpenAPI officiel complet
+ * de l'API v3 -- ce fichier, pas le client tiers etudie au depart (ErnadoO/
+ * boxtal sur GitHub, garde comme reference historique mais desormais
+ * secondaire), fait foi partout ou les deux divergent :
+ *   - labelType corrige : 'A4' n'existe pas dans l'enum officiel
+ *     (CreateShippingOrderRequest.labelType), seul PDF_A4/PDF_10x15 sont
+ *     valides -- voir creerCommandeExpedition ;
+ *   - listerCodesOffre RETIREE : son chemin "/v3.1/shipping-offer-code"
+ *     etait deduit par analogie et n'existe pas dans la liste reelle des
+ *     endpoints -- aucune liste de codes d'offre n'est exposee par cette
+ *     API. GET /v3.1/content-category, lui, EST un vrai endpoint confirme
+ *     -- voir listerCategoriesContenu, reservee a /api/admin/boxtal/
+ *     content-categories (lecture seule, jamais d'etiquette creee) ;
+ *   - base URL/chemins (https://api.boxtal.com/shipping + /v3.1/...) et
+ *     authentification Basic : CONFIRMES conformes a la specification
+ *     officielle, rien a corriger.
+ *   - suspect encore ouvert au moment d'ecrire ceci, PAS corrige sans
+ *     preuve : content.id "content:v1:30100" (jamais verifie pour le vrai
+ *     compte de Hedi -- c'est precisement ce que /content-categories sert
+ *     a confirmer, sans lui demander ses cles).
  *
- * Encore A CONFIRMER a la premiere vraie requete : l'encodage exact de la
- * signature webhook (la doc Boxtal ne le precise pas, voir
- * verifierSignatureWebhook) et le chemin exact de listerCodesOffre (deduit par
- * analogie, pas trouve verbatim).
+ * Reste confirme par la doc officielle (bac a sable https://api.boxtal.build
+ * /shipping avec compte de test separe, aucune facturation en bac a sable,
+ * evenements de suivi factices ~20 min) meme si Hedi n'a pas de compte de
+ * test a ce jour -- toujours vrai pour l'avenir, simplement pas utilisable
+ * tout de suite.
+ *
+ * Encore A CONFIRMER : l'encodage exact de la signature webhook (la doc
+ * fournie ne precise que le principe HMAC-SHA256, pas hexa vs base64 -- voir
+ * verifierSignatureWebhook).
  *
  * GARDE-FOU meme principe que Stripe (src/lib/stripe.ts) : deux paires de cles
  * nommees separement (bac a sable / production), et un passage en production
@@ -163,9 +170,41 @@ export class BoxtalApiError extends Error {
   }
 }
 
+/**
+ * Cles portant une donnee personnelle (nom, email, telephone, adresse) dans
+ * le corps envoye a Boxtal -- jamais les cles structurelles (poids,
+ * dimensions, codes, type, pays...) qui sont precisement ce qu'il faut voir
+ * pour diagnostiquer un 400 (2026-11-18, demande Hedi suite au premier essai
+ * reel refuse). La LONGUEUR de la valeur masquee reste visible : un champ
+ * vide ou anormalement court/long est souvent la cause reelle d'un refus de
+ * validation, sans jamais exposer son contenu dans les logs Vercel.
+ */
+const CLES_PERSONNELLES = new Set(['firstName', 'lastName', 'email', 'phone', 'street'])
+
+function masquerPourLog(valeur: unknown): unknown {
+  if (Array.isArray(valeur)) return valeur.map(masquerPourLog)
+  if (valeur && typeof valeur === 'object') {
+    const sortie: Record<string, unknown> = {}
+    for (const [cle, v] of Object.entries(valeur as Record<string, unknown>)) {
+      sortie[cle] = CLES_PERSONNELLES.has(cle) && typeof v === 'string' ? `[masqué, ${v.length} car.]` : masquerPourLog(v)
+    }
+    return sortie
+  }
+  return valeur
+}
+
 async function appelBoxtal(chemin: string, methode: string, corps?: unknown): Promise<unknown> {
   const probleme = problemeConfigurationBoxtal()
   if (probleme) throw new Error(probleme)
+
+  // Jamais les en-tetes (Authorization porte les cles secretes) -- seulement
+  // le corps, et seulement sa version masquee. Journalise a CHAQUE appel
+  // (pas seulement sur erreur) pour garder un historique utile si un succes
+  // d'aujourd'hui devient le refus de demain (ex. code d'offre qui cesse
+  // d'etre valide).
+  if (corps !== undefined) {
+    console.log('[Boxtal] requête', methode, chemin, ':', JSON.stringify(masquerPourLog(corps)))
+  }
 
   const reponse = await fetch(BASE_URL + chemin, {
     method: methode,
@@ -187,6 +226,12 @@ async function appelBoxtal(chemin: string, methode: string, corps?: unknown): Pr
   }
 
   if (reponse.status >= 400) {
+    // Corps COMPLET de la reponse d'erreur journalise ici (jamais de donnee
+    // personnelle nôtre dans une reponse Boxtal -- au pire, Boxtal pourrait
+    // echoer des champs qu'on lui a envoyes, non masques ici volontairement :
+    // c'est la reponse du PRESTATAIRE, distincte de notre propre requete
+    // juste au-dessus, deja masquee, elle).
+    console.error('[Boxtal] erreur', reponse.status, methode, chemin, '-- corps de la réponse :', texte.slice(0, 2000))
     throw new BoxtalApiError(`Boxtal ${methode} ${chemin} -> ${reponse.status} : ${texte.slice(0, 500)}`, reponse.status)
   }
 
@@ -203,7 +248,12 @@ export async function creerCommandeExpedition(params: {
 }): Promise<{ id: string; status: string }> {
   const corps = {
     shippingOfferCode: params.offerCode,
-    labelType: 'A4',
+    // 'A4' (sans prefixe) est REFUSE -- la specification OpenAPI officielle
+    // de Boxtal (CreateShippingOrderRequest.labelType) n'accepte que l'enum
+    // PDF_A4/PDF_10x15. Corrige le 2026-11-18 suite au premier essai reel,
+    // refuse en 400 BAD_REQUEST (voir l'audit -- confirme en comparant au
+    // fichier OpenAPI officiel fourni par Hedi, pas une simple hypothese).
+    labelType: 'PDF_A4',
     insured: false,
     shipment: {
       fromAddress: adresseVersJson(params.from),
@@ -249,27 +299,26 @@ export async function annulerCommandeExpedition(shippingOrderId: string): Promis
   await appelBoxtal(`/v3.1/shipping-order/${encodeURIComponent(shippingOrderId)}`, 'DELETE')
 }
 
-export type BoxtalOffre = { code: string; label?: string; carrierCode?: string }
+export type BoxtalCategorieContenu = { id: string; label: string }
 
 /**
- * Liste les codes d'offre disponibles sur le compte -- a appeler UNE FOIS les
- * cles bac a sable posees pour trouver les vrais codes Colissimo/Chronopost
- * domicile (BOXTAL_OFFER_CODE_COLISSIMO/CHRONOPOST, voir offerCodePour),
- * confirme par Hedi via le guide officiel "list-shipping-offer-code-api-v3"
- * (illisible directement par nos outils). Chemin exact DEDUIT par analogie
- * avec les autres endpoints v3.1 confirmes (shipping-order) -- a verifier a
- * la premiere vraie requete, pas garanti.
+ * Liste les VRAIES categories de contenu du compte (GET /v3.1/content-
+ * category) -- endpoint CONFIRME par la specification OpenAPI officielle
+ * fournie par Hedi (2026-11-18), contrairement a l'ancienne listerCodesOffre
+ * (retiree le meme jour : son chemin "/v3.1/shipping-offer-code" etait
+ * deduit par analogie et n'existe PAS dans la liste reelle des endpoints de
+ * cette API -- aucune liste de codes d'offre n'y est exposee).
+ *
+ * Reservee a un usage en lecture seule depuis l'admin (voir
+ * /api/admin/boxtal/content-categories) : ne cree et n'annule jamais
+ * d'etiquette, jamais appelee automatiquement ailleurs dans ce fichier.
  */
-export async function listerCodesOffre(): Promise<BoxtalOffre[]> {
-  const content = await appelBoxtal('/v3.1/shipping-offer-code', 'GET')
+export async function listerCategoriesContenu(): Promise<BoxtalCategorieContenu[]> {
+  const content = await appelBoxtal('/v3.1/content-category?language=fr', 'GET')
   if (!Array.isArray(content)) return []
-  return content.map((o) => {
-    const offre = o as Record<string, unknown>
-    return {
-      code: String(offre.code ?? offre.offerCode ?? ''),
-      label: typeof offre.label === 'string' ? offre.label : undefined,
-      carrierCode: typeof offre.carrierCode === 'string' ? offre.carrierCode : undefined,
-    }
+  return content.map((c) => {
+    const cat = c as Record<string, unknown>
+    return { id: String(cat.id ?? ''), label: String(cat.label ?? '') }
   })
 }
 

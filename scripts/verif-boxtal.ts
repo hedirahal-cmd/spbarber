@@ -29,6 +29,13 @@
  * resend/dist/index.mjs, getDefaultBaseUrl), jamais documentee a Hedi, meme
  * principe que BOXTAL_API_BASE_URL -- pour verifier le controle explicite du
  * champ { error } sur l'e-mail "commande expediee" (cas I2).
+ *
+ * 2026-11-18 (suite au premier essai reel refuse en production, commande
+ * 2dc404a1) : cas A verifie labelType = "PDF_A4" (enum officiel, l'ancien
+ * "A4" etait invalide) ; cas L/L2/L3/L4 couvrent la nouvelle route de
+ * diagnostic en lecture seule /api/admin/boxtal/content-categories (succes,
+ * erreur Boxtal => 502, sans jeton admin => 401, et la preuve qu'elle
+ * n'appelle jamais POST /v3.1/shipping-order).
  */
 import http from 'node:http'
 import type { AddressInfo } from 'node:net'
@@ -174,6 +181,11 @@ const fauxBoxtal = http.createServer((req, res) => {
       res.end(JSON.stringify({ content: { id: 'bxt_test_123', status: 'CANCELLED' } }))
       return
     }
+    if (req.method === 'GET' && req.url?.startsWith('/v3.1/content-category')) {
+      res.writeHead(200, { 'Content-Type': 'application/json' })
+      res.end(JSON.stringify({ content: [{ id: 'content:v1:30100', label: 'Cosmétiques, bien-être' }, { id: 'content:v1:10120', label: 'Journaux' }] }))
+      return
+    }
     res.writeHead(404, { 'Content-Type': 'application/json' })
     res.end('{}')
   })
@@ -217,6 +229,14 @@ async function cancelLabel(body: Record<string, unknown>): Promise<{ statut: num
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Cookie: `spbarber_admin=${jetonAdminValide()}` },
     body: JSON.stringify(body),
+  })
+  return { statut: r.status, corps: await r.json().catch(() => ({})) }
+}
+
+/** Route de lecture seule (2026-11-18) : liste les vraies categories de contenu Boxtal, sans jeton admin => 401 par defaut. */
+async function categoriesContenu(avecCookie = true): Promise<{ statut: number; corps: Record<string, unknown> }> {
+  const r = await fetch(base() + '/api/admin/boxtal/content-categories', {
+    headers: avecCookie ? { Cookie: `spbarber_admin=${jetonAdminValide()}` } : {},
   })
   return { statut: r.status, corps: await r.json().catch(() => ({})) }
 }
@@ -367,6 +387,9 @@ async function main() {
     const colis = (shipment.packages as Record<string, unknown>[])[0]
     verifie('colis : poids/dimensions transmis tels que saisis', colis.weight === 0.35 && colis.length === 25 && colis.width === 19 && colis.height === 10, JSON.stringify(colis))
     verifie('externalId = id de la commande (pour le retrouver au webhook)', shipment.externalId === 'cmd-1')
+    // labelType: 'A4' etait invalide -- l'enum officiel (doc OpenAPI v3.1,
+    // CreateShippingOrderRequest.labelType) n'accepte que PDF_A4/PDF_10x15.
+    verifie('labelType = "PDF_A4" (enum officiel, pas "A4")', corps.labelType === 'PDF_A4', JSON.stringify(corps.labelType))
   }
   verifie('commande passée à "shipped" avec le bon transporteur', orders['cmd-1'].status === 'shipped' && orders['cmd-1'].carrier === 'colissimo')
   verifie('boxtal_order_id enregistré sur la commande', orders['cmd-1'].boxtal_order_id === 'bxt_test_123')
@@ -533,6 +556,32 @@ async function main() {
     verifie('prénom (custom_field) enregistré', sa?.prenom === 'Jean', JSON.stringify(sa))
     verifie('nom (custom_field) enregistré', sa?.nom === 'Dupont', JSON.stringify(sa))
   }
+
+  console.log('\n--- L. Route /api/admin/boxtal/content-categories : lecture seule, n\'appelle JAMAIS shipping-order ---')
+  requetesBoxtal.length = 0
+  boxtalComportement = 'ok'
+  const l1 = await categoriesContenu()
+  verifie('=> 200', l1.statut === 200, 'obtenu ' + l1.statut + ' ' + JSON.stringify(l1.corps))
+  const categoriesL1 = (l1.corps.categories as Record<string, unknown>[]) ?? []
+  verifie('contient content:v1:30100 (celui utilisé par create-label)', categoriesL1.some((c) => c.id === 'content:v1:30100'), JSON.stringify(categoriesL1))
+  const requeteCategoriesL1 = requetesBoxtal.find((r) => r.methode === 'GET' && r.chemin?.startsWith('/v3.1/content-category'))
+  verifie('a bien appelé GET /v3.1/content-category sur Boxtal', !!requeteCategoriesL1)
+
+  console.log('\n--- L2. Boxtal renvoie une erreur => 502, jamais de page cassée ---')
+  requetesBoxtal.length = 0
+  boxtalComportement = 'erreur400'
+  const l2 = await categoriesContenu()
+  verifie('=> 502', l2.statut === 502, 'obtenu ' + l2.statut + ' ' + JSON.stringify(l2.corps))
+  boxtalComportement = 'ok'
+
+  console.log('\n--- L3. Sans jeton admin => 401, aucune requête envoyée à Boxtal ---')
+  requetesBoxtal.length = 0
+  const l3 = await categoriesContenu(false)
+  verifie('=> 401', l3.statut === 401, 'obtenu ' + l3.statut + ' ' + JSON.stringify(l3.corps))
+  verifie('aucune requête envoyée à Boxtal (refusé avant tout appel)', requetesBoxtal.length === 0)
+
+  console.log('\n--- L4. Cette route (succès, échec, ou refus) n\'a JAMAIS déclenché de POST /v3.1/shipping-order ---')
+  verifie('aucune étiquette créée via cette route', !requetesBoxtal.some((r) => r.methode === 'POST' && r.chemin === '/v3.1/shipping-order'))
 
   console.log('\n=======================================')
   console.log('  ' + ok + ' OK, ' + ko + ' ECHEC')
