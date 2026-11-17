@@ -69,8 +69,9 @@ function verifie(nom: string, attendu: unknown, obtenu: unknown) {
 const recu: { chemin: string; corps: string }[] = []
 const appelsRpc: { id: string; quantite: number }[] = []
 
-// Shampooing Noir Colorant (id 2), prix statique 2890, deja actif par defaut
-// dans le catalogue -- aucun override necessaire pour l'exposer.
+// Shampooing Noir Colorant (id 2), prix statique 4490 (aligne sur
+// product_overrides le 2026-11-17, voir src/lib/products.ts), deja actif
+// par defaut dans le catalogue -- aucun override necessaire pour l'exposer.
 const faux = http.createServer((req, res) => {
   let corps = ''
   req.on('data', (c) => (corps += c))
@@ -190,14 +191,14 @@ async function main() {
   console.log('\n--- 1. Montant calcule sous le seuil de livraison offerte ---')
   const r1 = await creerPaymentIntent({ productId: '2', quantity: 1 })
   verifie('=> 200', 200, r1.statut)
-  verifie('montant = prix + frais de port (2890 + 590)', 3480, r1.corps.amount)
+  verifie('montant = prix + frais de port (4490 + 590)', 5080, r1.corps.amount)
   verifie('clientSecret present', true, typeof r1.corps.clientSecret === 'string')
   const piId1 = r1.corps.paymentIntentId as string
 
   console.log('\n--- 2. Montant calcule au-dessus du seuil (livraison offerte) ---')
   const r2 = await creerPaymentIntent({ productId: '2', quantity: 3 })
   verifie('=> 200', 200, r2.statut)
-  verifie('montant = 3 x prix, sans frais de port (8670)', 8670, r2.corps.amount)
+  verifie('montant = 3 x prix, sans frais de port (13470)', 13470, r2.corps.amount)
 
   console.log('\n--- 3. Produit inconnu : paiement refuse, pas de PaymentIntent cree ---')
   const r3 = await creerPaymentIntent({ productId: 'inexistant', quantity: 1 })

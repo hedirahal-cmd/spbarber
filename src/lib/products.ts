@@ -19,7 +19,10 @@ export const PRODUCTS: Product[] = [
     slug: 'shampooing-noir-colorant',
     description:
       'Le Shampooing Colorant Noir SP Barber est la solution naturelle pour masquer les cheveux blancs et raviver l\'intensité de votre couleur noire. Sans ammoniaque, sans peroxyde, sa formule douce respecte le cuir chevelu tout en déposant des pigments naturels à chaque lavage. Résultat visible dès la première utilisation, la couleur s\'intensifie progressivement pour un rendu naturel et homogène. Idéal pour les hommes qui souhaitent atténuer les reflets gris ou blancs sans passer par une coloration agressive. Compatible avec tous les types de cheveux noirs ou foncés.',
-    price: 2890,
+    // Prix aligne sur product_overrides (2026-11-17, verifie en base) -- ce
+    // prix statique ne sert plus que de repli si la base est injoignable, a
+    // tenir a jour manuellement a chaque changement de prix fait en admin.
+    price: 4490,
     images: [{ url: '/images/products/shampooing-noir.jpg', alt: 'Flacon de Shampooing Noir Colorant SP Barber' }],
     category: 'soin',
     stock: 40,
@@ -70,7 +73,7 @@ export const PRODUCTS: Product[] = [
     slug: 'peigne-texture-expert',
     description:
       'Le Peigne Texture Expert SP Barber est l\'outil professionnel incontournable pour sculpter, texturer et coiffer avec précision. Ses dents larges anti-casse sont conçues pour cheveux épais, texturés et bouclés : elles démêlent sans arracher et définissent le style avec précision. Utilisé par les barbiers professionnels, ce peigne homme offre une prise en main ergonomique et une durabilité supérieure aux accessoires classiques. Compatible avec tous types de coiffures masculines, il complète parfaitement votre routine avec la crème curl pour un résultat pro à la maison.',
-    price: 1490,
+    price: 990, // aligne sur product_overrides (2026-11-17)
     images: [{ url: '/images/products/peigne-texture.jpg', alt: 'Peigne Texture Expert SP Barber pour barbier professionnel' }],
     category: 'accessoire',
     stock: 80,
@@ -90,7 +93,7 @@ export const PRODUCTS: Product[] = [
     slug: 'pack-barbe-complet',
     description:
       'Le Pack Barbe Complet SP Barber réunit tout ce qu\'il faut pour entretenir et sublimer sa barbe au quotidien. Ce kit barbe homme de 6 essentiels inclut huile de barbe nourrissante, brosse à barbe, peigne barbe, baume de barbe coiffant, coupe-chou et dermaroller. Sélectionnés par des barbiers professionnels de Fougères, ces produits soin barbe homme offrent un résultat visible dès la première utilisation : barbe douce, hydratée, bien coiffée et parfaitement entretenue. Un cadeau idéal pour homme ou une mise à niveau complète de votre routine barbe.',
-    price: 4990,
+    price: 5990, // aligne sur product_overrides (2026-11-17)
     images: [{ url: '/images/products/pack-barbe.jpg', alt: "Pack Barbe Complet SP Barber avec 6 produits d'entretien" }],
     category: 'barbe',
     stock: 25,
@@ -118,7 +121,7 @@ export const PRODUCTS: Product[] = [
     slug: 'poudre-texturante',
     description:
       'La Poudre Texturante SP Barber apporte volume, grip et style mat instantanément aux cheveux fins ou sans tenue. Sa formule légère en poudre active les racines sans alourdir ni graisser. Facile à appliquer, elle crée une texture naturelle et un effet volume immédiat, idéal pour les coiffures structurées ou décoiffées-coiffées. Plébiscitée par les barbiers professionnels pour les cheveux fins, elle transforme chaque style en coiffure qui dure. Un indispensable de la routine capillaire masculine pour un look naturellement travaillé.',
-    price: 2000,
+    price: 2690, // aligne sur product_overrides (2026-11-17)
     images: [{ url: '/images/products/poudre-texturante.jpg', alt: 'Pot de Poudre Texturante SP Barber pour volume des cheveux' }],
     category: 'coiffant',
     stock: 45,
@@ -146,7 +149,7 @@ export const PRODUCTS: Product[] = [
     brand: 'BRDCLIP',
     description:
       'La Tondeuse BRDCLIP FA1T embarque des lames en titane pour une coupe précise et durable, sans faux mouvement. Sa batterie Li-ion offre environ 90 minutes d\'autonomie pour une recharge complète d\'environ 2 heures sur son support de charge inclus. Conçue pour un usage à sec, ses lames se rincent facilement à l\'eau pour un entretien simple. Livrée avec plusieurs embouts interchangeables (de 0,5 à 5 mm), elle s\'adapte à toutes les longueurs de coupe, du dégradé le plus court à la finition la plus fournie.',
-    price: 2739,
+    price: 6990, // aligne sur product_overrides (2026-11-17)
     images: [{ url: '/images/products/tondeuse-brdclip-fa1t.jpg', alt: 'Tondeuse BRDCLIP FA1T SP Barber, lames titane' }],
     category: 'tondeuse',
     stock: 999,
@@ -185,7 +188,7 @@ export const PRODUCTS: Product[] = [
     slug: 'tondeuse-kemei-km-999',
     description:
       'La Tondeuse Kemei KM-999 est équipée d\'une lame DLC zéro écart pour une coupe nette, sans tiraillement ni accroche dans les cheveux. Son écran LED affiche en temps réel le niveau de charge de la batterie 1500 mAh, qui offre environ 3 heures d\'utilisation continue pour une recharge USB d\'environ 3 heures. Compacte et sans fil, elle se glisse facilement dans un sac de voyage pour un entretien impeccable en toutes circonstances.',
-    price: 2659,
+    price: 8990, // aligne sur product_overrides (2026-11-17)
     images: [{ url: '/images/products/tondeuse-kemei-km-999.jpg', alt: 'Tondeuse Kemei KM-999 SP Barber, lame DLC' }],
     category: 'tondeuse',
     stock: 999,

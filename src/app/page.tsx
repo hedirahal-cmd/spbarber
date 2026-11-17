@@ -21,13 +21,8 @@ import { schemaOrganizationLocal, schemaBreadcrumb, jsonLd } from '@/lib/schema'
 import { toReviewDisplay, type ReviewDisplay } from '@/lib/reviews'
 import { ReviewsList } from '@/components/ReviewsList'
 import { getSiteContent } from '@/lib/site-content'
-
-type ProdOverride = {
-  id: string; name?: string | null; price?: number | null; description?: string | null; stock?: number | null
-  benefit?: string | null; images?: { url: string; alt: string }[] | null
-  actif?: boolean | null; is_bestseller?: boolean | null; bestseller_ordre?: number | null
-  bestseller_badge?: string | null; bestseller_cat?: string | null
-}
+import { getProductOverrides } from '@/lib/product-overrides-server'
+import { applyOverride } from '@/lib/product-overrides'
 
 async function getReviews(): Promise<ReviewDisplay[]> {
   try {
@@ -61,32 +56,6 @@ async function getTemoignagesPros(): Promise<TemoPro[]> {
     if (data && data.length > 0) return data as TemoPro[]
   } catch {}
   return DEFAULT_TEMOS_PROS
-}
-
-async function getProductOverrides(): Promise<Record<string, ProdOverride>> {
-  try {
-    const { data } = await supabaseAdmin.from('product_overrides').select('id,name,price,description,stock,benefit,images,actif,is_bestseller,bestseller_ordre,bestseller_badge,bestseller_cat')
-    if (!data) return {}
-    const map: Record<string, ProdOverride> = {}
-    ;(data as ProdOverride[]).forEach(r => { map[r.id] = r })
-    return map
-  } catch {}
-  return {}
-}
-
-function applyOverride(p: (typeof PRODUCTS)[0], ov: Record<string, ProdOverride>) {
-  const o = ov[p.id]
-  if (!o) return p
-  return {
-    ...p,
-    name: o.name ?? p.name,
-    price: o.price ?? p.price,
-    description: o.description ?? p.description,
-    stock: o.stock ?? p.stock,
-    benefit: o.benefit ?? p.benefit,
-    images: (o.images && o.images.length > 0) ? o.images : p.images,
-    actif: o.actif !== false,
-  }
 }
 
 function CategoryIcon({ category, size = 64 }: { category: string; size?: number }) {

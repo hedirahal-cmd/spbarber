@@ -30,7 +30,7 @@ export async function portLibre(port: number): Promise<boolean> {
 }
 
 export type Demarrage =
-  | { ok: true; arreter: () => void }
+  | { ok: true; arreter: () => void; sortie: () => string }
   | { ok: false; motif: string; arreter: () => void }
 
 /**
@@ -47,6 +47,14 @@ export async function demarrerServeur(options: {
   port: number
   env: NodeJS.ProcessEnv
   budgetSecondes?: number
+  /**
+   * Capture stdout+stderr du serveur dans un tampon lisible via `sortie()`
+   * (2026-11-17) -- desactive par defaut (stdio: 'ignore', comme avant) pour
+   * ne rien changer aux 17 bancs qui ne s'en servent pas. Reserve aux bancs
+   * qui doivent PROUVER qu'une ligne a ete journalisee (console.log/error
+   * cote serveur), pas seulement observer une reponse HTTP.
+   */
+  capturerSortie?: boolean
 }): Promise<Demarrage> {
   const port = options.port
   // SITE_OUVERT_FORCE (2026-11-11) : le mode maintenance (src/proxy.ts)
@@ -76,8 +84,15 @@ export async function demarrerServeur(options: {
   const serveur = spawn(
     process.execPath,
     ['node_modules/next/dist/bin/next', 'dev', '-p', String(port)],
-    { env, stdio: 'ignore' },
+    { env, stdio: options.capturerSortie ? ['ignore', 'pipe', 'pipe'] : 'ignore' },
   )
+
+  const tamponSortie: string[] = []
+  if (options.capturerSortie) {
+    serveur.stdout?.on('data', (d: Buffer) => tamponSortie.push(d.toString()))
+    serveur.stderr?.on('data', (d: Buffer) => tamponSortie.push(d.toString()))
+  }
+  const sortie = () => tamponSortie.join('')
 
   let mort: { code: number | null; signal: NodeJS.Signals | null } | null = null
   serveur.on('exit', (code, signal) => {
@@ -127,7 +142,7 @@ export async function demarrerServeur(options: {
 
     try {
       const reponse = await fetch('http://127.0.0.1:' + port + '/')
-      if (reponse.ok) return { ok: true, arreter }
+      if (reponse.ok) return { ok: true, arreter, sortie }
     } catch {
       // connexion refusee : le serveur compile encore, ou vient de mourir --
       // c est le tour de boucle suivant qui tranchera, via `mort`.

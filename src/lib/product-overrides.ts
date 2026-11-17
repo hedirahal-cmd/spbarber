@@ -13,6 +13,13 @@ export type ProductOverride = {
   actif?: boolean | null
   before_image_url?: string | null
   after_image_url?: string | null
+  // Champs bestseller (page d'accueil uniquement) -- lus directement sur la
+  // ligne d'override brute (jamais fusionnes dans un Product par applyOverride
+  // ci-dessous, voir src/app/page.tsx).
+  is_bestseller?: boolean | null
+  bestseller_ordre?: number | null
+  bestseller_badge?: string | null
+  bestseller_cat?: string | null
 }
 
 // Meme regle partout dans le code (pricing.ts, sitemap.ts, generateMetadata) :

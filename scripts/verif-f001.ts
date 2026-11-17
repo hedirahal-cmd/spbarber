@@ -19,7 +19,8 @@ import http from 'node:http'
 import type { AddressInfo } from 'node:net'
 
 const OVERRIDES = [
-  // Prix volontairement DIFFERENT du catalogue statique (2890) pour que la
+  // Prix volontairement DIFFERENT du catalogue statique (4490, aligne sur
+  // product_overrides le 2026-11-17 -- voir src/lib/products.ts) pour que la
   // provenance du montant soit sans ambiguite (cas 1, 6, 7 ci-dessous).
   { id: '2', name: null, price: 1990, description: null, stock: null, benefit: null },
   // La Tondeuse BRDCLIP FA1T (id 8) est actif:false dans le catalogue statique
@@ -93,7 +94,7 @@ async function main() {
     { product: { id: '4', slug: 'peigne-texture-expert', price: 99999 }, quantity: 1 },
   ])
   const sousTotal = r.reduce((s, i) => s + i.unitAmount * i.quantity, 0)
-  verifie('sous-total serveur', 1490, sousTotal)
+  verifie('sous-total serveur', 990, sousTotal) // prix statique du peigne (id 4), aligne le 2026-11-17
   verifie('livraison NON offerte', false, sousTotal >= 5900)
 
   console.log('\n--- 5. Variantes ---')
@@ -108,7 +109,7 @@ async function main() {
   r = await resolveCartItems([
     { product: { id: '8', slug: 'tondeuse-brdclip-fa1t' }, variant: { id: 'vert', price: 1 }, quantity: 1 },
   ])
-  verifie('variante sans prix propre => prix du produit de base', 2739, r[0].unitAmount)
+  verifie('variante sans prix propre => prix du produit de base', 6990, r[0].unitAmount) // prix statique de la tondeuse (id 8), aligne le 2026-11-17
   await echec('variante inexistante refusee', [
     { product: { id: '8', slug: 'tondeuse-brdclip-fa1t' }, variant: { id: 'jaune', price: 1 }, quantity: 1 },
   ], 400)

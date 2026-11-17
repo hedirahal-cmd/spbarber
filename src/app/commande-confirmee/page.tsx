@@ -5,8 +5,8 @@ import type Stripe from 'stripe'
 import type { Metadata } from 'next'
 import { ClearCartOnMount } from '@/components/ClearCartOnMount'
 import { PRODUCTS } from '@/lib/products'
-import { applyOverride, type ProductOverride } from '@/lib/product-overrides'
-import { supabaseAdmin } from '@/lib/supabase'
+import { applyOverride } from '@/lib/product-overrides'
+import { getProductOverrides } from '@/lib/product-overrides-server'
 
 export const metadata: Metadata = {
   title: { absolute: 'Commande confirmée — SP Barber Shop' },
@@ -87,11 +87,10 @@ export default async function CommandeConfirmeePage({
     viderPanier = false
     orderRef = payment_intent!.slice(-8).toUpperCase()
 
-    let overrides: Record<string, ProductOverride> = {}
-    try {
-      const { data } = await supabaseAdmin.from('product_overrides').select('id,name,price,images,actif')
-      if (data) (data as ProductOverride[]).forEach((o) => { overrides[o.id] = o })
-    } catch {}
+    // Seule implementation (2026-11-17, demande Hedi) : repli silencieux sur
+    // le catalogue statique en cas d'echec, SANS log, tout comme les 3
+    // implementations deja unifiees -- voir src/lib/product-overrides-server.ts.
+    const overrides = await getProductOverrides()
 
     let parsedItems: { id?: string; variantId?: string; qty?: number }[] = []
     try {

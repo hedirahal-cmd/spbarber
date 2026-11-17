@@ -423,13 +423,14 @@ async function main() {
   console.log('\n--- E3. Commande MIXTE (peigne + tondeuse) : le corps réel envoyé à Boxtal ne porte que le peigne, AU PRIX RÉEL (override) ---')
   orders = { 'cmd-mixte': { ...commandeDeBase(), id: 'cmd-mixte', items: [{ id: '4', qty: 1 }, { id: '8', qty: 1, variantId: 'blanc' }] } }
   requetesBoxtal.length = 0
-  // Override de prix simule pour le peigne (990 = 9,90 €, le vrai prix actuel
-  // en base au moment d'ecrire ce banc -- different du prix statique du
-  // catalogue, 1490 = 14,90 €, laisse tel quel dans src/lib/products.ts).
-  // Sans cet override explicite, le test prouve seulement le REPLI sur le
-  // catalogue (product_overrides vide), jamais que l'override l'emporte
-  // reellement quand il existe -- precisement la question posee par Hedi.
-  overridesPrix = { '4': 990 }
+  // Override de prix simule pour le peigne, VOLONTAIREMENT different du prix
+  // statique du catalogue (990 = 9,90 €, aligne sur product_overrides le
+  // 2026-11-17, voir src/lib/products.ts) -- sinon, les deux chemins (override
+  // lu vs repli catalogue) renverraient coincidentellement le meme montant, et
+  // le test ne prouverait plus que l'override l'emporte reellement quand il
+  // existe, seulement que le repli fonctionne (deja couvert par defaut quand
+  // overridesPrix est vide, cas A-E2 ci-dessus).
+  overridesPrix = { '4': 850 }
   const e3 = await createLabel({ id: 'cmd-mixte', carrier: 'colissimo', poidsKg: 0.4, longueurCm: 25, largeurCm: 19, hauteurCm: 10 })
   verifie('=> 200', e3.statut === 200, 'obtenu ' + e3.statut + ' ' + JSON.stringify(e3.corps))
   const requeteE3 = requetesBoxtal.find((r) => r.methode === 'POST' && r.chemin === '/v3.1/shipping-order')
@@ -439,7 +440,7 @@ async function main() {
     const colis = (shipment.packages as Record<string, unknown>[])[0]
     verifie('poids = celui saisi (0.4) -- le poids n\'est pas recalculé serveur, seule la suggestion admin exclut déjà la tondeuse', colis.weight === 0.4, JSON.stringify(colis.weight))
     const valeur = (colis.value as Record<string, unknown>).value
-    verifie('valeur déclarée = le prix RÉEL du peigne (9,90 €, product_overrides), PAS le prix statique du catalogue (14,90 €), et jamais la tondeuse en plus', valeur === 9.9, JSON.stringify(valeur))
+    verifie('valeur déclarée = le prix de l\'OVERRIDE simulé (8,50 €), PAS le prix statique du catalogue (9,90 €), et jamais la tondeuse en plus', valeur === 8.5, JSON.stringify(valeur))
     const description = (colis.content as Record<string, unknown>).description
     verifie('description mentionne le peigne', String(description).includes('Peigne Texture Expert'), String(description))
     verifie('description ne mentionne JAMAIS la tondeuse', !String(description).includes('Tondeuse'), String(description))
