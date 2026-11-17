@@ -37,6 +37,40 @@ const ORGANIZATION = {
   sameAs: ['https://www.instagram.com/sp_barbershop_/'],
 }
 
+/**
+ * Convertit le texte d'horaires EXACTEMENT au format utilise dans la table
+ * `salons` (ex. "Lun–Sam 9h–19h") en openingHoursSpecification structuree --
+ * SANS jamais inventer : un format inattendu (jour inconnu, plage "a
+ * l'envers", etc.) rend `undefined`, jamais une valeur approximative. Un
+ * SEUL jour de depart, un SEUL jour de fin, UNE SEULE plage horaire --
+ * volontairement etroit (le format reel des deux salons a ce jour), pas un
+ * parseur d'horaires general (2026-11-17, demande Hedi).
+ */
+const ORDRE_JOURS_FR = ['lun', 'mar', 'mer', 'jeu', 'ven', 'sam', 'dim']
+const JOUR_FR_VERS_EN: Record<string, string> = {
+  lun: 'Monday', mar: 'Tuesday', mer: 'Wednesday', jeu: 'Thursday', ven: 'Friday', sam: 'Saturday', dim: 'Sunday',
+}
+
+export function openingHoursDepuisTexte(horaires: string | null | undefined): Record<string, unknown>[] | undefined {
+  if (!horaires) return undefined
+  const m = horaires.trim().match(
+    /^(lun|mar|mer|jeu|ven|sam|dim)\.?\s*[–-]\s*(lun|mar|mer|jeu|ven|sam|dim)\.?\s+(\d{1,2})h(\d{2})?\s*[–-]\s*(\d{1,2})h(\d{2})?$/i,
+  )
+  if (!m) return undefined
+  const [, jourDebut, jourFin, hDebut, mDebut, hFin, mFin] = m
+  const iDebut = ORDRE_JOURS_FR.indexOf(jourDebut.toLowerCase())
+  const iFin = ORDRE_JOURS_FR.indexOf(jourFin.toLowerCase())
+  if (iDebut === -1 || iFin === -1 || iFin < iDebut) return undefined
+
+  const deuxChiffres = (n: string) => n.padStart(2, '0')
+  return [{
+    '@type': 'OpeningHoursSpecification',
+    dayOfWeek: ORDRE_JOURS_FR.slice(iDebut, iFin + 1).map((j) => JOUR_FR_VERS_EN[j]),
+    opens: `${deuxChiffres(hDebut)}:${mDebut ?? '00'}`,
+    closes: `${deuxChiffres(hFin)}:${mFin ?? '00'}`,
+  }]
+}
+
 const WEBSITE = {
   '@type': 'WebSite',
   '@id': `${BASE}/#website`,
@@ -50,7 +84,21 @@ const WEBSITE = {
   },
 }
 
-export function schemaOrganizationLocal() {
+/**
+ * `salonPrincipal` (2026-11-17, demande Hedi) : le LocalBusiness de la page
+ * d'accueil reprend desormais les VRAIES donnees du salon (au lieu d'une
+ * copie figee en dur, qui dupliquait -- et pouvait faire deriver -- les
+ * donnees de la fiche /salon/fougeres, et qui inventait des coordonnees
+ * geo jamais presentes dans la vraie table `salons`, latitude/longitude
+ * etant NULL pour les deux salons a ce jour). Sans salon fourni (lecture
+ * Supabase en panne), repli sur les memes valeurs par defaut que
+ * DEFAULT_SALONS -- jamais un bloc invente a part.
+ */
+export function schemaOrganizationLocal(salonPrincipal?: Salon) {
+  const hasRating = !!(salonPrincipal?.note_google && salonPrincipal?.nombre_avis)
+  const hasGeo = salonPrincipal?.latitude != null && salonPrincipal?.longitude != null
+  const openingHours = openingHoursDepuisTexte(salonPrincipal?.horaires)
+
   return {
     '@context': 'https://schema.org',
     '@graph': [
@@ -61,34 +109,32 @@ export function schemaOrganizationLocal() {
         '@id': `${BASE}/#localbusiness`,
         name: 'SP Barber',
         description:
+          salonPrincipal?.description ||
           'Salon de coiffure barbier à Fougères et boutique en ligne de produits capillaires premium pour hommes.',
         url: BASE,
-        telephone: '',
+        ...(salonPrincipal?.telephone ? { telephone: salonPrincipal.telephone } : {}),
         address: {
           '@type': 'PostalAddress',
-          streetAddress: '48 Boulevard Jean Jaurès',
-          addressLocality: 'Fougères',
-          postalCode: '35300',
+          streetAddress: salonPrincipal?.adresse || '48 Boulevard Jean Jaurès',
+          addressLocality: salonPrincipal?.ville || 'Fougères',
+          postalCode: salonPrincipal?.code_postal || '35300',
           addressCountry: 'FR',
         },
-        geo: {
-          '@type': 'GeoCoordinates',
-          latitude: 48.3522,
-          longitude: -1.2038,
-        },
-        openingHoursSpecification: [
-          {
-            '@type': 'OpeningHoursSpecification',
-            dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
-            opens: '09:00',
-            closes: '19:00',
-          },
-        ],
+        ...(hasGeo ? { geo: { '@type': 'GeoCoordinates', latitude: salonPrincipal!.latitude, longitude: salonPrincipal!.longitude } } : {}),
+        ...(openingHours ? { openingHoursSpecification: openingHours } : {}),
         priceRange: '€€',
-        servesCuisine: undefined,
-        hasMap: 'https://maps.google.com/?q=48+Boulevard+Jean+Jaurès,+35300+Fougères',
+        hasMap: salonPrincipal?.lien_google_maps || 'https://maps.google.com/?q=48+Boulevard+Jean+Jaurès,+35300+Fougères',
         image: `${BASE}/og-default.jpg`,
         sameAs: ['https://www.instagram.com/sp_barbershop_/'],
+        ...(hasRating ? {
+          aggregateRating: {
+            '@type': 'AggregateRating',
+            ratingValue: salonPrincipal!.note_google,
+            reviewCount: salonPrincipal!.nombre_avis,
+            bestRating: '5',
+            worstRating: '1',
+          },
+        } : {}),
       },
     ],
   }
@@ -213,6 +259,7 @@ export function schemaSalon(salon: Salon) {
   const hasRating = !!(salon.note_google && salon.nombre_avis)
   const hasGeo = salon.latitude != null && salon.longitude != null
   const image = salon.photos?.[0]?.startsWith('http') ? salon.photos[0] : `${BASE}/og-default.jpg`
+  const openingHours = openingHoursDepuisTexte(salon.horaires)
 
   return {
     '@context': 'https://schema.org',
@@ -220,7 +267,11 @@ export function schemaSalon(salon: Salon) {
     name: salon.nom ?? 'SP Barber',
     description: salon.description ?? `Salon de coiffure barbier professionnel à ${salon.ville ?? ''}.`,
     url: `${BASE}/salon/${salon.slug}`,
-    telephone: salon.telephone ?? '',
+    // Telephone OMIS si absent (2026-11-17) -- jamais une chaine vide dans
+    // les donnees structurees, meme principe que geo/aggregateRating
+    // ci-dessous. Aucun des deux salons n'a de numero reel enregistre a ce
+    // jour (colonne vide en base).
+    ...(salon.telephone ? { telephone: salon.telephone } : {}),
     address: {
       '@type': 'PostalAddress',
       streetAddress: salon.adresse ?? '',
@@ -229,6 +280,7 @@ export function schemaSalon(salon: Salon) {
       addressCountry: 'FR',
     },
     ...(hasGeo ? { geo: { '@type': 'GeoCoordinates', latitude: salon.latitude, longitude: salon.longitude } } : {}),
+    ...(openingHours ? { openingHoursSpecification: openingHours } : {}),
     priceRange: '€€',
     ...(salon.lien_google_maps ? { hasMap: salon.lien_google_maps } : {}),
     image,

@@ -123,7 +123,7 @@ async function main() {
     const demarrage = await demarrerServeur({ port: PORT_NEXT, env })
     if (!demarrage.ok) {
       console.log('  ARRET : ' + demarrage.motif)
-      fauxSupabase.close(); fauxStripe.close(); process.exitCode = 1; return
+      demarrage.arreter(); fauxSupabase.close(); fauxStripe.close(); process.exitCode = 1; return
     }
     const a = await checkout()
     verifie('=> 503 (paiement refusé, pas une erreur serveur imprévue)', a.statut === 503, 'obtenu ' + a.statut + ' ' + JSON.stringify(a.corps))
@@ -139,7 +139,7 @@ async function main() {
     const demarrage = await demarrerServeur({ port: PORT_NEXT, env })
     if (!demarrage.ok) {
       console.log('  ARRET : ' + demarrage.motif)
-      fauxSupabase.close(); fauxStripe.close(); process.exitCode = 1; return
+      demarrage.arreter(); fauxSupabase.close(); fauxStripe.close(); process.exitCode = 1; return
     }
     const b = await checkout()
     verifie('=> 200 (le garde-fou laisse passer)', b.statut === 200, 'obtenu ' + b.statut + ' ' + JSON.stringify(b.corps))
@@ -155,7 +155,7 @@ async function main() {
     const demarrage = await demarrerServeur({ port: PORT_NEXT, env })
     if (!demarrage.ok) {
       console.log('  ARRET : ' + demarrage.motif)
-      fauxSupabase.close(); fauxStripe.close(); process.exitCode = 1; return
+      demarrage.arreter(); fauxSupabase.close(); fauxStripe.close(); process.exitCode = 1; return
     }
     const c = await checkout()
     verifie('=> 200 (jamais besoin de STRIPE_AUTORISER_LIVE en mode test)', c.statut === 200, 'obtenu ' + c.statut + ' ' + JSON.stringify(c.corps))

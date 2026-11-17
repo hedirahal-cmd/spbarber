@@ -86,7 +86,11 @@ export default async function HomePage() {
   const avgRatingLabel   = avgRating.toFixed(1).replace('.', ',')
   const overrides        = await getProductOverrides()
   const siteContent      = await getSiteContent()
-  const orgSchema        = schemaOrganizationLocal()
+  // Salon principal = le plus petit `ordre` (Fougeres aujourd'hui), meme
+  // regle que /salon (voir sa redirection) -- vraies donnees, jamais une
+  // copie figee en dur (2026-11-17, demande Hedi).
+  const salonPrincipal   = [...salons].sort((a, b) => (a.ordre ?? 999) - (b.ordre ?? 999))[0]
+  const orgSchema        = schemaOrganizationLocal(salonPrincipal)
   const breadcrumbSchema = schemaBreadcrumb([{ name: 'Accueil', url: 'https://spbarber.fr' }])
 
   // Bestsellers choisis en admin (case a cocher par produit) -- ordre croissant,

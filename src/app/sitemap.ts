@@ -49,6 +49,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.5,
     },
     {
+      // Page reelle (equipe, 2 barbers actifs a ce jour) oubliee du sitemap
+      // -- ajoutee le 2026-11-17 (audit SEO, demande Hedi).
+      url: `${BASE}/barbers`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.5,
+    },
+    {
       url: `${BASE}/contact`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
@@ -68,6 +76,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
     {
       url: `${BASE}/cgv`,
+      lastModified: new Date(),
+      changeFrequency: 'yearly',
+      priority: 0.2,
+    },
+    {
+      // Page legale reelle (formulaire de retractation) oubliee du sitemap
+      // -- ajoutee le 2026-11-17 (audit SEO, demande Hedi).
+      url: `${BASE}/retractation`,
       lastModified: new Date(),
       changeFrequency: 'yearly',
       priority: 0.2,

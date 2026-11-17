@@ -55,14 +55,33 @@ export async function demarrerServeur(options: {
    * cote serveur), pas seulement observer une reponse HTTP.
    */
   capturerSortie?: boolean
+  /**
+   * SITE_OUVERT_FORCE (2026-11-11) : le mode maintenance (src/proxy.ts)
+   * bloquerait sinon TOUS les bancs qui chargent une vraie page -- aucun
+   * d'eux ne teste ce mode lui-meme, et le defaut production est
+   * volontairement ferme (aucune ligne site_content ne l'ouvre). Injectee
+   * par defaut (true) pour ne rien changer aux bancs existants. Passer
+   * `false` pour EPROUVER reellement le mode "bientot disponible" (voir
+   * verif-ouverture-site.ts), qui serait sinon toujours contourne --
+   * jamais a documenter a Hedi dans les deux cas.
+   */
+  forcerSiteOuvert?: boolean
+  /**
+   * Chemin sonde pour decider que le serveur est pret (2026-11-17) -- '/'
+   * par defaut (inchange pour tous les bancs existants). Un banc qui demarre
+   * volontairement le site FERME (`forcerSiteOuvert: false`, voir
+   * verif-ouverture-site.ts) doit sonder un chemin TOUJOURS 200 quel que
+   * soit l'etat d'ouverture (ex. '/robots.txt', exclu du proxy) : sinon le
+   * 503 attendu et CORRECT de '/' est interprete a tort comme "compilation
+   * pas encore terminee", et ce banc n'atteint jamais `ok:true`.
+   */
+  cheminSonde?: string
 }): Promise<Demarrage> {
   const port = options.port
-  // SITE_OUVERT_FORCE (2026-11-11) : le mode maintenance (src/proxy.ts)
-  // bloquerait sinon TOUS les bancs qui chargent une vraie page -- aucun
-  // d'eux ne teste ce mode lui-meme, et le defaut production est
-  // volontairement ferme (aucune ligne site_content ne l'ouvre). Toujours
-  // injectee ici, jamais a documenter a Hedi.
-  const env: NodeJS.ProcessEnv = { ...options.env, SITE_OUVERT_FORCE: 'oui' }
+  const env: NodeJS.ProcessEnv = {
+    ...options.env,
+    ...(options.forcerSiteOuvert === false ? {} : { SITE_OUVERT_FORCE: 'oui' }),
+  }
   const budget = options.budgetSecondes ?? BUDGET_SECONDES_DEFAUT
   const rien = () => {}
 
@@ -165,7 +184,7 @@ export async function demarrerServeur(options: {
     }
 
     try {
-      const reponse = await fetch('http://127.0.0.1:' + port + '/')
+      const reponse = await fetch('http://127.0.0.1:' + port + (options.cheminSonde ?? '/'))
       if (reponse.ok) return { ok: true, arreter, sortie }
     } catch {
       // connexion refusee : le serveur compile encore, ou vient de mourir --
