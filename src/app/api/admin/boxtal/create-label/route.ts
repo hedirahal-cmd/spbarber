@@ -26,8 +26,11 @@ type Transporteur = 'colissimo' | 'chronopost'
  * L'etiquette elle-meme n'est PAS prete a la fin de cet appel -- Boxtal la
  * genere de facon asynchrone et previent par webhook (voir
  * /api/webhook/boxtal). Ce qui est immediat : la commande d'expedition existe
- * cote Boxtal, et notre commande passe a "shipped" (meme semantique que le
- * clic "Marquer comme expedie" du flux manuel).
+ * cote Boxtal, et notre commande passe a "label_ready" (etiquette prete, en
+ * attente de depot chez le transporteur) -- PAS "shipped" : ce statut final,
+ * et l'e-mail client, n'arrivent qu'a la vraie prise en charge transporteur
+ * (2026-11-17, demande Hedi -- voir STATUTS_PRISE_EN_CHARGE dans boxtal.ts et
+ * le webhook TRACKING_CHANGED).
  */
 export async function POST(req: NextRequest) {
   if (!(await estAdmin())) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -182,7 +185,7 @@ export async function POST(req: NextRequest) {
 
     const { error: updateErr } = await supabase
       .from('orders')
-      .update({ status: 'shipped', carrier: transporteur, shipped_at: new Date().toISOString(), boxtal_order_id: shippingOrderId })
+      .update({ status: 'label_ready', carrier: transporteur, boxtal_order_id: shippingOrderId })
       .eq('id', id)
     if (updateErr) return NextResponse.json({ error: updateErr.message }, { status: 500 })
 

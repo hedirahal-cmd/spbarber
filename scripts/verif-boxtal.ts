@@ -36,6 +36,27 @@
  * diagnostic en lecture seule /api/admin/boxtal/content-categories (succes,
  * erreur Boxtal => 502, sans jeton admin => 401, et la preuve qu'elle
  * n'appelle jamais POST /v3.1/shipping-order).
+ *
+ * 2026-11-17 (premier essai REEL REUSSI en production, commande 48e83175) :
+ * trois chantiers -- (1) le faux Supabase Storage valide desormais le mime
+ * type PAR BUCKET (MIME_AUTORISES_PAR_BUCKET), ce qu'il ne faisait pas du
+ * tout avant (cas J3 reproduit le vrai bug observe puis prouve qu'il serait
+ * detecte) ; cas J/J2 verifient le nouveau bucket PRIVE "etiquettes" et le
+ * CHEMIN (pas une URL publique) enregistre, cas J4/J5/J6 la nouvelle route
+ * /api/admin/boxtal/label-url (lien signe) ; (2) cas H/I/I2/I3/I4/I5/I6
+ * couvrent le nouveau statut "label_ready" et la transition ATOMIQUE vers
+ * "shipped" selon les VRAIS statuts de PackageTrackingStatusEnum (confirmes
+ * par Hedi via la specification officielle le meme jour -- voir
+ * STATUTS_PRISE_EN_CHARGE dans boxtal.ts) : ANNOUNCED ne declenche jamais
+ * rien (cas I), SHIPPED declenche l'envoi (cas I2), un filet de securite
+ * (IN_TRANSIT) rejoue apres coup ne redeclenche rien (cas I3), un evenement
+ * arrivant apres annulation ne declenche rien (cas I4, protection demandee
+ * par Hedi), DELIVERED recu SANS SHIPPED avant declenche quand meme l'envoi
+ * -- lui aussi un filet de securite (cas I6) ; cas I7 verifie que le suivi
+ * MANUEL (/api/admin/ship), chemin independant, garde son e-mail immediat ;
+ * (3) cas F verifie le retour INTEGRAL a "paid" apres une annulation reussie
+ * (statut, tracking_number, carrier, shipped_at -- plus seulement
+ * boxtal_order_id/boxtal_label_url).
  */
 import http from 'node:http'
 import type { AddressInfo } from 'node:net'
@@ -46,6 +67,15 @@ import { demarrerServeur } from './banc-serveur'
 const PORT_NEXT = 3115
 const ADMIN_SECRET = 'banc_boxtal_secret_de_test_1234567890abcdef'
 const BOXTAL_WEBHOOK_SECRET = 'banc_boxtal_webhook_secret_de_test_1234567890'
+// Doivent correspondre EXACTEMENT a STATUTS_PRISE_EN_CHARGE dans
+// src/lib/boxtal.ts (PackageTrackingStatusEnum officiel, confirme par Hedi
+// le 2026-11-17) -- duplique ici (comme les autres constantes de ce banc)
+// car ce script tourne dans un processus separe du serveur Next.js qu'il
+// pilote par HTTP, il ne peut pas importer ce module directement.
+const STATUT_PRISE_EN_CHARGE_TEST = 'SHIPPED' // declencheur normal
+const STATUT_FILET_SECURITE_TEST = 'IN_TRANSIT' // filet de securite si SHIPPED est rate
+const STATUT_PRISE_EN_CHARGE_SANS_SHIPPED_TEST = 'DELIVERED' // autre filet de securite, teste seul (cas I6)
+const STATUT_JAMAIS_PRISE_EN_CHARGE_TEST = 'ANNOUNCED' // etiquette creee, pas encore expedie -- ne doit JAMAIS declencher
 const STRIPE_WEBHOOK_SECRET = 'whsec_banc_boxtal'
 
 function jetonAdminValide(): string {
@@ -82,6 +112,22 @@ const SALON_FOUGERES = { adresse: '48 Boulevard Jean Jaurès', ville: 'Fougères
 /** Override de prix simule (table product_overrides) -- vide par defaut (comportement des cas A-E2, prix statique PRODUCTS en repli). Rempli ponctuellement par le cas E3 pour prouver que l'override l'emporte reellement. */
 let overridesPrix: Record<string, number> = {}
 
+/**
+ * Validation mime PAR BUCKET (2026-11-17) -- reproduit la VRAIE restriction
+ * Supabase Storage (voir storage.buckets.allowed_mime_types en production)
+ * que ce faux serveur ne simulait pas du tout jusqu'ici : un stub generique
+ * qui accepte n'importe quel upload, quel que soit son bucket ou son
+ * Content-Type, n'aurait JAMAIS detecte le bug reel de production (PDF
+ * envoye dans "products", qui n'autorise que des images -- "mime type
+ * application/pdf is not supported"). Cette validation protege contre une
+ * regression future du meme type.
+ */
+const MIME_AUTORISES_PAR_BUCKET: Record<string, string[]> = {
+  products: ['image/jpeg', 'image/png', 'image/webp'],
+  etiquettes: ['application/pdf'],
+}
+const uploadsStorage: { bucket: string; chemin: string; contentType: string }[] = []
+
 const fauxSupabase = http.createServer((req, res) => {
   let corps = ''
   req.on('data', (c) => (corps += c))
@@ -91,8 +137,27 @@ const fauxSupabase = http.createServer((req, res) => {
     const objetUnique = req.headers.accept?.includes('vnd.pgrst.object+json')
 
     if (u.pathname.includes('/storage/')) {
+      const apresObject = u.pathname.split('/object/')[1] ?? ''
+      if (apresObject.startsWith('sign/')) {
+        // createSignedUrl() : POST .../object/sign/<bucket>/<chemin>
+        const reste = apresObject.slice('sign/'.length)
+        res.writeHead(200, { 'Content-Type': 'application/json' })
+        res.end(JSON.stringify({ signedURL: `/object/sign/${reste}?token=faux-jeton-test` }))
+        return
+      }
+      // upload() : POST .../object/<bucket>/<chemin>
+      const bucket = apresObject.split('/')[0] ?? ''
+      const chemin = apresObject.slice(bucket.length + 1)
+      const contentType = String(req.headers['content-type'] ?? '')
+      const autorises = MIME_AUTORISES_PAR_BUCKET[bucket]
+      if (autorises && !autorises.includes(contentType)) {
+        res.writeHead(400, { 'Content-Type': 'application/json' })
+        res.end(JSON.stringify({ statusCode: '400', error: 'invalid_mime_type', message: `mime type ${contentType} is not supported` }))
+        return
+      }
+      uploadsStorage.push({ bucket, chemin, contentType })
       res.writeHead(200, { 'Content-Type': 'application/json' })
-      res.end(JSON.stringify({ Key: u.pathname }))
+      res.end(JSON.stringify({ Key: `${bucket}/${chemin}` }))
       return
     }
     if (u.pathname.includes('/salons')) {
@@ -132,9 +197,23 @@ const fauxSupabase = http.createServer((req, res) => {
         const idFiltre = u.searchParams.get('id')
         const id = idFiltre ? idFiltre.replace(/^eq\./, '') : null
         const patch = JSON.parse(corps || '{}')
-        if (id && orders[id]) orders[id] = { ...orders[id], ...patch }
+        // Filtres SUPPLEMENTAIRES (ex. status=eq.label_ready, voir le webhook
+        // Boxtal/TRACKING_CHANGED) -- reproduit la transition ATOMIQUE
+        // conditionnee reelle de Postgres/PostgREST : 0 ligne touchee si un
+        // AUTRE filtre que l'id ne correspond plus (deja ailleurs, idempotence
+        // ou annulation entre-temps), au lieu d'ecraser sans condition comme
+        // avant (2026-11-17).
+        let correspond = !!(id && orders[id])
+        if (correspond && id) {
+          for (const [cle, valeur] of u.searchParams.entries()) {
+            if (cle === 'id' || cle === 'select') continue
+            const attendu = valeur.replace(/^eq\./, '')
+            if (String((orders[id] as OrderRow)[cle] ?? '') !== attendu) { correspond = false; break }
+          }
+        }
+        if (correspond && id) orders[id] = { ...orders[id], ...patch }
         res.writeHead(200, { 'Content-Type': 'application/json' })
-        res.end('[]')
+        res.end(JSON.stringify(correspond && id ? [{ ...orders[id] }] : []))
         return
       }
       if (req.method === 'POST') {
@@ -229,6 +308,24 @@ async function cancelLabel(body: Record<string, unknown>): Promise<{ statut: num
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Cookie: `spbarber_admin=${jetonAdminValide()}` },
     body: JSON.stringify(body),
+  })
+  return { statut: r.status, corps: await r.json().catch(() => ({})) }
+}
+
+/** Suivi manuel (/api/admin/ship) -- chemin INDEPENDANT de Boxtal, inchange par ce chantier : garde son e-mail immediat (cas I7). */
+async function shipManuel(body: Record<string, unknown>): Promise<{ statut: number; corps: Record<string, unknown> }> {
+  const r = await fetch(base() + '/api/admin/ship', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Cookie: `spbarber_admin=${jetonAdminValide()}` },
+    body: JSON.stringify(body),
+  })
+  return { statut: r.status, corps: await r.json().catch(() => ({})) }
+}
+
+/** Lien signe de courte duree vers l'etiquette PDF (2026-11-17) -- bucket prive "etiquettes", sans jeton admin => 401 par defaut. */
+async function labelUrl(id: string, avecCookie = true): Promise<{ statut: number; corps: Record<string, unknown> }> {
+  const r = await fetch(base() + '/api/admin/boxtal/label-url?id=' + encodeURIComponent(id), {
+    headers: avecCookie ? { Cookie: `spbarber_admin=${jetonAdminValide()}` } : {},
   })
   return { statut: r.status, corps: await r.json().catch(() => ({})) }
 }
@@ -391,9 +488,13 @@ async function main() {
     // CreateShippingOrderRequest.labelType) n'accepte que PDF_A4/PDF_10x15.
     verifie('labelType = "PDF_A4" (enum officiel, pas "A4")', corps.labelType === 'PDF_A4', JSON.stringify(corps.labelType))
   }
-  verifie('commande passée à "shipped" avec le bon transporteur', orders['cmd-1'].status === 'shipped' && orders['cmd-1'].carrier === 'colissimo')
+  // label_ready, PAS "shipped" (2026-11-17, demande Hedi) : le passage a
+  // "shipped" et l'e-mail client n'ont lieu qu'a la vraie prise en charge
+  // transporteur (voir le bloc TRACKING_CHANGED plus bas, cas I2).
+  verifie('commande passée à "label_ready" (pas encore "shipped") avec le bon transporteur', orders['cmd-1'].status === 'label_ready' && orders['cmd-1'].carrier === 'colissimo', String(orders['cmd-1'].status))
   verifie('boxtal_order_id enregistré sur la commande', orders['cmd-1'].boxtal_order_id === 'bxt_test_123')
   verifie('tracking_number encore vide (pas connu avant le webhook)', orders['cmd-1'].tracking_number == null)
+  verifie('shipped_at encore vide (pas encore pris en charge)', orders['cmd-1'].shipped_at == null)
 
   console.log('\n--- B. Téléphone manquant (commande antérieure à ce chantier) : refusée, pas d\'appel Boxtal ---')
   orders = { 'cmd-2': { ...commandeDeBase(), id: 'cmd-2', shipping_address: { name: 'Vieux Client', address: { line1: '1 rue', city: 'Fougeres', postal_code: '35300', country: 'FR' } } } }
@@ -470,22 +571,36 @@ async function main() {
   }
   overridesPrix = {}
 
-  console.log('\n--- F. Annulation d\'étiquette ---')
-  orders = { 'cmd-6': { ...commandeDeBase(), id: 'cmd-6', boxtal_order_id: 'bxt_test_123', boxtal_label_url: 'https://exemple.test/label.pdf' } }
+  console.log('\n--- F. Annulation d\'étiquette : retour INTÉGRAL à "paid" (2026-11-17, demande Hedi) ---')
+  // Fixture volontairement "avancee" (statut deja shipped, suivi/transporteur/
+  // date deja connus) -- preuve la plus forte : MEME dans ce cas, Boxtal
+  // acceptant l'annulation efface tout, pas seulement boxtal_order_id/
+  // boxtal_label_url comme avant le 2026-11-17.
+  orders = {
+    'cmd-6': {
+      ...commandeDeBase(), id: 'cmd-6', status: 'shipped',
+      boxtal_order_id: 'bxt_test_123', boxtal_label_url: 'labels/cmd-6.pdf',
+      tracking_number: 'XX_AVANT_ANNULATION', carrier: 'colissimo', shipped_at: '2026-11-17T10:00:00.000Z',
+    },
+  }
   const f = await cancelLabel({ id: 'cmd-6' })
   verifie('=> 200', f.statut === 200, 'obtenu ' + f.statut)
+  verifie('statut revenu à "paid"', orders['cmd-6'].status === 'paid', String(orders['cmd-6'].status))
   verifie('boxtal_order_id effacé', orders['cmd-6'].boxtal_order_id === null)
   verifie('boxtal_label_url effacé', orders['cmd-6'].boxtal_label_url === null)
+  verifie('tracking_number effacé', orders['cmd-6'].tracking_number === null)
+  verifie('carrier effacé', orders['cmd-6'].carrier === null)
+  verifie('shipped_at effacé', orders['cmd-6'].shipped_at === null)
 
-  console.log('\n--- F2. Annulation refusée par Boxtal : la VRAIE cause est affichée, pas une cause supposée ---')
-  orders = { 'cmd-6b': { ...commandeDeBase(), id: 'cmd-6b', boxtal_order_id: 'bxt_test_123', boxtal_label_url: 'https://exemple.test/label.pdf' } }
+  console.log('\n--- F2. Annulation refusée par Boxtal : la VRAIE cause est affichée, pas une cause supposée, RIEN n\'est effacé ---')
+  orders = { 'cmd-6b': { ...commandeDeBase(), id: 'cmd-6b', status: 'label_ready', boxtal_order_id: 'bxt_test_123', boxtal_label_url: 'labels/cmd-6b.pdf' } }
   boxtalComportement = 'erreur400'
   const f2 = await cancelLabel({ id: 'cmd-6b' })
   verifie('=> 502', f2.statut === 502, 'obtenu ' + f2.statut)
   verifie('le message contient la vraie réponse Boxtal (pas "colis déjà pris en charge" supposé)',
     String(f2.corps.error ?? '').includes('offre invalide (bac a sable de test)') && !String(f2.corps.error ?? '').includes('déjà pris en charge'),
     JSON.stringify(f2.corps))
-  verifie('commande inchangée (annulation refusée, rien effacé)', orders['cmd-6b'].boxtal_order_id === 'bxt_test_123')
+  verifie('commande inchangée (annulation refusée, rien effacé)', orders['cmd-6b'].boxtal_order_id === 'bxt_test_123' && orders['cmd-6b'].status === 'label_ready')
   boxtalComportement = 'ok'
 
   console.log('\n--- G. Annulation sans étiquette à annuler : refusée ---')
@@ -494,29 +609,79 @@ async function main() {
   verifie('=> 400', g.statut === 400, 'obtenu ' + g.statut)
 
   console.log('\n--- H. Webhook Boxtal : signature invalide => refusé ---')
-  orders = { 'cmd-8': { ...commandeDeBase(), id: 'cmd-8', boxtal_order_id: 'bxt_test_123' } }
-  const h = await envoyerWebhookBoxtal({ id: 'evt1', type: 'TRACKING_CHANGED', shippingOrderId: 'bxt_test_123', payload: { trackings: [{ trackingNumber: 'XX123', packageTrackingUrl: 'https://x', status: 'IN_TRANSIT', message: '' }] } }, true)
+  orders = { 'cmd-8': { ...commandeDeBase(), id: 'cmd-8', status: 'label_ready', boxtal_order_id: 'bxt_test_123' } }
+  const h = await envoyerWebhookBoxtal({ id: 'evt1', type: 'TRACKING_CHANGED', shippingOrderId: 'bxt_test_123', payload: { trackings: [{ trackingNumber: 'XX123', packageTrackingUrl: 'https://x', status: STATUT_JAMAIS_PRISE_EN_CHARGE_TEST, message: '' }] } }, true)
   verifie('=> 400', h === 400, 'obtenu ' + h)
   verifie('tracking_number non modifié', orders['cmd-8'].tracking_number == null)
+  verifie('statut non modifié (toujours label_ready)', orders['cmd-8'].status === 'label_ready')
 
-  console.log('\n--- I. Webhook Boxtal : TRACKING_CHANGED => numéro enregistré ---')
-  const i = await envoyerWebhookBoxtal({ id: 'evt2', type: 'TRACKING_CHANGED', shippingOrderId: 'bxt_test_123', payload: { trackings: [{ trackingNumber: 'XX987654321FR', packageTrackingUrl: 'https://boxtal.test/suivi/XX987654321FR', status: 'IN_TRANSIT', message: '' }] } })
+  console.log('\n--- I. TRACKING_CHANGED avec ANNOUNCED (étiquette créée, pas encore expédié) : numéro enregistré, mais PAS "shipped", PAS d\'e-mail ---')
+  requetesResend = []
+  const i = await envoyerWebhookBoxtal({ id: 'evt2', type: 'TRACKING_CHANGED', shippingOrderId: 'bxt_test_123', payload: { trackings: [{ trackingNumber: 'XX987654321FR', packageTrackingUrl: 'https://boxtal.test/suivi/XX987654321FR', status: STATUT_JAMAIS_PRISE_EN_CHARGE_TEST, message: '' }] } })
   verifie('=> 200', i === 200, 'obtenu ' + i)
   verifie('tracking_number enregistré', orders['cmd-8'].tracking_number === 'XX987654321FR')
+  verifie('statut toujours "label_ready" (ANNOUNCED n\'est pas une prise en charge transporteur)', orders['cmd-8'].status === 'label_ready', String(orders['cmd-8'].status))
+  verifie('aucun e-mail envoyé (prise en charge pas encore confirmée)', requetesResend.length === 0, JSON.stringify(requetesResend))
 
-  console.log('\n--- I2. E-mail "commande expédiée" refusé par Resend ({error}, pas une exception) => alerte déclenchée, tracking quand même enregistré ---')
-  orders = { 'cmd-8b': { ...commandeDeBase(), id: 'cmd-8b', boxtal_order_id: 'bxt_test_123', email: 'client-echec@exemple.test' } }
+  console.log('\n--- I2. TRACKING_CHANGED avec SHIPPED (déclencheur normal) : passage à "shipped", UN SEUL e-mail envoyé ---')
+  requetesResend = []
+  const i2 = await envoyerWebhookBoxtal({ id: 'evt2c', type: 'TRACKING_CHANGED', shippingOrderId: 'bxt_test_123', payload: { trackings: [{ trackingNumber: 'XX987654321FR', packageTrackingUrl: 'https://boxtal.test/suivi/XX987654321FR', status: STATUT_PRISE_EN_CHARGE_TEST, message: '' }] } })
+  verifie('=> 200', i2 === 200, 'obtenu ' + i2)
+  verifie('statut passé à "shipped"', orders['cmd-8'].status === 'shipped', String(orders['cmd-8'].status))
+  verifie('shipped_at renseigné', typeof orders['cmd-8'].shipped_at === 'string', JSON.stringify(orders['cmd-8'].shipped_at))
+  const emailExpeditionI2 = requetesResend.find((r) => r.subject?.includes('XX987654321FR'))
+  verifie('e-mail "commande expédiée" envoyé avec le bon numéro de suivi', !!emailExpeditionI2, JSON.stringify(requetesResend))
+  verifie('UN SEUL e-mail envoyé', requetesResend.length === 1, JSON.stringify(requetesResend))
+
+  console.log('\n--- I3. IN_TRANSIT (filet de sécurité) REJOUÉ APRÈS SHIPPED : idempotent, PAS de second e-mail ---')
+  requetesResend = []
+  const i3 = await envoyerWebhookBoxtal({ id: 'evt2c-suite', type: 'TRACKING_CHANGED', shippingOrderId: 'bxt_test_123', payload: { trackings: [{ trackingNumber: 'XX987654321FR', packageTrackingUrl: 'https://boxtal.test/suivi/XX987654321FR', status: STATUT_FILET_SECURITE_TEST, message: '' }] } })
+  verifie('=> 200 (accepté sans erreur)', i3 === 200, 'obtenu ' + i3)
+  verifie('statut toujours "shipped" (inchangé)', orders['cmd-8'].status === 'shipped')
+  verifie('AUCUN nouvel e-mail envoyé (idempotence -- déjà "shipped", plus "label_ready")', requetesResend.length === 0, JSON.stringify(requetesResend))
+
+  console.log('\n--- I4. PROTECTION : un événement de prise en charge arrivant APRÈS une annulation ne remet jamais "shipped" ni ne renvoie d\'e-mail ---')
+  orders = { 'cmd-8c': { ...commandeDeBase(), id: 'cmd-8c', status: 'paid', boxtal_order_id: 'bxt_test_999' } }
+  requetesResend = []
+  const i4 = await envoyerWebhookBoxtal({ id: 'evt2d', type: 'TRACKING_CHANGED', shippingOrderId: 'bxt_test_999', payload: { trackings: [{ trackingNumber: 'XX000', packageTrackingUrl: 'https://x', status: STATUT_PRISE_EN_CHARGE_TEST, message: '' }] } })
+  verifie('=> 200 (acquitté, pas une erreur)', i4 === 200, 'obtenu ' + i4)
+  verifie('statut TOUJOURS "paid" (jamais repassé à "shipped" -- commande déjà annulée côté nous)', orders['cmd-8c'].status === 'paid', String(orders['cmd-8c'].status))
+  verifie('AUCUN e-mail envoyé après une annulation', requetesResend.length === 0, JSON.stringify(requetesResend))
+
+  console.log('\n--- I5. E-mail "commande expédiée" refusé par Resend ({error}, pas une exception) => alerte déclenchée, statut "shipped" quand même acquis ---')
+  orders = { 'cmd-8b': { ...commandeDeBase(), id: 'cmd-8b', status: 'label_ready', boxtal_order_id: 'bxt_test_123', email: 'client-echec@exemple.test' } }
   requetesResend = []
   adressesEnEchec = ['client-echec@exemple.test']
-  const i2 = await envoyerWebhookBoxtal({ id: 'evt2b', type: 'TRACKING_CHANGED', shippingOrderId: 'bxt_test_123', payload: { trackings: [{ trackingNumber: 'XX111222333FR', packageTrackingUrl: 'https://x', status: 'IN_TRANSIT', message: '' }] } })
-  verifie('=> 200 (jamais bloqué par un échec d\'e-mail)', i2 === 200, 'obtenu ' + i2)
+  const i5 = await envoyerWebhookBoxtal({ id: 'evt2b', type: 'TRACKING_CHANGED', shippingOrderId: 'bxt_test_123', payload: { trackings: [{ trackingNumber: 'XX111222333FR', packageTrackingUrl: 'https://x', status: STATUT_PRISE_EN_CHARGE_TEST, message: '' }] } })
+  verifie('=> 200 (jamais bloqué par un échec d\'e-mail)', i5 === 200, 'obtenu ' + i5)
   verifie('tracking_number quand même enregistré', orders['cmd-8b'].tracking_number === 'XX111222333FR')
+  verifie('statut quand même passé à "shipped" (l\'échec de l\'e-mail ne bloque pas la transition)', orders['cmd-8b'].status === 'shipped')
   const alerteExpedition = requetesResend.find((r) => r.to?.includes('alerte@exemple.test'))
   verifie('alerte déclenchée pour l\'e-mail d\'expédition non envoyé', !!alerteExpedition, JSON.stringify(requetesResend.map((r) => r.to)))
   adressesEnEchec = []
 
-  console.log('\n--- J. Webhook Boxtal : DOCUMENT_CREATED => réponse immédiate, étiquette téléchargée/ré-hébergée en différé (after()) ---')
-  orders = { 'cmd-9': { ...commandeDeBase(), id: 'cmd-9', boxtal_order_id: 'bxt_test_123' } }
+  console.log('\n--- I6. DELIVERED reçu SANS SHIPPED avant (événement SHIPPED raté) : filet de sécurité, UN e-mail envoyé quand même ---')
+  orders = { 'cmd-8d': { ...commandeDeBase(), id: 'cmd-8d', status: 'label_ready', boxtal_order_id: 'bxt_test_888' } }
+  requetesResend = []
+  const i6 = await envoyerWebhookBoxtal({ id: 'evt2e', type: 'TRACKING_CHANGED', shippingOrderId: 'bxt_test_888', payload: { trackings: [{ trackingNumber: 'XX_LIVRE_DIRECT', packageTrackingUrl: 'https://x', status: STATUT_PRISE_EN_CHARGE_SANS_SHIPPED_TEST, message: '' }] } })
+  verifie('=> 200', i6 === 200, 'obtenu ' + i6)
+  verifie('statut passé à "shipped" (filet de sécurité -- DELIVERED prouve aussi la prise en charge)', orders['cmd-8d'].status === 'shipped', String(orders['cmd-8d'].status))
+  const emailExpeditionI6 = requetesResend.find((r) => r.subject?.includes('XX_LIVRE_DIRECT'))
+  verifie('e-mail "commande expédiée" envoyé malgré l\'absence de l\'événement SHIPPED', !!emailExpeditionI6, JSON.stringify(requetesResend))
+  verifie('UN SEUL e-mail envoyé', requetesResend.length === 1, JSON.stringify(requetesResend))
+
+  console.log('\n--- I7. Suivi MANUEL (/api/admin/ship) : garde son e-mail IMMÉDIAT, indépendant de label_ready/de la prise en charge Boxtal ---')
+  orders = { 'cmd-8e': { ...commandeDeBase(), id: 'cmd-8e', status: 'paid' } }
+  requetesResend = []
+  const i7 = await shipManuel({ id: 'cmd-8e', tracking_number: 'XX_MANUEL_123', carrier: 'colissimo' })
+  verifie('=> 200', i7.statut === 200, 'obtenu ' + i7.statut + ' ' + JSON.stringify(i7.corps))
+  verifie('statut passé à "shipped" immédiatement (pas de "label_ready" intermédiaire sur ce chemin)', orders['cmd-8e'].status === 'shipped', String(orders['cmd-8e'].status))
+  const emailExpeditionI7 = requetesResend.find((r) => r.subject?.includes('XX_MANUEL_123'))
+  verifie('e-mail envoyé IMMÉDIATEMENT, dans le même appel (pas besoin d\'un événement Boxtal)', !!emailExpeditionI7, JSON.stringify(requetesResend))
+
+  console.log('\n--- J. Webhook Boxtal : DOCUMENT_CREATED => réponse immédiate, étiquette re-hébergée en différé dans le bucket PRIVÉ "etiquettes" (after()) ---')
+  orders = { 'cmd-9': { ...commandeDeBase(), id: 'cmd-9', status: 'label_ready', boxtal_order_id: 'bxt_test_123' } }
+  uploadsStorage.length = 0
   const debutJ = Date.now()
   const j = await envoyerWebhookBoxtal({
     id: 'evt3',
@@ -528,7 +693,11 @@ async function main() {
   verifie('=> 200', j === 200, 'obtenu ' + j)
   verifie('réponse en moins de 2 secondes (exigence Boxtal -- le téléchargement/upload est différé)', dureeJ < 2000, dureeJ + 'ms')
   const aRecuEtiquette = await attendreQue(() => typeof orders['cmd-9'].boxtal_label_url === 'string')
-  verifie('boxtal_label_url renseigné en différé (URL permanente, pas celle -- signée -- de Boxtal)', aRecuEtiquette && !String(orders['cmd-9'].boxtal_label_url).includes('fake-label.pdf'), JSON.stringify(orders['cmd-9'].boxtal_label_url))
+  verifie('boxtal_label_url = un CHEMIN exact (pas une URL publique)', aRecuEtiquette && orders['cmd-9'].boxtal_label_url === 'labels/cmd-9.pdf', JSON.stringify(orders['cmd-9'].boxtal_label_url))
+  verifie('boxtal_label_url ne commence PAS par "http" (ce n\'est plus une URL, voir label-url/route.ts)', !String(orders['cmd-9'].boxtal_label_url).startsWith('http'))
+  const uploadJ = uploadsStorage.find((u2) => u2.chemin === 'labels/cmd-9.pdf')
+  verifie('upload fait dans le bucket PRIVÉ "etiquettes" (pas "products", public et sans PDF autorisé)', uploadJ?.bucket === 'etiquettes', JSON.stringify(uploadJ))
+  verifie('Content-Type application/pdf envoyé à Supabase Storage', uploadJ?.contentType === 'application/pdf', JSON.stringify(uploadJ))
 
   console.log('\n--- J2. Webhook Boxtal : DOCUMENT_CREATED rejoué (retry Boxtal) => idempotent, aucune corruption ---')
   const j2 = await envoyerWebhookBoxtal({
@@ -539,7 +708,35 @@ async function main() {
   })
   verifie('=> 200 (rejeu accepté sans erreur)', j2 === 200, 'obtenu ' + j2)
   await attendreQue(() => typeof orders['cmd-9'].boxtal_label_url === 'string')
-  verifie('boxtal_label_url toujours correct après rejeu', typeof orders['cmd-9'].boxtal_label_url === 'string' && !String(orders['cmd-9'].boxtal_label_url).includes('fake-label.pdf'), JSON.stringify(orders['cmd-9'].boxtal_label_url))
+  verifie('boxtal_label_url toujours correct après rejeu', orders['cmd-9'].boxtal_label_url === 'labels/cmd-9.pdf', JSON.stringify(orders['cmd-9'].boxtal_label_url))
+
+  console.log('\n--- J3. Ancien bug de production reproduit puis prouvé corrigé : un PDF envoyé dans "products" (public, images uniquement) est REFUSÉ par le faux stockage ---')
+  // Preuve que la validation mime ci-dessus (uploadsStorage/MIME_AUTORISES_PAR_BUCKET)
+  // detecte reellement le bug reel observe en production le 2026-11-17 ("mime
+  // type application/pdf is not supported") -- et donc qu'une regression future
+  // (un retour accidentel vers "products") serait desormais detectee par ce banc.
+  const rejetProducts = await fetch(`http://127.0.0.1:${portSupabase}/storage/v1/object/products/labels/sonde.pdf`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/pdf' },
+    body: Buffer.from('%PDF-1.4 sonde'),
+  })
+  const corpsRejetProducts = await rejetProducts.json().catch(() => ({}))
+  verifie('=> 400 (mime type refusé pour ce bucket)', rejetProducts.status === 400, 'obtenu ' + rejetProducts.status)
+  verifie('message reproduit exactement l\'erreur réelle observée en production', String(corpsRejetProducts.message ?? '').includes('mime type application/pdf is not supported'), JSON.stringify(corpsRejetProducts))
+
+  console.log('\n--- J4. /api/admin/boxtal/label-url : lien signé de courte durée, jamais l\'URL directe ---')
+  const j4 = await labelUrl('cmd-9')
+  verifie('=> 200', j4.statut === 200, 'obtenu ' + j4.statut + ' ' + JSON.stringify(j4.corps))
+  verifie('url renvoyée pointe vers le bucket "etiquettes" et porte un jeton', typeof j4.corps.url === 'string' && String(j4.corps.url).includes('/etiquettes/') && String(j4.corps.url).includes('token='), JSON.stringify(j4.corps))
+
+  console.log('\n--- J5. /api/admin/boxtal/label-url sans jeton admin => 401 ---')
+  const j5 = await labelUrl('cmd-9', false)
+  verifie('=> 401', j5.statut === 401, 'obtenu ' + j5.statut)
+
+  console.log('\n--- J6. /api/admin/boxtal/label-url pour une commande SANS étiquette => 404 ---')
+  orders['cmd-sans-etiquette'] = { ...commandeDeBase(), id: 'cmd-sans-etiquette', boxtal_label_url: null }
+  const j6 = await labelUrl('cmd-sans-etiquette')
+  verifie('=> 404', j6.statut === 404, 'obtenu ' + j6.statut)
 
   console.log('\n--- K. Checkout classique : téléphone + prénom/nom (custom_fields) jusque dans la commande enregistrée ---')
   recu.length = 0

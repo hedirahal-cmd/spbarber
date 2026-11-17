@@ -7,7 +7,7 @@ import { estCorse } from '@/lib/geo-france'
 
 type NavSection = 'produits' | 'commandes' | 'retractations' | 'legal' | 'avis' | 'salons' | 'barbers' | 'temoignages-pros' | 'contenu'
 
-const ORDER_STATUSES = ['pending', 'paid', 'shipped', 'delivered', 'cancelled']
+const ORDER_STATUSES = ['pending', 'paid', 'label_ready', 'shipped', 'delivered', 'cancelled']
 const LEGAL_SLUGS = [
   { slug: 'cgv', title: 'CGV' },
   { slug: 'mentions-legales', title: 'Mentions légales' },
@@ -23,12 +23,13 @@ const CAT_COLORS: Record<string, string> = {
 
 function eur(c: number) { return (c / 100).toFixed(2).replace('.', ',') + ' €' }
 function statusLabel(s: string) {
-  return ({ pending: 'En attente', paid: 'Payé', shipped: 'Expédié', delivered: 'Livré', cancelled: 'Annulé' })[s] ?? s
+  return ({ pending: 'En attente', paid: 'Payé', label_ready: 'Étiquette prête', shipped: 'Expédié', delivered: 'Livré', cancelled: 'Annulé' })[s] ?? s
 }
 function statusBadge(s: string): { bg: string; color: string } {
   const m: Record<string, { bg: string; color: string }> = {
     pending: { bg: '#fff7ed', color: '#c2410c' },
     paid: { bg: '#eff6ff', color: '#1d4ed8' },
+    label_ready: { bg: '#fffbeb', color: '#b45309' },
     shipped: { bg: '#f5f3ff', color: '#6d28d9' },
     delivered: { bg: '#f0fdf4', color: '#15803d' },
     cancelled: { bg: '#fef2f2', color: '#b91c1c' },
@@ -1288,7 +1289,9 @@ function codePostalDestination(order: Record<string, unknown>): string | null {
 }
 
 function commandeResteAExpedier(order: Record<string, unknown>): boolean {
-  if (order.status !== 'paid' && order.status !== 'shipped') return false
+  // label_ready (2026-11-17) : etiquette generee, en attente de prise en
+  // charge transporteur -- reste "a expedier" au meme titre que 'paid'.
+  if (order.status !== 'paid' && order.status !== 'label_ready' && order.status !== 'shipped') return false
   const standardOk = !commandeContientStandard(order) || !!order.tracking_number
   const tondeuseOk = !commandeContientDropshipping(order) || !!order.tracking_number_fournisseur
   return !(standardOk && tondeuseOk)
@@ -1301,7 +1304,7 @@ function commandeResteAExpedier(order: Record<string, unknown>): boolean {
  * suffit plus a savoir si CE colis precis est parti.
  */
 function BlocExpedition({
-  titre, tracking, carrier, dejaExpedie, verrouille, labelUrl, corse,
+  titre, tracking, carrier, dejaExpedie, verrouille, aUneEtiquette, telechargementEnCours, onTelechargerEtiquette, corse,
   trackingInput, onTrackingChange, carrierInput, onCarrierChange,
   shipping, shipOk, shipErr, onSubmit,
 }: {
@@ -1311,7 +1314,10 @@ function BlocExpedition({
   dejaExpedie: boolean
   verrouille: boolean
   /** Etiquette PDF Boxtal (chantier 2026-10-21) -- absente pour une expedition manuelle. */
-  labelUrl?: string | null
+  aUneEtiquette?: boolean
+  telechargementEnCours?: boolean
+  /** Lien signe de courte duree (2026-11-17) -- jamais une URL directe, voir /api/admin/boxtal/label-url (bucket prive). */
+  onTelechargerEtiquette?: () => void
   /** Corse (2026-10-21, decision Hedi) : Chronopost retire du menu, Colissimo seul choix -- voir estCorse. */
   corse: boolean
   trackingInput: string
@@ -1331,9 +1337,11 @@ function BlocExpedition({
         <div style={{ fontSize: 13, color: '#15803d', marginBottom: 8 }}>
           {/* carrier absent (commande expediee avant ce champ) => Colissimo, comme convenu. */}
           Numéro de suivi ({carrier === 'chronopost' ? 'Chronopost' : 'Colissimo'}) : <strong>{tracking}</strong>
-          {!!labelUrl && (
+          {!!aUneEtiquette && (
             <div style={{ marginTop: 8 }}>
-              <a href={labelUrl} target="_blank" rel="noreferrer" style={{ fontSize: 12, color: S.gold }}>Télécharger l&apos;étiquette (PDF)</a>
+              <button onClick={onTelechargerEtiquette} disabled={telechargementEnCours} style={{ fontSize: 12, color: S.gold, background: 'none', border: 'none', cursor: 'pointer', padding: 0, textDecoration: 'underline' }}>
+                {telechargementEnCours ? 'Préparation du lien…' : "Télécharger l'étiquette (PDF)"}
+              </button>
             </div>
           )}
         </div>
@@ -1395,6 +1403,9 @@ function TabCommandes() {
   const [boxtalInputs, setBoxtalInputs] = useState<Record<string, Partial<Record<'poidsKg' | 'longueurCm' | 'largeurCm' | 'hauteurCm' | 'carrier', string>>>>({})
   const [boxtalBusy, setBoxtalBusy] = useState<string | null>(null)
   const [boxtalErr, setBoxtalErr] = useState('')
+  // Telechargement d'etiquette (2026-11-17) : lien signe genere a la demande, bucket "etiquettes" prive -- voir telechargerEtiquette.
+  const [telechargementEtiquette, setTelechargementEtiquette] = useState<string | null>(null)
+  const [telechargementErr, setTelechargementErr] = useState('')
   const [shipping, setShipping] = useState<string | null>(null)
   const [shipOk, setShipOk] = useState<string | null>(null)
   const [shipErr, setShipErr] = useState('')
@@ -1459,7 +1470,10 @@ function TabCommandes() {
       const d = await res.json().catch(() => ({}))
       if (res.ok) {
         await load()
-        setSelected(s => s && String(s.id) === id ? { ...s, status: 'shipped', carrier: corps.carrier, boxtal_order_id: d.boxtal_order_id ?? s.boxtal_order_id } : s)
+        // label_ready, pas 'shipped' (2026-11-17) : le passage a "shipped" et
+        // l'e-mail client n'ont lieu qu'a la vraie prise en charge transporteur
+        // (voir webhook/boxtal/route.ts, evenement TRACKING_CHANGED).
+        setSelected(s => s && String(s.id) === id ? { ...s, status: 'label_ready', carrier: corps.carrier, boxtal_order_id: d.boxtal_order_id ?? s.boxtal_order_id } : s)
       } else {
         setBoxtalErr(d.error ?? `Erreur ${res.status}`)
       }
@@ -1476,7 +1490,11 @@ function TabCommandes() {
       const res = await fetch('/api/admin/boxtal/cancel-label', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) })
       if (res.ok) {
         await load()
-        setSelected(s => s && String(s.id) === id ? { ...s, boxtal_order_id: null, boxtal_label_url: null } : s)
+        // Retour integral a "paid" (2026-11-17, demande Hedi) -- voir le
+        // commentaire de cancel-label/route.ts.
+        setSelected(s => s && String(s.id) === id
+          ? { ...s, status: 'paid', boxtal_order_id: null, boxtal_label_url: null, tracking_number: null, carrier: null, shipped_at: null }
+          : s)
       } else {
         const d = await res.json().catch(() => ({}))
         setBoxtalErr(d.error ?? `Erreur ${res.status}`)
@@ -1485,6 +1503,24 @@ function TabCommandes() {
       setBoxtalErr('Erreur réseau')
     } finally {
       setBoxtalBusy(null)
+    }
+  }
+
+  /** Lien signe de courte duree (2026-11-17) -- jamais l'URL directe, le bucket "etiquettes" est prive (voir label-url/route.ts). */
+  async function telechargerEtiquette(id: string) {
+    setTelechargementEtiquette(id); setTelechargementErr('')
+    try {
+      const res = await fetch('/api/admin/boxtal/label-url?id=' + encodeURIComponent(id))
+      const d = await res.json().catch(() => ({}))
+      if (!res.ok || !d.url) {
+        setTelechargementErr(d.error ?? `Erreur ${res.status}`)
+        return
+      }
+      window.open(d.url, '_blank', 'noopener,noreferrer')
+    } catch {
+      setTelechargementErr('Erreur réseau')
+    } finally {
+      setTelechargementEtiquette(null)
     }
   }
 
@@ -1740,19 +1776,32 @@ function TabCommandes() {
 
               if (selected.boxtal_order_id) {
                 const suiviConnu = !!selected.tracking_number
+                // label_ready (2026-11-17) : le passage a "shipped" n'a lieu
+                // qu'a la vraie prise en charge transporteur -- un suivi deja
+                // connu ne veut pas forcement dire que ce cap est franchi.
+                const priseEnChargeConfirmee = selected.status === 'shipped'
                 return (
                   <div style={{ ...S.card_, padding: 14, marginBottom: 16, background: '#fffbeb', border: '1px solid #fde68a' }}>
-                    <div style={{ fontSize: 12, fontWeight: 600, color: S.text, marginBottom: 6 }}>Étiquette Boxtal {suiviConnu ? '' : 'en cours'}</div>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: S.text, marginBottom: 6 }}>
+                      Étiquette Boxtal {priseEnChargeConfirmee ? '' : '— en attente de dépôt'}
+                    </div>
                     <div style={{ fontSize: 12, color: '#92400e', marginBottom: 10 }}>
-                      {suiviConnu
-                        ? "Suivi déjà généré (voir le bloc Expédition ci-dessous). L'annulation reste possible tant que le colis n'a pas été remis au transporteur — Boxtal la refusera sinon."
-                        : "Le numéro de suivi apparaîtra automatiquement dès que Boxtal l'aura généré."}
+                      {priseEnChargeConfirmee
+                        ? "Prise en charge confirmée par le transporteur (voir le bloc Expédition ci-dessous, e-mail client déjà envoyé). L'annulation reste possible tant que le colis n'a pas été remis au transporteur — Boxtal la refusera sinon."
+                        : suiviConnu
+                          ? "Numéro de suivi connu, mais le transporteur n'a pas encore confirmé la prise en charge — l'e-mail client n'est pas encore parti."
+                          : "Le numéro de suivi apparaîtra automatiquement dès que Boxtal l'aura généré."}
                     </div>
                     {boxtalErr && <div style={{ fontSize: 12, color: '#b91c1c', marginBottom: 8 }}>Erreur : {boxtalErr}</div>}
+                    {telechargementErr && <div style={{ fontSize: 12, color: '#b91c1c', marginBottom: 8 }}>Erreur : {telechargementErr}</div>}
                     {!!selected.boxtal_label_url && (
-                      <a href={String(selected.boxtal_label_url)} target="_blank" rel="noreferrer" style={{ ...S.btnSecondary, display: 'block', textAlign: 'center', marginBottom: 8, textDecoration: 'none' }}>
-                        Télécharger l&apos;étiquette (PDF)
-                      </a>
+                      <button
+                        onClick={() => telechargerEtiquette(id)}
+                        disabled={telechargementEtiquette === id}
+                        style={{ ...S.btnSecondary, width: '100%', marginBottom: 8 }}
+                      >
+                        {telechargementEtiquette === id ? 'Préparation du lien…' : "Télécharger l'étiquette (PDF)"}
+                      </button>
                     )}
                     <button onClick={() => annulerEtiquetteBoxtal(id)} disabled={busy} style={{ ...S.btnSecondary, width: '100%', color: '#b91c1c', borderColor: '#fca5a5' }}>
                       {busy ? 'Annulation…' : "Annuler l'étiquette Boxtal"}
@@ -1818,7 +1867,9 @@ function TabCommandes() {
                   carrier={selected.carrier ? String(selected.carrier) : null}
                   dejaExpedie={!!selected.tracking_number}
                   verrouille={verrouille}
-                  labelUrl={selected.boxtal_label_url ? String(selected.boxtal_label_url) : null}
+                  aUneEtiquette={!!selected.boxtal_label_url}
+                  telechargementEnCours={telechargementEtiquette === id}
+                  onTelechargerEtiquette={() => telechargerEtiquette(id)}
                   corse={estCorse(codePostalDestination(selected))}
                   trackingInput={trackingInputs[cle] ?? ''}
                   onTrackingChange={v => setTrackingInputs(t => ({ ...t, [cle]: v }))}

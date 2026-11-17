@@ -40,6 +40,23 @@ import { createHmac, timingSafeEqual } from 'node:crypto'
  * nommees separement (bac a sable / production), et un passage en production
  * qui exige un geste explicite -- un copier-coller de cle ne suffit pas a lui
  * seul a facturer un vrai envoi.
+ *
+ * 2026-11-17 (premier essai REEL REUSSI en production, commande 48e83175) :
+ * trois chantiers complementaires --
+ *   1. Stockage des etiquettes PDF deplace du bucket "products" (public,
+ *      images uniquement -- echouait systematiquement, "mime type
+ *      application/pdf is not supported") vers un bucket prive dedie
+ *      "etiquettes" (voir /api/webhook/boxtal et /api/admin/boxtal/label-url) ;
+ *   2. Nouveau statut intermediaire "label_ready" (etiquette prete, pas
+ *      encore prise en charge) -- l'e-mail client "commande expediee" et le
+ *      passage a "shipped" n'ont plus lieu a la creation de l'etiquette, mais
+ *      au premier evenement de suivi confirmant la prise en charge
+ *      transporteur (voir STATUTS_PRISE_EN_CHARGE ci-dessous, confirme par
+ *      Hedi via la specification officielle le 2026-11-17) ;
+ *   3. Annulation (cancel-label) : revient integralement a l'etat "paid"
+ *      (statut, boxtal_order_id, boxtal_label_url, tracking_number, carrier,
+ *      shipped_at) au lieu de ne reinitialiser que boxtal_order_id/
+ *      boxtal_label_url comme avant.
  */
 
 export type ModeBoxtal = 'sandbox' | 'production'
@@ -276,6 +293,37 @@ export async function recupererDocuments(shippingOrderId: string): Promise<Boxta
     const doc = d as Record<string, unknown>
     return { type: String(doc.type ?? ''), format: String(doc.format ?? ''), url: String(doc.url ?? '') }
   })
+}
+
+/**
+ * Statuts de PackageTrackingStatusEnum (specification officielle Boxtal
+ * v3.1, confirmee par Hedi le 2026-11-17) correspondant a une VRAIE prise en
+ * charge du colis -- c'est uniquement a ce moment-la, pas a la simple
+ * generation de l'etiquette, que l'e-mail client "commande expediee" doit
+ * partir.
+ *
+ * L'enum complet (9 valeurs) : ANNOUNCED (etiquette creee, pas encore
+ * expedie), SHIPPED (recupere par le transporteur ou depose en point de
+ * proximite), IN_TRANSIT (scanne, en transit), OUT_FOR_DELIVERY (livraison en
+ * cours), FAILED_ATTEMPT (livraison empechee), REACHED_DELIVERY_PICKUP_POINT
+ * (disponible en point de retrait), DELIVERED (livre), RETURNED (renvoye a
+ * l'expediteur), EXCEPTION (probleme necessitant une action de l'expediteur).
+ *
+ * SHIPPED est le declencheur normal. IN_TRANSIT/OUT_FOR_DELIVERY/
+ * REACHED_DELIVERY_PICKUP_POINT/DELIVERED sont des FILETS DE SECURITE : si
+ * l'evenement SHIPPED est rate (webhook perdu, replay partiel...), un
+ * evenement plus tardif qui prouve quand meme que le colis a quitte nos
+ * mains declenche l'e-mail a ce moment-la (voir trouverPriseEnCharge et le
+ * webhook TRACKING_CHANGED -- transition ATOMIQUE et IDEMPOTENTE : un seul
+ * de ces evenements, le premier recu, fait vraiment la transition).
+ * ANNOUNCED/FAILED_ATTEMPT/RETURNED/EXCEPTION ne declenchent JAMAIS l'envoi
+ * -- aucun ne prouve que le colis a ete pris en charge.
+ */
+export const STATUTS_PRISE_EN_CHARGE: string[] = ['SHIPPED', 'IN_TRANSIT', 'OUT_FOR_DELIVERY', 'REACHED_DELIVERY_PICKUP_POINT', 'DELIVERED']
+
+/** Cherche, dans les evenements de suivi d'un webhook, le premier qui correspond a une vraie prise en charge transporteur -- voir STATUTS_PRISE_EN_CHARGE. */
+export function trouverPriseEnCharge(trackings: BoxtalSuivi[]): BoxtalSuivi | undefined {
+  return trackings.find((t) => STATUTS_PRISE_EN_CHARGE.includes(t.status))
 }
 
 export type BoxtalSuivi = { trackingNumber: string; trackingUrl: string; status: string; message: string }
