@@ -57,6 +57,20 @@
  * (3) cas F verifie le retour INTEGRAL a "paid" apres une annulation reussie
  * (statut, tracking_number, carrier, shipped_at -- plus seulement
  * boxtal_order_id/boxtal_label_url).
+ *
+ * 2026-11-17, suite (onglets de statut dans l'admin + mecanisme
+ * shipped -> delivered, demande Hedi) : cas I6 mis a jour -- DELIVERED sans
+ * SHIPPED avant enchaine desormais label_ready -> shipped -> delivered en UN
+ * SEUL appel webhook (toujours un seul e-mail). Cas I8/I9/I10, NOUVEAUX :
+ * DELIVERED sur une commande deja "shipped" => "delivered", sans e-mail
+ * (I8) ; rejeu idempotent (I9) ; DELIVERED sur une commande annulee
+ * (status='paid') => rien (I10, meme protection que I4). CE QUE CE BANC NE
+ * COUVRE PAS : le rendu des 4 nouveaux onglets de statut dans admin/page.tsx
+ * (compteurs, defilement mobile) -- composant client (hooks React), aucun
+ * banc de ce projet ne pilote de rendu client-side a ce jour ; leur donnee
+ * source (GET /api/admin/orders, champ status) est, elle, couverte
+ * indirectement par tous les cas ci-dessus qui verifient ce champ apres
+ * chaque transition.
  */
 import http from 'node:http'
 import type { AddressInfo } from 'node:net'
@@ -660,15 +674,20 @@ async function main() {
   verifie('alerte déclenchée pour l\'e-mail d\'expédition non envoyé', !!alerteExpedition, JSON.stringify(requetesResend.map((r) => r.to)))
   adressesEnEchec = []
 
-  console.log('\n--- I6. DELIVERED reçu SANS SHIPPED avant (événement SHIPPED raté) : filet de sécurité, UN e-mail envoyé quand même ---')
+  console.log('\n--- I6. DELIVERED reçu SANS SHIPPED avant (événement SHIPPED raté) : chaîne label_ready -> shipped -> delivered EN UN SEUL appel, UN SEUL e-mail ---')
   orders = { 'cmd-8d': { ...commandeDeBase(), id: 'cmd-8d', status: 'label_ready', boxtal_order_id: 'bxt_test_888' } }
   requetesResend = []
   const i6 = await envoyerWebhookBoxtal({ id: 'evt2e', type: 'TRACKING_CHANGED', shippingOrderId: 'bxt_test_888', payload: { trackings: [{ trackingNumber: 'XX_LIVRE_DIRECT', packageTrackingUrl: 'https://x', status: STATUT_PRISE_EN_CHARGE_SANS_SHIPPED_TEST, message: '' }] } })
   verifie('=> 200', i6 === 200, 'obtenu ' + i6)
-  verifie('statut passé à "shipped" (filet de sécurité -- DELIVERED prouve aussi la prise en charge)', orders['cmd-8d'].status === 'shipped', String(orders['cmd-8d'].status))
+  // DELIVERED prouve a la fois la prise en charge (mecanisme label_ready ->
+  // shipped, filet de securite) ET la livraison (mecanisme shipped ->
+  // delivered, enchaine dans la MEME requete car il relit le statut ACTUEL
+  // en base, pas une valeur JS perimee) -- le statut final est "delivered",
+  // pas "shipped".
+  verifie('statut final "delivered" (les deux mécanismes se sont enchaînés)', orders['cmd-8d'].status === 'delivered', String(orders['cmd-8d'].status))
   const emailExpeditionI6 = requetesResend.find((r) => r.subject?.includes('XX_LIVRE_DIRECT'))
   verifie('e-mail "commande expédiée" envoyé malgré l\'absence de l\'événement SHIPPED', !!emailExpeditionI6, JSON.stringify(requetesResend))
-  verifie('UN SEUL e-mail envoyé', requetesResend.length === 1, JSON.stringify(requetesResend))
+  verifie('UN SEUL e-mail envoyé (jamais un second pour le passage à "delivered")', requetesResend.length === 1, JSON.stringify(requetesResend))
 
   console.log('\n--- I7. Suivi MANUEL (/api/admin/ship) : garde son e-mail IMMÉDIAT, indépendant de label_ready/de la prise en charge Boxtal ---')
   orders = { 'cmd-8e': { ...commandeDeBase(), id: 'cmd-8e', status: 'paid' } }
@@ -678,6 +697,29 @@ async function main() {
   verifie('statut passé à "shipped" immédiatement (pas de "label_ready" intermédiaire sur ce chemin)', orders['cmd-8e'].status === 'shipped', String(orders['cmd-8e'].status))
   const emailExpeditionI7 = requetesResend.find((r) => r.subject?.includes('XX_MANUEL_123'))
   verifie('e-mail envoyé IMMÉDIATEMENT, dans le même appel (pas besoin d\'un événement Boxtal)', !!emailExpeditionI7, JSON.stringify(requetesResend))
+
+  console.log('\n--- I8. DELIVERED sur une commande déjà "shipped" (cas normal) : passage à "delivered", AUCUN e-mail ---')
+  orders = { 'cmd-8f': { ...commandeDeBase(), id: 'cmd-8f', status: 'shipped', boxtal_order_id: 'bxt_test_777', tracking_number: 'XX_DEJA_EXPEDIE' } }
+  requetesResend = []
+  const i8 = await envoyerWebhookBoxtal({ id: 'evt2f', type: 'TRACKING_CHANGED', shippingOrderId: 'bxt_test_777', payload: { trackings: [{ trackingNumber: 'XX_DEJA_EXPEDIE', packageTrackingUrl: 'https://x', status: 'DELIVERED', message: '' }] } })
+  verifie('=> 200', i8 === 200, 'obtenu ' + i8)
+  verifie('statut passé à "delivered"', orders['cmd-8f'].status === 'delivered', String(orders['cmd-8f'].status))
+  verifie('AUCUN e-mail envoyé (celui d\'expédition est déjà parti)', requetesResend.length === 0, JSON.stringify(requetesResend))
+
+  console.log('\n--- I9. DELIVERED rejoué (retry Boxtal) : idempotent, pas d\'erreur, pas d\'e-mail ---')
+  requetesResend = []
+  const i9 = await envoyerWebhookBoxtal({ id: 'evt2f-retry', type: 'TRACKING_CHANGED', shippingOrderId: 'bxt_test_777', payload: { trackings: [{ trackingNumber: 'XX_DEJA_EXPEDIE', packageTrackingUrl: 'https://x', status: 'DELIVERED', message: '' }] } })
+  verifie('=> 200 (rejeu accepté sans erreur)', i9 === 200, 'obtenu ' + i9)
+  verifie('statut toujours "delivered" (inchangé)', orders['cmd-8f'].status === 'delivered')
+  verifie('AUCUN e-mail envoyé', requetesResend.length === 0, JSON.stringify(requetesResend))
+
+  console.log('\n--- I10. PROTECTION : DELIVERED sur une commande ANNULÉE (status "paid") ne fait rien ---')
+  orders = { 'cmd-8g': { ...commandeDeBase(), id: 'cmd-8g', status: 'paid', boxtal_order_id: 'bxt_test_666' } }
+  requetesResend = []
+  const i10 = await envoyerWebhookBoxtal({ id: 'evt2g', type: 'TRACKING_CHANGED', shippingOrderId: 'bxt_test_666', payload: { trackings: [{ trackingNumber: 'XX_ANNULEE', packageTrackingUrl: 'https://x', status: 'DELIVERED', message: '' }] } })
+  verifie('=> 200 (acquitté, pas une erreur)', i10 === 200, 'obtenu ' + i10)
+  verifie('statut TOUJOURS "paid" (jamais passé à "delivered" -- commande déjà annulée côté nous)', orders['cmd-8g'].status === 'paid', String(orders['cmd-8g'].status))
+  verifie('AUCUN e-mail envoyé', requetesResend.length === 0, JSON.stringify(requetesResend))
 
   console.log('\n--- J. Webhook Boxtal : DOCUMENT_CREATED => réponse immédiate, étiquette re-hébergée en différé dans le bucket PRIVÉ "etiquettes" (after()) ---')
   orders = { 'cmd-9': { ...commandeDeBase(), id: 'cmd-9', status: 'label_ready', boxtal_order_id: 'bxt_test_123' } }

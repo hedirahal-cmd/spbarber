@@ -1288,20 +1288,11 @@ function codePostalDestination(order: Record<string, unknown>): string | null {
   return typeof adresse.postal_code === 'string' ? adresse.postal_code : null
 }
 
-function commandeResteAExpedier(order: Record<string, unknown>): boolean {
-  // label_ready (2026-11-17) : etiquette generee, en attente de prise en
-  // charge transporteur -- reste "a expedier" au meme titre que 'paid'.
-  if (order.status !== 'paid' && order.status !== 'label_ready' && order.status !== 'shipped') return false
-  const standardOk = !commandeContientStandard(order) || !!order.tracking_number
-  const tondeuseOk = !commandeContientDropshipping(order) || !!order.tracking_number_fournisseur
-  return !(standardOk && tondeuseOk)
-}
-
 /**
  * Un bloc d'expedition = un colis. Une commande mixte (tondeuse + standard)
  * en affiche DEUX, chacun avec son propre transporteur/numero/bouton/e-mail
- * -- voir commandeResteAExpedier plus haut pour pourquoi le statut global ne
- * suffit plus a savoir si CE colis precis est parti.
+ * -- le statut global seul ne suffit pas a savoir si CE colis precis est
+ * parti (ex. colis standard expedie, colis fournisseur encore en attente).
  */
 function BlocExpedition({
   titre, tracking, carrier, dejaExpedie, verrouille, aUneEtiquette, telechargementEnCours, onTelechargerEtiquette, corse,
@@ -1412,7 +1403,12 @@ function TabCommandes() {
   // "A expedier" par defaut (2026-10-20, decision Hedi) : c'est la vue de
   // travail de Pablo/Sofiane pour preparer les colis, pas un recapitulatif
   // general -- "Toutes" reste accessible pour le reste.
-  const [filtre, setFiltre] = useState<'a-expedier' | 'toutes' | 'tondeuses'>('a-expedier')
+  // Onglets de statut (2026-11-17, demande Hedi) : partition STRICTE par
+  // statut (une commande n'apparait que dans l'onglet de son statut actuel)
+  // -- fusionne avec l'ancien onglet "a-expedier" (logique plus large,
+  // devenue redondante avec ces 4 onglets precis). 'toutes'/'tondeuses'
+  // restent des vues transversales inchangees.
+  const [filtre, setFiltre] = useState<'paid' | 'label_ready' | 'shipped' | 'delivered' | 'toutes' | 'tondeuses'>('paid')
   const [fournisseurUpdating, setFournisseurUpdating] = useState<string | null>(null)
   const [fournisseurErr, setFournisseurErr] = useState('')
 
@@ -1607,11 +1603,37 @@ function TabCommandes() {
     }
   }
 
+  // Partition stricte par statut (2026-11-17) -- une commande n'apparait que
+  // dans l'onglet de son statut actuel. Derive de `orders`, donc se remet a
+  // jour automatiquement apres chaque action qui appelle load() (generation/
+  // annulation d'etiquette, suivi manuel -- voir genererEtiquetteBoxtal/
+  // annulerEtiquetteBoxtal/markShipped), sans wiring supplementaire.
+  const compteursStatut = {
+    paid: orders.filter(o => o.status === 'paid').length,
+    label_ready: orders.filter(o => o.status === 'label_ready').length,
+    shipped: orders.filter(o => o.status === 'shipped').length,
+    delivered: orders.filter(o => o.status === 'delivered').length,
+  }
   const ordersFiltrees = filtre === 'tondeuses'
     ? orders.filter(commandeContientDropshipping)
-    : filtre === 'a-expedier'
-      ? orders.filter(commandeResteAExpedier)
-      : orders
+    : filtre === 'toutes'
+      ? orders
+      : orders.filter(o => o.status === filtre)
+
+  const ONGLETS_STATUT = [
+    { cle: 'paid' as const, label: 'À expédier' },
+    { cle: 'label_ready' as const, label: 'Étiquette prête' },
+    { cle: 'shipped' as const, label: 'Expédié' },
+    { cle: 'delivered' as const, label: 'Livré' },
+  ]
+  const MESSAGES_VIDES: Record<string, string> = {
+    paid: 'Aucune commande à expédier pour le moment.',
+    label_ready: 'Aucune étiquette en attente de dépôt pour le moment.',
+    shipped: 'Aucune commande expédiée pour le moment.',
+    delivered: 'Aucune commande livrée pour le moment.',
+    tondeuses: 'Aucune commande tondeuse pour le moment.',
+    toutes: 'Aucune commande pour le moment.',
+  }
 
   return (
     <div style={{ display: 'flex', gap: 0, height: '100%' }}>
@@ -1619,17 +1641,33 @@ function TabCommandes() {
         <div style={{ padding: '20px 24px 16px' }}>
           <h1 style={{ fontSize: 20, fontWeight: 600, color: S.text, margin: 0 }}>Commandes</h1>
           <p style={{ fontSize: 13, color: S.muted, margin: '2px 0 0' }}>{ordersFiltrees.length} commande{ordersFiltrees.length !== 1 ? 's' : ''}</p>
-          <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
-            {(['a-expedier', 'toutes', 'tondeuses'] as const).map(f => (
+          {/* overflowX: auto (2026-11-17, demande Hedi) -- les onglets defilent
+              horizontalement sur mobile plutot que de se tasser ou de casser
+              la mise en page ; flexShrink: 0 sur chaque bouton pour qu'aucun
+              ne se comprime avant que le defilement ne se declenche. */}
+          <div style={{ display: 'flex', gap: 8, marginTop: 12, overflowX: 'auto', WebkitOverflowScrolling: 'touch', paddingBottom: 2 }}>
+            {ONGLETS_STATUT.map(({ cle, label }) => (
+              <button
+                key={cle}
+                onClick={() => setFiltre(cle)}
+                style={{
+                  ...S.btnSecondary, padding: '6px 14px', fontSize: 12, whiteSpace: 'nowrap', flexShrink: 0,
+                  ...(filtre === cle ? { background: S.text, color: '#fff', borderColor: S.text } : {}),
+                }}
+              >
+                {label} ({compteursStatut[cle]})
+              </button>
+            ))}
+            {(['toutes', 'tondeuses'] as const).map(f => (
               <button
                 key={f}
                 onClick={() => setFiltre(f)}
                 style={{
-                  ...S.btnSecondary, padding: '6px 14px', fontSize: 12,
+                  ...S.btnSecondary, padding: '6px 14px', fontSize: 12, whiteSpace: 'nowrap', flexShrink: 0,
                   ...(filtre === f ? { background: S.text, color: '#fff', borderColor: S.text } : {}),
                 }}
               >
-                {f === 'a-expedier' ? 'À expédier' : f === 'toutes' ? 'Toutes' : 'Tondeuses'}
+                {f === 'toutes' ? 'Toutes' : 'Tondeuses'}
               </button>
             ))}
           </div>
@@ -1672,7 +1710,7 @@ function TabCommandes() {
           <div style={{ padding: '40px 24px', textAlign: 'center' }}>
             <div style={{ fontSize: 32, marginBottom: 12, color: '#d1d5db' }}>■</div>
             <div style={{ fontSize: 14, color: S.muted }}>
-              {filtre === 'tondeuses' ? 'Aucune commande tondeuse pour le moment.' : filtre === 'a-expedier' ? 'Aucune commande à expédier pour le moment.' : 'Aucune commande pour le moment.'}
+              {MESSAGES_VIDES[filtre]}
             </div>
           </div>
         ) : (

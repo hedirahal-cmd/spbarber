@@ -40,6 +40,16 @@ export const runtime = 'nodejs'
  * l'e-mail -- un seul e-mail au total, quel que soit le nombre d'evenements
  * de prise en charge recus pour une meme commande.
  *
+ * shipped -> delivered (2026-11-17, demande Hedi, voir onglets Commandes
+ * dans admin/page.tsx) : un evenement dont le statut est litteralement
+ * DELIVERED fait passer la commande a "delivered" -- MECANISME SEPARE,
+ * jamais d'e-mail (celui d'expedition est deja parti). Transition atomique
+ * elle aussi (conditionnee sur status='shipped'), enchainee APRES le
+ * mecanisme ci-dessus dans la meme requete -- un DELIVERED recu sans aucun
+ * SHIPPED avant (webhook SHIPPED rate) fait donc label_ready -> shipped
+ * (avec e-mail) PUIS shipped -> delivered (sans e-mail) en un seul appel.
+ *
+
  * Le colis tondeuse (fournisseur) n'a jamais de boxtal_order_id -- aucun risque
  * qu'un evenement Boxtal touche par erreur ses propres colonnes _fournisseur.
  */
@@ -191,6 +201,31 @@ export async function POST(req: Request) {
             )
           }
         }
+      }
+    }
+
+    // shipped -> delivered (2026-11-17, demande Hedi) : MECANISME SEPARE du
+    // passage a "shipped" ci-dessus -- aucun e-mail (celui de l'expedition
+    // est deja parti). Conditionne sur le statut ACTUEL en base (pas une
+    // valeur JS perimee), ce qui l'enchaine correctement meme quand le
+    // passage label_ready -> shipped vient d'avoir lieu PLUS HAUT dans cette
+    // meme requete (DELIVERED recu sans SHIPPED avant, voir boxtal.ts) :
+    // 0 ligne modifiee si la commande n'est pas (ou plus) 'shipped' --
+    // idempotent sur un rejeu, et ne fait rien sur une commande annulee
+    // (repassee a 'paid' par cancel-label, jamais 'shipped').
+    const livre = evenement.trackings.find((t) => t.status === 'DELIVERED')
+    if (livre) {
+      const { data: miseAJourLivraison, error: majLivraisonErr } = await supabaseAdmin
+        .from('orders')
+        .update({ status: 'delivered' })
+        .eq('id', order.id)
+        .eq('status', 'shipped')
+        .select('id')
+
+      if (majLivraisonErr) {
+        console.error('[webhook boxtal] passage à "delivered" impossible:', majLivraisonErr.message)
+      } else if (miseAJourLivraison && miseAJourLivraison.length > 0) {
+        console.log('[webhook boxtal] commande', order.id, 'passée à "delivered" (aucun e-mail -- celui d\'expédition est déjà parti)')
       }
     }
   }
