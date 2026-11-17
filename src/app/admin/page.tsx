@@ -1256,6 +1256,21 @@ function commandeContientStandard(order: Record<string, unknown>): boolean {
   })
 }
 
+/** Noms des articles dropshipping (tondeuses) d'une commande -- pour la note d'exclusion de la carte Boxtal, voir plus bas (2026-11-17, demande Hedi). */
+function nomsTondeusesDe(order: Record<string, unknown>): string[] {
+  const lignes = Array.isArray(order.items) ? (order.items as LigneCommande[]) : []
+  return lignes
+    .filter(l => {
+      const produitId = typeof l.id === 'string' ? l.id : null
+      return produitId ? PRODUCTS.find(p => p.id === produitId)?.is_dropshipping === true : false
+    })
+    .map(l => {
+      const produitId = typeof l.id === 'string' ? l.id : null
+      return produitId ? PRODUCTS.find(p => p.id === produitId)?.name : undefined
+    })
+    .filter((n): n is string => !!n)
+}
+
 /**
  * Une commande reste-t-elle a expedier (vue "A expedier" par defaut) ?
  *
@@ -1699,6 +1714,11 @@ function TabCommandes() {
               return (
                 <div style={{ ...S.card_, padding: 14, marginBottom: 16 }}>
                   <div style={{ fontSize: 12, fontWeight: 600, color: S.text, marginBottom: 8 }}>Étiquette automatique (Boxtal)</div>
+                  {commandeContientDropshipping(selected) && (
+                    <div style={{ fontSize: 11, color: S.muted, marginBottom: 8 }}>
+                      {(nomsTondeusesDe(selected).join(', ') || 'La tondeuse de cette commande')} — expédiée séparément par le fournisseur, hors de cette étiquette (poids et valeur ci-dessous ne la comprennent pas).
+                    </div>
+                  )}
                   {!!suggestion.manquants.length && (
                     <div style={{ fontSize: 12, fontWeight: 600, color: '#b91c1c', marginBottom: 8 }}>Poids manquant pour {suggestion.manquants.length} article(s). Renseignez-le dans l&apos;onglet Produits, ou utilisez le suivi manuel ci-dessous.</div>
                   )}

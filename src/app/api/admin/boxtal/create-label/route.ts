@@ -69,7 +69,27 @@ export async function POST(req: NextRequest) {
     .single()
   if (fetchErr || !order) return NextResponse.json({ error: 'Commande introuvable' }, { status: 404 })
   if (order.boxtal_order_id) {
+    // Protege aussi contre un double clic / double appel : une fois
+    // boxtal_order_id pose (apres le premier succes, voir plus bas), tout
+    // appel suivant pour la meme commande s'arrete ICI -- avant le moindre
+    // appel Boxtal -- jamais une deuxieme etiquette reelle.
     return NextResponse.json({ error: 'Étiquette Boxtal déjà générée pour cette commande — annulez-la avant d’en générer une autre.' }, { status: 400 })
+  }
+
+  // Commande 100% tondeuses (dropshipping) : rien a expedier nous-memes --
+  // refuse ICI, avant tout appel Boxtal et avant toute ecriture en base
+  // (2026-11-17, demande Hedi). Sans ce garde-fou, un appel direct a cette
+  // route pour une telle commande (contournant le panneau admin, qui masque
+  // deja le bouton dans ce cas) creerait une VRAIE etiquette Boxtal
+  // facturable pour une valeur declaree de 0 EUR et une description
+  // generique -- rien a voir avec le contenu reel de la commande.
+  const items = Array.isArray(order.items) ? (order.items as LigneCommande[]) : []
+  const articlesStandard = lignesDuColis(items, 'standard')
+  if (articlesStandard.length === 0) {
+    return NextResponse.json(
+      { error: 'Cette commande ne contient que des tondeuses (expédition fournisseur) — aucune étiquette Boxtal à générer.' },
+      { status: 400 },
+    )
   }
 
   const sa = (order.shipping_address ?? {}) as Record<string, unknown>
@@ -131,10 +151,8 @@ export async function POST(req: NextRequest) {
   }
 
   // Valeur declaree du colis = prix reel des SEULS articles du colis standard
-  // (jamais le total de la commande, qui peut inclure le port et/ou le colis
-  // fournisseur) -- meme resolution prix/overrides que lignesDuColis ci-dessus.
-  const items = Array.isArray(order.items) ? (order.items as LigneCommande[]) : []
-  const articlesStandard = lignesDuColis(items, 'standard')
+  // (articlesStandard calcule plus haut, jamais le total de la commande, qui
+  // peut inclure le port et/ou le colis fournisseur).
   const { data: overridesRows } = await supabase.from('product_overrides').select('id, price')
   const prixParId = new Map<string, number>((overridesRows ?? []).filter((r) => r.price != null).map((r) => [String(r.id), Number(r.price)]))
   let valeurCentimes = 0

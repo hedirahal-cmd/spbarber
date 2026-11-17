@@ -72,6 +72,8 @@ let orders: Record<string, OrderRow> = {}
 const recu: { methode: string; chemin: string; corps: string }[] = []
 
 const SALON_FOUGERES = { adresse: '48 Boulevard Jean Jaurès', ville: 'Fougères', code_postal: '35300' }
+/** Override de prix simule (table product_overrides) -- vide par defaut (comportement des cas A-E2, prix statique PRODUCTS en repli). Rempli ponctuellement par le cas E3 pour prouver que l'override l'emporte reellement. */
+let overridesPrix: Record<string, number> = {}
 
 const fauxSupabase = http.createServer((req, res) => {
   let corps = ''
@@ -92,8 +94,9 @@ const fauxSupabase = http.createServer((req, res) => {
       return
     }
     if (u.pathname.includes('/product_overrides')) {
+      const lignes = Object.entries(overridesPrix).map(([id, price]) => ({ id, price }))
       res.writeHead(200, { 'Content-Type': 'application/json' })
-      res.end(JSON.stringify(objetUnique ? null : []))
+      res.end(JSON.stringify(objetUnique ? (lignes[0] ?? null) : lignes))
       return
     }
     if (u.pathname.includes('/rpc/decrementer_stock')) {
@@ -381,6 +384,17 @@ async function main() {
   const c = await createLabel({ id: 'cmd-3', carrier: 'colissimo', poidsKg: 0.3, longueurCm: 25, largeurCm: 19, hauteurCm: 10 })
   verifie('=> 400', c.statut === 400, 'obtenu ' + c.statut)
 
+  console.log('\n--- C2. Double clic / second appel réel sur la MÊME commande : jamais une deuxième étiquette ---')
+  orders = { 'cmd-3b': { ...commandeDeBase(), id: 'cmd-3b' } }
+  requetesBoxtal.length = 0
+  const c2a = await createLabel({ id: 'cmd-3b', carrier: 'colissimo', poidsKg: 0.3, longueurCm: 25, largeurCm: 19, hauteurCm: 10 })
+  verifie('1er appel => 200', c2a.statut === 200, 'obtenu ' + c2a.statut + ' ' + JSON.stringify(c2a.corps))
+  verifie('boxtal_order_id posé après le 1er appel', orders['cmd-3b'].boxtal_order_id === 'bxt_test_123')
+  const c2b = await createLabel({ id: 'cmd-3b', carrier: 'colissimo', poidsKg: 0.3, longueurCm: 25, largeurCm: 19, hauteurCm: 10 })
+  verifie('2e appel (double clic) => 400', c2b.statut === 400, 'obtenu ' + c2b.statut + ' ' + JSON.stringify(c2b.corps))
+  const creationsVersBoxtal = requetesBoxtal.filter((r) => r.methode === 'POST' && r.chemin === '/v3.1/shipping-order')
+  verifie('UNE SEULE requête de création envoyée à Boxtal au total (pas deux)', creationsVersBoxtal.length === 1, String(creationsVersBoxtal.length))
+
   console.log('\n--- D. Chronopost sans BOXTAL_OFFER_CODE_CHRONOPOST posée : repli sur le code par défaut CHRP-Chrono18 ---')
   orders = { 'cmd-4': { ...commandeDeBase(), id: 'cmd-4' } }
   requetesBoxtal.length = 0
@@ -396,6 +410,41 @@ async function main() {
   verifie('=> 502', e.statut === 502, 'obtenu ' + e.statut)
   verifie('commande inchangée (pas de boxtal_order_id posé)', orders['cmd-5'].boxtal_order_id == null)
   boxtalComportement = 'ok'
+
+  console.log('\n--- E2. Commande 100% tondeuses (dropshipping) : refusée AVANT tout appel Boxtal, aucune écriture en base ---')
+  orders = { 'cmd-tondeuse': { ...commandeDeBase(), id: 'cmd-tondeuse', items: [{ id: '8', qty: 1, variantId: 'blanc' }] } }
+  requetesBoxtal.length = 0
+  const e2 = await createLabel({ id: 'cmd-tondeuse', carrier: 'colissimo', poidsKg: 0.3, longueurCm: 25, largeurCm: 19, hauteurCm: 10 })
+  verifie('=> 400', e2.statut === 400, 'obtenu ' + e2.statut + ' ' + JSON.stringify(e2.corps))
+  verifie('message clair (tondeuses / fournisseur)', /tondeuse/i.test(e2.corps.error as string) && /fournisseur/i.test(e2.corps.error as string), JSON.stringify(e2.corps))
+  verifie('aucune requête envoyée à Boxtal', requetesBoxtal.length === 0)
+  verifie('commande inchangée (aucune écriture en base, pas de boxtal_order_id posé)', orders['cmd-tondeuse'].boxtal_order_id == null)
+
+  console.log('\n--- E3. Commande MIXTE (peigne + tondeuse) : le corps réel envoyé à Boxtal ne porte que le peigne, AU PRIX RÉEL (override) ---')
+  orders = { 'cmd-mixte': { ...commandeDeBase(), id: 'cmd-mixte', items: [{ id: '4', qty: 1 }, { id: '8', qty: 1, variantId: 'blanc' }] } }
+  requetesBoxtal.length = 0
+  // Override de prix simule pour le peigne (990 = 9,90 €, le vrai prix actuel
+  // en base au moment d'ecrire ce banc -- different du prix statique du
+  // catalogue, 1490 = 14,90 €, laisse tel quel dans src/lib/products.ts).
+  // Sans cet override explicite, le test prouve seulement le REPLI sur le
+  // catalogue (product_overrides vide), jamais que l'override l'emporte
+  // reellement quand il existe -- precisement la question posee par Hedi.
+  overridesPrix = { '4': 990 }
+  const e3 = await createLabel({ id: 'cmd-mixte', carrier: 'colissimo', poidsKg: 0.4, longueurCm: 25, largeurCm: 19, hauteurCm: 10 })
+  verifie('=> 200', e3.statut === 200, 'obtenu ' + e3.statut + ' ' + JSON.stringify(e3.corps))
+  const requeteE3 = requetesBoxtal.find((r) => r.methode === 'POST' && r.chemin === '/v3.1/shipping-order')
+  verifie('une requête de création envoyée à Boxtal', !!requeteE3)
+  if (requeteE3) {
+    const shipment = (requeteE3.corps as Record<string, unknown>).shipment as Record<string, unknown>
+    const colis = (shipment.packages as Record<string, unknown>[])[0]
+    verifie('poids = celui saisi (0.4) -- le poids n\'est pas recalculé serveur, seule la suggestion admin exclut déjà la tondeuse', colis.weight === 0.4, JSON.stringify(colis.weight))
+    const valeur = (colis.value as Record<string, unknown>).value
+    verifie('valeur déclarée = le prix RÉEL du peigne (9,90 €, product_overrides), PAS le prix statique du catalogue (14,90 €), et jamais la tondeuse en plus', valeur === 9.9, JSON.stringify(valeur))
+    const description = (colis.content as Record<string, unknown>).description
+    verifie('description mentionne le peigne', String(description).includes('Peigne Texture Expert'), String(description))
+    verifie('description ne mentionne JAMAIS la tondeuse', !String(description).includes('Tondeuse'), String(description))
+  }
+  overridesPrix = {}
 
   console.log('\n--- F. Annulation d\'étiquette ---')
   orders = { 'cmd-6': { ...commandeDeBase(), id: 'cmd-6', boxtal_order_id: 'bxt_test_123', boxtal_label_url: 'https://exemple.test/label.pdf' } }
