@@ -53,6 +53,10 @@ export function CartDrawer({ products = [] }: { products?: Product[] }) {
   const [addedSuggestionId, setAddedSuggestionId] = useState<string | null>(null)
   const [addedSuggestionName, setAddedSuggestionName] = useState('')
 
+  const asideRef = useRef<HTMLElement>(null)
+  const overlayRef = useRef<HTMLDivElement>(null)
+  const previousFocusRef = useRef<HTMLElement | null>(null)
+
   const cartTotal   = total()
   const count       = itemCount()
   const shippingFee = cartTotal >= FREE_SHIP ? 0 : SHIPPING_FEE
@@ -69,6 +73,63 @@ export function CartDrawer({ products = [] }: { products?: Product[] }) {
   useEffect(() => {
     document.body.style.overflow = isOpen ? 'hidden' : ''
     return () => { document.body.style.overflow = '' }
+  }, [isOpen])
+
+  /* Focus : deplace dans le panier a l'ouverture, piege la tabulation,
+     rend le reste de la page inerte (clavier ET lecteur d'ecran), restitue
+     le focus a la fermeture (2026-11-18, demande Hedi). Le drawer/overlay
+     restent dans le DOM meme fermes (anime via `right: -110%`, pas
+     `display:none`) : inertes par defaut pour ne jamais rester atteignables
+     au clavier pendant qu'ils sont hors champ. */
+  useEffect(() => {
+    const aside = asideRef.current
+    const overlay = overlayRef.current
+
+    if (!isOpen) {
+      aside?.setAttribute('inert', '')
+      overlay?.setAttribute('inert', '')
+      return
+    }
+    aside?.removeAttribute('inert')
+    overlay?.removeAttribute('inert')
+
+    previousFocusRef.current = document.activeElement as HTMLElement | null
+
+    const inertes: HTMLElement[] = []
+    Array.from(document.body.children).forEach((el) => {
+      if (el === aside || el === overlay) return
+      if (el instanceof HTMLElement && !el.hasAttribute('inert')) {
+        el.setAttribute('inert', '')
+        inertes.push(el)
+      }
+    })
+
+    const SELECTEUR_FOCUSABLE =
+      'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+    const premier = aside?.querySelector<HTMLElement>(SELECTEUR_FOCUSABLE)
+    ;(premier ?? aside)?.focus()
+
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key !== 'Tab' || !aside) return
+      const focusables = aside.querySelectorAll<HTMLElement>(SELECTEUR_FOCUSABLE)
+      if (focusables.length === 0) return
+      const first = focusables[0]
+      const last = focusables[focusables.length - 1]
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault()
+        last.focus()
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault()
+        first.focus()
+      }
+    }
+    document.addEventListener('keydown', onKeyDown)
+
+    return () => {
+      document.removeEventListener('keydown', onKeyDown)
+      inertes.forEach((el) => el.removeAttribute('inert'))
+      previousFocusRef.current?.focus()
+    }
   }, [isOpen])
 
   /* Reset loading si l'utilisateur revient en arrière depuis Stripe */
@@ -179,12 +240,15 @@ export function CartDrawer({ products = [] }: { products?: Product[] }) {
     <>
       {/* Overlay */}
       <div
+        ref={overlayRef}
         className={`cdr-overlay${isOpen ? ' cdr-overlay--open' : ''}`}
         onClick={closeCart}
         aria-hidden="true"
       />
 
       <aside
+        ref={asideRef}
+        tabIndex={-1}
         className={`cdr-drawer${isOpen ? ' cdr-drawer--open' : ''}`}
         role="dialog"
         aria-modal="true"
