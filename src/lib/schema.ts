@@ -287,6 +287,18 @@ export function schemaProduct(product: Product, reviewSummary?: { count: number;
  * `openingHoursSpecification` toujours absent (horaires en texte libre, non
  * structure -- decision actee au bloc Salons plutot que d'inventer des horaires).
  */
+// Fiches Google (Business Profile) de chaque salon -- liens fournis par
+// Hedi (2026-11-18), verifies : vrais liens share.google, chacun redirige
+// vers une entite Google Knowledge Graph distincte (kgmid different pour
+// Fougeres et Ernee), pas une erreur ni une simple recherche generique.
+// Rien ne remplace cette constante tant que Hedi n'a pas fourni le lien
+// d'un salon -- sameAs se limite alors a Instagram pour ce salon, jamais
+// une URL inventee.
+const LIENS_FICHE_GOOGLE_PAR_SLUG: Record<string, string> = {
+  fougeres: 'https://share.google/lURKmL4hk83gMZUAR',
+  ernee: 'https://share.google/LwBpnXvp5D28ezkx2',
+}
+
 export function schemaSalon(salon: Salon) {
   const hasRating = avisGoogleValides(salon.note_google, salon.nombre_avis)
   const hasGeo = salon.latitude != null && salon.longitude != null
@@ -316,7 +328,10 @@ export function schemaSalon(salon: Salon) {
     priceRange: '€€',
     ...(salon.lien_google_maps ? { hasMap: salon.lien_google_maps } : {}),
     image,
-    sameAs: ['https://www.instagram.com/sp_barbershop_/'],
+    sameAs: [
+      'https://www.instagram.com/sp_barbershop_/',
+      ...(LIENS_FICHE_GOOGLE_PAR_SLUG[salon.slug] ? [LIENS_FICHE_GOOGLE_PAR_SLUG[salon.slug]] : []),
+    ],
     ...(hasRating ? {
       aggregateRating: {
         '@type': 'AggregateRating',
