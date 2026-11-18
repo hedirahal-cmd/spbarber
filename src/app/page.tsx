@@ -135,9 +135,13 @@ export default async function HomePage() {
           <span className="hero-proof-item">Utilisé par les pros</span>
         </div>
 
-        {/* H1 (2026-11-18, demande Hedi, objectif SEO "SP Barber" / villes) */}
+        {/* Petite ligne d'accroche SEO (2026-11-18, demande Hedi) -- visible,
+            lisible, aucun texte cache : simple paragraphe au-dessus du H1. */}
+        <p className="h-eyebrow">SP Barber — Barbiers à Fougères et Ernée</p>
+
+        {/* H1 -- grand titre original restauré (decision Hedi) */}
         <h1 className="h-title">
-          SP Barber <em>— Barbiers à Fougères et Ernée</em>
+          La routine de votre barbier,<em>livrée chez vous.</em>
         </h1>
 
         {/* Séparateur */}

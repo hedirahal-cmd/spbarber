@@ -683,6 +683,20 @@ button { font-family: var(--fb); }
 .hero-proof-star { color: var(--gold); font-size: 11px; letter-spacing: 1px; }
 .hero-proof-sep { color: rgba(248,246,243,.25); font-size: 11px; }
 
+/* Petite ligne d'accroche SEO au-dessus du H1 (2026-11-18, demande Hedi) --
+   meme gabarit que les autres petites etiquettes du site (ex. .salon-hero-ey,
+   .hs-salons-eyebrow) : DM Sans, majuscules espacees, or -- contraste
+   ~6,4:1 sur le fond noir du hero, largement au-dessus des 4,5:1 requis. */
+.h-eyebrow {
+  font-family: var(--fb);
+  font-size: 12px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--gold);
+  font-weight: 600;
+  margin-bottom: 14px;
+}
+
 /* H1 */
 .h-title {
   font-family: var(--fd);
