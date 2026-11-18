@@ -135,9 +135,9 @@ export default async function HomePage() {
           <span className="hero-proof-item">Utilisé par les pros</span>
         </div>
 
-        {/* H1 */}
+        {/* H1 (2026-11-18, demande Hedi, objectif SEO "SP Barber" / villes) */}
         <h1 className="h-title">
-          La routine de votre barbier,<em>livrée chez vous.</em>
+          SP Barber <em>— Barbiers à Fougères et Ernée</em>
         </h1>
 
         {/* Séparateur */}
