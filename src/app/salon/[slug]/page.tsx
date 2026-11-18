@@ -41,9 +41,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!salon || !salon.actif) return {}
 
   const villeLabel = salon.ville ?? ''
-  // Pas de "— SP Barber" ici : le layout racine l'ajoute deja via son title.template
-  // ('%s | SP Barber'). L'ecrire aussi produirait "... SP Barber | SP Barber".
-  const title = salon.seo_title || `Salon Barbier ${villeLabel}${salon.code_postal ? ` | ${salon.code_postal}` : ''}`
+  // "SP Barber {Ville}" explicite en debut de <title> (objectif SEO, demande
+  // Hedi 2026-11-18) -- {absolute} pour eviter le doublon "SP Barber" qu
+  // ajouterait sinon le title.template du layout racine ('%s | SP Barber').
+  // Si seo_title est renseigne en base, comportement inchange (passe par le
+  // template) : a Hedi d'y inclure "SP Barber" lui-meme s'il le souhaite.
+  const titreRepli = `SP Barber ${villeLabel} — Salon Barbier${salon.code_postal ? ` (${salon.code_postal})` : ''}`
+  const title: Metadata['title'] = salon.seo_title || { absolute: titreRepli }
+  const titrePourOg = salon.seo_title || titreRepli
   const description = salon.seo_description ||
     `SP Barber ${villeLabel}${salon.code_postal ? ` (${salon.code_postal})` : ''} : salon de coiffure homme et barbier professionnel.${salon.adresse ? ` ${salon.adresse}.` : ''}${salon.horaires ? ` Ouvert ${salon.horaires}.` : ''} Retrouvez aussi nos produits en ligne.`
   const url = `${BASE}/salon/${salon.slug}`
@@ -54,7 +59,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     description,
     alternates: { canonical: url },
     openGraph: {
-      title,
+      title: titrePourOg,
       description,
       url,
       images: [{ url: image, width: 1200, height: 630, alt: `${salon.nom ?? 'SP Barber'} — ${villeLabel}` }],
@@ -91,7 +96,11 @@ export default async function SalonDetailPage({ params }: Props) {
         <section className="salon-hero">
           <div className="salon-hero-inner">
             <div className="salon-hero-ey">Barbier {salon.ville} {salon.code_postal ? `— ${salon.code_postal}` : ''}</div>
-            <h1 className="salon-hero-title">{(salon.nom ?? 'SP BARBER').toUpperCase()}</h1>
+            {/* "SP BARBER {VILLE}" explicite (objectif SEO, demande Hedi
+                2026-11-18) -- salon.nom ("SP Barber Shop", "SP Barbershop
+                Ernée"...) reste affiche juste en-dessous, rien n'est perdu. */}
+            <h1 className="salon-hero-title">{`SP BARBER ${(salon.ville ?? '').toUpperCase()}`.trim()}</h1>
+            {salon.nom && <p className="salon-hero-nom">{salon.nom}</p>}
             <p className="salon-hero-sub">
               {salon.description || `Votre salon de coiffure barbier professionnel au cœur ${deVille(salon.ville)}. Coupes homme, dégradés fade, soins barbe.`}
             </p>

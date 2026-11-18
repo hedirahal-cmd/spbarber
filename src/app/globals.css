@@ -2885,6 +2885,10 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
   letter-spacing: 6px; color: var(--w); line-height: 1;
   margin-bottom: 20px;
 }
+.salon-hero-nom {
+  font-family: var(--fb); font-size: 13px; letter-spacing: 2px; text-transform: uppercase;
+  color: rgba(248,246,243,.6); margin-top: -12px; margin-bottom: 20px;
+}
 .salon-hero-sub {
   font-family: var(--fs); font-size: 18px; color: rgba(248,246,243,.7);
   line-height: 1.6; margin-bottom: 28px;

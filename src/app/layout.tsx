@@ -45,7 +45,7 @@ export const metadata: Metadata = {
     template: '%s | SP Barber',
   },
   description:
-    `SP Barber — les formules professionnelles des barbiers, expédiées ${DELAI_EXPEDITION_FRAGMENT}. Shampooing colorant, crème curl, pack barbe, tondeuse. Livraison offerte dès 59€.`,
+    `SP Barber — les formules professionnelles des barbiers de Fougères et Ernée, expédiées ${DELAI_EXPEDITION_FRAGMENT}. Shampooing colorant, crème curl, pack barbe, tondeuse. Livraison offerte dès 59€.`,
   keywords: [
     'produits capillaires homme',
     'crème curl cheveux bouclés',

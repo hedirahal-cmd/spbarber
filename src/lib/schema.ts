@@ -44,14 +44,22 @@ function avisGoogleValides(noteGoogle: string | null | undefined, nombreAvis: st
   return true
 }
 
+// Variantes reellement utilisees pour designer SP Barber (recherches, avis,
+// anciennes mentions) -- demande Hedi 2026-11-18, objectif SEO sur "SP
+// Barber", "SP Barber Fougères" et "SP Barber Ernée". Source unique pour
+// les 3 blocs ci-dessous (Organization, WebSite, LocalBusiness) : jamais
+// une liste divergente d'un bloc a l'autre.
+const ALTERNATE_NAMES = ['SPBarber', 'SP Barbershop', 'SP Barber Fougères']
+
 const ORGANIZATION = {
   '@type': 'Organization',
   '@id': `${BASE}/#organization`,
   name: 'SP Barber',
+  alternateName: ALTERNATE_NAMES,
   url: BASE,
   logo: {
     '@type': 'ImageObject',
-    url: `${BASE}/og-default.jpg`,
+    url: `${BASE}/icon.png`,
   },
   sameAs: ['https://www.instagram.com/sp_barbershop_/'],
 }
@@ -98,6 +106,7 @@ const WEBSITE = {
   '@id': `${BASE}/#website`,
   url: BASE,
   name: 'SP Barber',
+  alternateName: ALTERNATE_NAMES,
   publisher: { '@id': `${BASE}/#organization` },
 }
 
@@ -125,6 +134,11 @@ export function schemaOrganizationLocal(salonPrincipal?: Salon) {
         '@type': ['LocalBusiness', 'HairSalon'],
         '@id': `${BASE}/#localbusiness`,
         name: 'SP Barber',
+        alternateName: ALTERNATE_NAMES,
+        logo: {
+          '@type': 'ImageObject',
+          url: `${BASE}/icon.png`,
+        },
         description:
           salonPrincipal?.description ||
           'Salon de coiffure barbier à Fougères et boutique en ligne de produits capillaires premium pour hommes.',
