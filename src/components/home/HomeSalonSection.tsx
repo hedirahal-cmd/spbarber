@@ -24,7 +24,10 @@ function SalonBlock({ salon }: { salon: Salon }) {
       <div className="hs-salon-top">
         <div className="hs-salon-left">
           <Link href={`/salon/${salon.slug}`} className="hs-salon-title-link">
-            <h3 className="hs-salon-title">{salon.nom}</h3>
+            {/* "SP Barber {Ville}" explicite (objectif SEO, demande Hedi
+                2026-11-18) -- texte seul, meme classe, aucun changement de
+                design ni de couleur. */}
+            <h3 className="hs-salon-title">{`SP Barber ${salon.ville ?? ''}`.trim()}</h3>
           </Link>
 
           {hasRating && (
