@@ -21,8 +21,19 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Le paiement est momentanement indisponible.' }, { status: 503 })
     }
 
-    const { productId, variantId, quantity }: { productId?: unknown; variantId?: unknown; quantity?: unknown } =
+    const { productId, variantId, quantity, cguAcceptees }: { productId?: unknown; variantId?: unknown; quantity?: unknown; cguAcceptees?: unknown } =
       await req.json()
+
+    // Paiement express (Apple Pay/Google Pay) : pas de consent_collection
+    // Stripe ici (API PaymentIntents, pas Checkout Sessions -- voir
+    // /api/stripe/checkout). La case "j'accepte les CGV" est donc geree
+    // cote client (ExpressCheckoutButton.tsx, case + survoile bloquant
+    // au-dessus du bouton natif) ET revalidee ici : jamais de confiance
+    // aveugle dans ce qu'envoie le navigateur pour un engagement contractuel
+    // (2026-11-18, demande Hedi, "item 8 bis").
+    if (cguAcceptees !== true) {
+      return NextResponse.json({ error: 'Vous devez accepter les Conditions Générales de Vente avant de payer.' }, { status: 400 })
+    }
 
     if (typeof productId !== 'string' || !productId) {
       return NextResponse.json({ error: 'Produit invalide.' }, { status: 400 })
@@ -74,6 +85,10 @@ export async function POST(req: NextRequest) {
         // classique (qui en cree toujours un, sans cette metadonnee).
         source: 'express_checkout',
         items: JSON.stringify(itemsStock),
+        // Trace de consentement pour ce chemin -- equivalent du
+        // consent.terms_of_service que Stripe expose nativement sur une
+        // Checkout Session classique, qui n'existe pas sur un PaymentIntent.
+        cgv_acceptees: 'oui',
       },
     })
 

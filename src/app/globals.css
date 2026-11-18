@@ -3485,6 +3485,33 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
   0% { background-position: 100% 50%; }
   100% { background-position: 0 50%; }
 }
+/* Case CGV + survoile bloquant au-dessus du bouton Apple Pay/Google Pay
+   (2026-11-18, demande Hedi, "item 8 bis") -- var(--b) plutot que var(--gt)
+   ou var(--gold) : les deux ne tiennent que ~2,7:1 et ~2,8:1 sur le fond
+   blanc de ce bloc (.sn-hero-right), bien sous les 4,5:1 requis. */
+.sn-express-pay-cgu {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--b);
+  margin-bottom: 8px;
+  cursor: pointer;
+}
+.sn-express-pay-cgu input { margin-top: 2px; flex-shrink: 0; cursor: pointer; }
+.sn-express-pay-cgu a { color: var(--b); text-decoration: underline; }
+.sn-express-pay-cgu a:hover { color: var(--gold); }
+.sn-express-pay-wrap { position: relative; }
+.sn-express-pay-blocker {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+}
 .sn-express-pay-err {
   font-size: 11px;
   color: #c0392b;

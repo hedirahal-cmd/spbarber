@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { getStripeClient } from '@/lib/stripe-client'
 import { diviserNomComplet } from '@/lib/noms'
 import { PAYS_LIVRABLES } from '@/lib/shipping-countries'
@@ -38,6 +39,17 @@ export function ExpressCheckoutButton({
   const containerRef = useRef<HTMLDivElement>(null)
   const [supporte, setSupporte] = useState<boolean | null>(null)
   const [erreur, setErreur] = useState('')
+  // Case CGV obligatoire (2026-11-18, demande Hedi, "item 8 bis") -- Stripe
+  // n'a pas de consent_collection pour les PaymentIntents (contrairement a
+  // Checkout Sessions, voir /api/stripe/checkout) : la feuille native
+  // Apple Pay/Google Pay ne laisse aucune place a un texte a nous, donc le
+  // consentement se recueille AVANT, sur notre propre page. cguAccepteesRef
+  // double l'etat React : le gestionnaire 'paymentmethod' ci-dessous est
+  // enregistre une seule fois a l'ouverture (effet sans cguAcceptees en
+  // dependance) et lirait sinon une valeur figee au premier rendu.
+  const [cguAcceptees, setCguAcceptees] = useState(false)
+  const [cguAlerte, setCguAlerte] = useState(false)
+  const cguAccepteesRef = useRef(false)
 
   useEffect(() => {
     let actif = true
@@ -111,11 +123,21 @@ export function ExpressCheckoutButton({
       })
 
       paymentRequest.on('paymentmethod', async (ev: PaymentRequestPaymentMethodEvent) => {
+        // Filet de securite : le survoile sur le bouton (voir le JSX plus
+        // bas) empeche deja normalement ce gestionnaire de se declencher
+        // sans case cochee ; ce controle couvre le cas marginal ou la
+        // feuille native serait ouverte autrement (ex. Tab clavier direct
+        // sur l'iframe Stripe, que le survoile ne peut pas empecher).
+        if (!cguAccepteesRef.current) {
+          ev.complete('fail')
+          setCguAlerte(true)
+          return
+        }
         try {
           const creation = await fetch('/api/stripe/payment-intent', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ productId, variantId, quantity: 1 }),
+            body: JSON.stringify({ productId, variantId, quantity: 1, cguAcceptees: true }),
           })
           const donnees = await creation.json()
           if (!creation.ok || !donnees.clientSecret) {
@@ -208,7 +230,45 @@ export function ExpressCheckoutButton({
   return (
     <div className="sn-express-pay">
       {supporte === null && <div className="sn-express-pay-loading" aria-hidden="true" />}
-      <div ref={containerRef} />
+
+      {supporte && (
+        <label className="sn-express-pay-cgu">
+          <input
+            type="checkbox"
+            checked={cguAcceptees}
+            onChange={(e) => {
+              const coche = e.target.checked
+              setCguAcceptees(coche)
+              cguAccepteesRef.current = coche
+              if (coche) setCguAlerte(false)
+            }}
+          />
+          <span>
+            J&apos;accepte les{' '}
+            <Link href="/cgv" target="_blank" rel="noopener noreferrer">Conditions Générales de Vente</Link>
+          </span>
+        </label>
+      )}
+
+      <div className="sn-express-pay-wrap">
+        <div ref={containerRef} />
+        {/* Survoile transparent : bloque le clic/tactile sur le bouton natif
+            Apple Pay/Google Pay tant que la case n'est pas cochee -- la
+            feuille de paiement est controlee par Apple/Google, aucun texte
+            a nous ne peut y figurer. Limite connue : n'empeche pas un Tab
+            clavier direct sur l'iframe Stripe (voir le filet de securite
+            cote serveur et dans le gestionnaire 'paymentmethod' ci-dessus). */}
+        {supporte && !cguAcceptees && (
+          <button
+            type="button"
+            className="sn-express-pay-blocker"
+            aria-label="Acceptez les Conditions Générales de Vente avant de payer"
+            onClick={() => setCguAlerte(true)}
+          />
+        )}
+      </div>
+
+      {cguAlerte && <p className="sn-express-pay-err" role="alert">Merci d&apos;accepter les CGV avant d&apos;utiliser le paiement express.</p>}
       {erreur && <p className="sn-express-pay-err" role="alert">{erreur}</p>}
     </div>
   )

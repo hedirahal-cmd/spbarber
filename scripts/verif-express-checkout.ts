@@ -189,21 +189,32 @@ async function main() {
   console.log('  OK    trafic Supabase detourne vers le faux serveur')
 
   console.log('\n--- 1. Montant calcule sous le seuil de livraison offerte ---')
-  const r1 = await creerPaymentIntent({ productId: '2', quantity: 1 })
+  const r1 = await creerPaymentIntent({ productId: '2', quantity: 1, cguAcceptees: true })
   verifie('=> 200', 200, r1.statut)
   verifie('montant = prix + frais de port (4490 + 590)', 5080, r1.corps.amount)
   verifie('clientSecret present', true, typeof r1.corps.clientSecret === 'string')
   const piId1 = r1.corps.paymentIntentId as string
 
   console.log('\n--- 2. Montant calcule au-dessus du seuil (livraison offerte) ---')
-  const r2 = await creerPaymentIntent({ productId: '2', quantity: 3 })
+  const r2 = await creerPaymentIntent({ productId: '2', quantity: 3, cguAcceptees: true })
   verifie('=> 200', 200, r2.statut)
   verifie('montant = 3 x prix, sans frais de port (13470)', 13470, r2.corps.amount)
 
   console.log('\n--- 3. Produit inconnu : paiement refuse, pas de PaymentIntent cree ---')
-  const r3 = await creerPaymentIntent({ productId: 'inexistant', quantity: 1 })
+  const r3 = await creerPaymentIntent({ productId: 'inexistant', quantity: 1, cguAcceptees: true })
   verifie('=> 400', 400, r3.statut)
   verifie('aucun clientSecret', undefined, r3.corps.clientSecret)
+
+  console.log('\n--- 3b. CGV non acceptees (case cochee cote client, requise cote serveur) : paiement refuse ---')
+  const r3b = await creerPaymentIntent({ productId: '2', quantity: 1, cguAcceptees: false })
+  verifie('=> 400', 400, r3b.statut)
+  verifie('aucun clientSecret', undefined, r3b.corps.clientSecret)
+  verifie('message explicite CGV', true, String(r3b.corps.error ?? '').includes('Conditions Générales de Vente'))
+
+  console.log('\n--- 3c. CGV absentes du corps de la requete (jamais implicitement acceptees) : paiement refuse ---')
+  const r3c = await creerPaymentIntent({ productId: '2', quantity: 1 })
+  verifie('=> 400', 400, r3c.statut)
+  verifie('aucun clientSecret', undefined, r3c.corps.clientSecret)
 
   console.log('\n--- 4. Mise a jour adresse/e-mail avant confirmation ---')
   const r4 = await patchPaymentIntent({
@@ -216,6 +227,7 @@ async function main() {
   const piVerif = await stripeVerif.paymentIntents.retrieve(piId1)
   verifie('e-mail enregistre sur le PaymentIntent', 'expresscheckout@exemple.test', piVerif.receipt_email)
   verifie('ville de livraison enregistree', 'Fougeres', piVerif.shipping?.address?.city)
+  verifie('trace de consentement CGV enregistree (metadata)', 'oui', piVerif.metadata?.cgv_acceptees)
 
   console.log('\n--- 5. Webhook : paiement express reussi => commande enregistree ---')
   recu.length = 0
