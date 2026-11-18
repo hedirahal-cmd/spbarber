@@ -1,5 +1,5 @@
 import { Product, ProductImage, ProductVariant } from '@/types'
-import { DELAI_EXPEDITION_FRAGMENT } from '@/lib/delais'
+import { DELAI_EXPEDITION_FRAGMENT, RETOUR_TEXTE } from '@/lib/delais'
 
 /**
  * Sous-ensemble de `images` qui correspond au coloris choisi (matching sur
@@ -30,7 +30,7 @@ export const PRODUCTS: Product[] = [
     is_dropshipping: false,
     benefit: 'Cheveux noirs intenses dès 1 lavage',
     usageTag: 'Cheveux blancs ou gris à camoufler',
-    trust: ['Couleur ravivée en 1 lavage', 'Sans ammoniaque ni peroxyde', 'Livraison 3-5 jours ouvrés', 'Satisfait ou remboursé'],
+    trust: ['Couleur ravivée en 1 lavage', 'Sans ammoniaque ni peroxyde', 'Livraison 3-5 jours ouvrés', RETOUR_TEXTE],
     // Plus de recommandation fixe (2026-10-01, decision Hedi) : carrousel
     // generique a la place (voir genericRecommendations dans [slug]/page.tsx).
     genericRecommendations: true,
@@ -59,7 +59,7 @@ export const PRODUCTS: Product[] = [
     is_dropshipping: false,
     benefit: 'Boucles définies sans effet lourd',
     usageTag: 'Cheveux bouclés, frisés ou ondulés',
-    trust: ['Boucles définies & hydratées', 'Sans résidu, sans alourdissement', 'Livraison 3-5 jours ouvrés', 'Satisfait ou remboursé'],
+    trust: ['Boucles définies & hydratées', 'Sans résidu, sans alourdissement', 'Livraison 3-5 jours ouvrés', RETOUR_TEXTE],
     // Plus de recommandation fixe (2026-10-01, decision Hedi) : carrousel
     // generique a la place (voir genericRecommendations dans [slug]/page.tsx).
     genericRecommendations: true,
@@ -81,7 +81,7 @@ export const PRODUCTS: Product[] = [
     is_dropshipping: false,
     benefit: 'Précision pro — dents anti-casse',
     usageTag: 'Cheveux épais, texturés ou bouclés',
-    trust: ['Dents renforcées anti-casse', 'Idéal cheveux épais & texturés', 'Livraison 3-5 jours ouvrés', 'Satisfait ou remboursé'],
+    trust: ['Dents renforcées anti-casse', 'Idéal cheveux épais & texturés', 'Livraison 3-5 jours ouvrés', RETOUR_TEXTE],
     related: ['3'],
     seo_title: 'Peigne Homme Professionnel SP Barber | Texture Expert Dents Anti-Casse',
     seo_description:
@@ -107,7 +107,7 @@ export const PRODUCTS: Product[] = [
     // shampooing ni ciseaux, qui ne font pas partie du pack.
     benefit: '6 essentiels pour une barbe magnifique',
     usageTag: 'Toutes densités de barbe',
-    trust: ['6 produits complémentaires inclus', 'Formulé par des barbiers pro', 'Livraison 3-5 jours ouvrés', 'Satisfait ou remboursé'],
+    trust: ['6 produits complémentaires inclus', 'Formulé par des barbiers pro', 'Livraison 3-5 jours ouvrés', RETOUR_TEXTE],
     // Recommande les deux tondeuses (2026-10-01, decision Hedi) -- une barbe
     // bien entretenue va avec une coupe nette.
     related: ['8', '9'],
@@ -129,7 +129,7 @@ export const PRODUCTS: Product[] = [
     is_dropshipping: false,
     benefit: 'Volume & grip instantanés',
     usageTag: 'Cheveux fins, sans tenue',
-    trust: ['Volume instantané dès la racine', 'Effet mat naturel longue tenue', 'Livraison 3-5 jours ouvrés', 'Satisfait ou remboursé'],
+    trust: ['Volume instantané dès la racine', 'Effet mat naturel longue tenue', 'Livraison 3-5 jours ouvrés', RETOUR_TEXTE],
     // Une seule recommandation pertinente (2026-10-01, decision Hedi) : le
     // peigne, pas de carrousel generique ici.
     related: ['4'],
@@ -168,7 +168,7 @@ export const PRODUCTS: Product[] = [
     actif: false,
     benefit: 'Lames titane, 90 min d\'autonomie',
     usageTag: 'Finitions précises et dégradés',
-    trust: ['Lames titane précises', 'Usage à sec', 'Livraison sous 2 semaines', 'Satisfait ou remboursé'],
+    trust: ['Lames titane précises', 'Usage à sec', 'Livraison sous 2 semaines', RETOUR_TEXTE],
     // Coloris (2026-10-01, decision Hedi) : meme prix et meme stock pour les
     // deux (dropshipping manuel, hors systeme de stock -- cf. pricing.ts), le
     // coloris est une preference visuelle, pas un critere de disponibilite.
@@ -206,7 +206,7 @@ export const PRODUCTS: Product[] = [
     actif: false,
     benefit: 'Lame DLC zéro écart, écran LED',
     usageTag: 'Coupe complète à la maison',
-    trust: ['Coupe nette sans tiraillement', 'Écran LED de charge', 'Livraison sous 2 semaines', 'Satisfait ou remboursé'],
+    trust: ['Coupe nette sans tiraillement', 'Écran LED de charge', 'Livraison sous 2 semaines', RETOUR_TEXTE],
     // Coloris (2026-10-01, decision Hedi) : meme principe que la BRDCLIP FA1T
     // ci-dessus. Photos deja presentes dans product_overrides.images :
     // -1/-4/-5 = noir, -3 = rouge (identifiees visuellement).

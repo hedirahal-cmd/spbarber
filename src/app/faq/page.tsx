@@ -77,7 +77,7 @@ const FAQS = [
     items: [
       {
         q: 'Puis-je retourner un produit si je ne suis pas satisfait ?',
-        a: 'Oui, vous disposez de 14 jours à compter de la réception pour retourner n\'importe quel produit et être remboursé intégralement, même si le produit a été ouvert.',
+        a: 'Oui, vous disposez de 14 jours à compter de la réception pour changer d\'avis et retourner votre produit, sans justification. Pour les produits cosmétiques, le produit ne doit pas avoir été descellé ni utilisé, pour des raisons d\'hygiène (article L. 221-28 du Code de la consommation).',
       },
       {
         q: 'J\'ai reçu un produit endommagé. Que faire ?',

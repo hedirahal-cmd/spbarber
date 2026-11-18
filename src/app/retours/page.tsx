@@ -2,9 +2,9 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 
 export const metadata: Metadata = {
-  title: { absolute: 'Retours & Remboursements — SP Barber | 14 Jours Satisfait ou Remboursé' },
+  title: { absolute: 'Retours & Remboursements — SP Barber | Droit de Rétractation 14 Jours' },
   description:
-    'Politique de retour SP Barber : 14 jours pour retourner vos produits, même ouverts, et être remboursé intégralement. Sans questions.',
+    'Politique de retour SP Barber : droit de rétractation légal de 14 jours à compter de la réception. Produits cosmétiques descellés exclus pour raisons d\'hygiène.',
   alternates: { canonical: 'https://spbarber.fr/retours' },
 }
 
@@ -16,9 +16,9 @@ export default function RetoursPage() {
         <h1 className="legal-h1">Retours & Remboursements</h1>
 
         <section className="legal-section">
-          <h2>Garantie 14 jours satisfait ou remboursé</h2>
+          <h2>Droit de rétractation — 14 jours</h2>
           <p>
-            SP Barber vous offre <strong>14 jours pour changer d&apos;avis</strong>, à compter de la réception. Si vous n&apos;êtes pas entièrement satisfait de votre achat, retournez-le et nous vous remboursons intégralement, sans questions.
+            Conformément aux articles L. 221-18 et suivants du Code de la consommation, vous disposez de <strong>14 jours calendaires</strong> à compter de la réception de votre commande pour changer d&apos;avis et nous retourner votre achat, sans avoir à vous justifier.
           </p>
         </section>
 
@@ -31,7 +31,7 @@ export default function RetoursPage() {
             </li>
             <li>Nous vous communiquons les instructions de retour sous 24h.</li>
             <li>Renvoyez le produit dans son emballage d&apos;origine.</li>
-            <li>Dès réception, nous procédons au remboursement sous 5 à 10 jours ouvrés.</li>
+            <li>Dès réception, nous procédons au remboursement dans un délai maximum de 14 jours.</li>
           </ol>
         </section>
 
@@ -46,15 +46,15 @@ export default function RetoursPage() {
           <h2>Conditions de retour</h2>
           <ul>
             <li>Produit retourné dans les 14 jours suivant la réception.</li>
-            <li>Produit dans son emballage d&apos;origine (boîte, notice, accessoires inclus).</li>
-            <li>Pour les produits déjà ouverts ou utilisés, la garantie satisfait ou remboursé s&apos;applique quand même — c&apos;est notre engagement qualité.</li>
+            <li>Produit dans son emballage d&apos;origine, non utilisé (boîte, notice, accessoires inclus).</li>
+            <li>Exception d&apos;hygiène : les produits cosmétiques descellés ou ouverts ne peuvent pas être retournés (article L. 221-28 du Code de la consommation).</li>
           </ul>
         </section>
 
         <section className="legal-section">
           <h2>Remboursement</h2>
           <p>
-            Le remboursement est effectué sur le moyen de paiement utilisé lors de la commande, dans un délai de <strong>5 à 10 jours ouvrés</strong> après réception du retour.
+            Le remboursement intégral (prix du produit + frais de livraison initiaux) est effectué sur le moyen de paiement utilisé lors de la commande, dans un délai maximum de <strong>14 jours</strong> suivant la réception du retour ou la preuve d&apos;expédition.
           </p>
         </section>
 

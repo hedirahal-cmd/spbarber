@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { enumerationPaysLivrables } from '@/lib/shipping-countries'
+import { DELAI_EXPEDITION_FRAGMENT } from '@/lib/delais'
 
 export const revalidate = 60
 
@@ -132,7 +133,7 @@ export default async function CGVPage() {
             Les commandes sont expédiées depuis la France vers les destinations suivantes : {enumerationPaysLivrables()}.
           </p>
           <p>
-            <strong>Délais :</strong> Les commandes sont traitées et expédiées sous 24 à 48 heures ouvrées après confirmation du paiement. La livraison est ensuite effectuée sous 3 à 5 jours ouvrés selon le transporteur.
+            <strong>Délais :</strong> Les commandes sont traitées et expédiées {DELAI_EXPEDITION_FRAGMENT} après confirmation du paiement. La livraison est ensuite effectuée sous 3 à 5 jours ouvrés selon le transporteur.
           </p>
           <p>
             <strong>Frais de livraison :</strong> Offerts pour toute commande égale ou supérieure à 60 €. En dessous de ce seuil, les frais de port sont indiqués lors de la commande.
@@ -157,16 +158,16 @@ export default async function CGVPage() {
             <strong>Exercice du droit de rétractation :</strong> Le Client notifie sa décision de se rétracter en contactant le Vendeur par e-mail à spbarbershopexploitation@hotmail.com, en précisant le numéro de commande et les articles concernés. Il peut également utiliser le formulaire de rétractation type prévu à l&apos;annexe du Code de la consommation.
           </p>
           <p>
-            <strong>Retour des produits :</strong> Le Client retourne les produits dans leur emballage d&apos;origine, en parfait état, non utilisés, dans un délai de 14 jours suivant la notification de rétractation. Les frais de retour sont à la charge du Client.
+            <strong>Retour des produits :</strong> Le Client retourne les produits dans leur emballage d&apos;origine, en parfait état, non utilisés, dans un délai de 14 jours suivant la notification de rétractation.
+          </p>
+          <p>
+            <strong>Frais de retour :</strong> Les frais de retour sont à la charge du Client, sauf si le produit retourné est défectueux ou si l&apos;erreur est imputable au Vendeur, auquel cas SP Barber prend en charge l&apos;intégralité des frais.
           </p>
           <p>
             <strong>Remboursement :</strong> Le Vendeur procède au remboursement intégral (prix des produits + frais de livraison initiaux) dans un délai maximum de 14 jours suivant la réception des articles retournés ou la preuve d&apos;expédition, par le même moyen de paiement que celui utilisé lors de la commande.
           </p>
           <p>
-            <strong>Exceptions :</strong> Le droit de rétractation ne s&apos;applique pas aux produits descellés ou dont le sceau d&apos;hygiène a été brisé après livraison (conformément à l&apos;article L. 221-28, 5° du Code de la consommation).
-          </p>
-          <p>
-            Par exception à cette règle, et dans un souci de satisfaction client, SP Barber propose une garantie satisfait ou remboursé de <strong>30 jours</strong> sur l&apos;ensemble de ses produits, y compris après première utilisation, à condition que le retour soit motivé par une insatisfaction du produit. Les frais de retour restent à la charge du Client dans ce cas.
+            <strong>Exception d&apos;hygiène (produits cosmétiques) :</strong> Pour des raisons d&apos;hygiène et de protection de la santé, le droit de rétractation ne s&apos;applique pas aux produits cosmétiques descellés ou ouverts après livraison, conformément à l&apos;article L. 221-28, 5° du Code de la consommation.
           </p>
         </section>
 

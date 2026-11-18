@@ -17,7 +17,7 @@ export default function RetractationPage() {
 
         <section className="legal-section">
           <p>
-            Conformément au Code de la consommation, vous disposez d&apos;un délai de <strong>14 jours</strong> à compter de la réception de votre commande pour exercer votre droit de rétractation, sans avoir à justifier de motif — sauf pour les produits de soin descellés ou utilisés, exclus de ce droit pour des raisons d&apos;hygiène. SP Barber va au-delà de cette exclusion légale avec sa garantie <Link href="/retours">14 jours satisfait ou remboursé</Link>, qui couvre aussi les produits ouverts ou utilisés (retour à votre charge).
+            Conformément au Code de la consommation, vous disposez d&apos;un délai de <strong>14 jours</strong> à compter de la réception de votre commande pour exercer votre droit de rétractation, sans avoir à justifier de motif — sauf pour les produits cosmétiques descellés ou utilisés, exclus de ce droit pour des raisons d&apos;hygiène (article L. 221-28 du Code de la consommation). Les modalités de retour sont détaillées sur notre page <Link href="/retours">Retours &amp; Remboursements</Link>.
           </p>
           <p>
             Pour exercer ce droit, remplissez le formulaire ci-dessous — aucun compte ni connexion n&apos;est nécessaire. Vous recevrez une confirmation par e-mail dès l&apos;envoi.
