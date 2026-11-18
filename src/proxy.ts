@@ -150,7 +150,7 @@ function pageAttenteHtml(message: string): string {
 
 export const config = {
   matcher: [
-    '/((?!admin|api/admin|api/webhook|_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml).*)',
+    '/((?!admin|api/admin|api/webhook|_next/static|_next/image|favicon.ico|icon.png|apple-icon.png|robots.txt|sitemap.xml).*)',
   ],
 }
 
