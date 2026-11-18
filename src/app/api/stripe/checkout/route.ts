@@ -80,8 +80,6 @@ export async function POST(req: NextRequest) {
       quantity: item.quantity,
     }))
 
-    const base = getBaseUrl()
-
     // Reduit au strict necessaire pour le webhook (id, variante, quantite) --
     // PAS le nom ni le prix. Une valeur de metadonnee Stripe est plafonnee a 500
     // caracteres (limite de la plateforme, pas un choix du code) : avec name+price
@@ -97,9 +95,29 @@ export async function POST(req: NextRequest) {
       qty: item.quantity,
     }))
 
+    const base = getBaseUrl()
+
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
       customer_creation: 'if_required',
+      // Case "j'accepte les CGV" obligatoire avant paiement (2026-11-18,
+      // demande Hedi) -- l'URL des CGV est desormais configuree dans le
+      // Dashboard Stripe (Parametres > Details publics de l'entreprise),
+      // sans quoi Stripe refuse la creation de la session (verifie, voir
+      // l'historique du chantier). N'existe QUE sur Stripe Checkout : le
+      // paiement express (Apple Pay/Google Pay, voir
+      // /api/stripe/payment-intent) passe par les PaymentIntents + Payment
+      // Element, une API differente qui n'a pas cette option -- aucune
+      // case n'y apparait, avec ou sans ce reglage.
+      consent_collection: { terms_of_service: 'required' },
+      custom_text: {
+        terms_of_service_acceptance: {
+          // Lien Markdown vers l'URL LITERALE des CGV -- Stripe n'a pas de
+          // mot-cle reserve pour reutiliser l'URL posee dans le Dashboard
+          // (verifie dans la documentation Stripe), il faut l'ecrire ici.
+          message: `J'ai lu et j'accepte les [Conditions Générales de Vente](${base}/cgv) de SP Barber.`,
+        },
+      },
       line_items,
       metadata: {
         items: JSON.stringify(itemsStock),
