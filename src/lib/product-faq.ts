@@ -33,8 +33,8 @@ export function getProductFAQ(product: Product): { q: string; a: string }[] {
     {
       q: 'Puis-je retourner ce produit ?',
       a: estProduitCosmetique(product.category)
-        ? 'Oui, vous disposez de 14 jours à compter de la réception pour nous informer de votre décision de vous rétracter, puis de 14 jours supplémentaires pour nous le renvoyer, à condition qu\'il n\'ait pas été descellé ni utilisé (raisons d\'hygiène, article L. 221-28 du Code de la consommation).'
-        : 'Oui, vous disposez de 14 jours à compter de la réception pour nous informer de votre décision de vous rétracter, puis de 14 jours supplémentaires pour nous le renvoyer, dans son emballage d\'origine et non utilisé.',
+        ? 'Oui, vous disposez de 14 jours à compter de la réception pour nous informer de votre décision de vous rétracter, puis de 14 jours à compter de votre message pour nous le renvoyer, à condition qu\'il n\'ait pas été descellé ni utilisé (raisons d\'hygiène, article L. 221-28 du Code de la consommation).'
+        : 'Oui, vous disposez de 14 jours à compter de la réception pour nous informer de votre décision de vous rétracter, puis de 14 jours à compter de votre message pour nous le renvoyer, dans son emballage d\'origine et non utilisé.',
     },
     {
       q: 'Quels moyens de paiement acceptez-vous ?',
