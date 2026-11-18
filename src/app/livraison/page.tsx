@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { libellesPaysLivrables } from '@/lib/shipping-countries'
+import { DELAI_EXPEDITION_FRAGMENT, TRANSIT_TEXTE_COMPACT, TRANSIT_TEXTE_PROSE } from '@/lib/delais'
 
 // France uniquement au lancement (2026-10-21, decision Hedi) -- ces chaines
 // SEO sont redigees a la main plutot que generees depuis PAYS_LIVRABLES (un
@@ -9,11 +10,11 @@ import { libellesPaysLivrables } from '@/lib/shipping-countries'
 export const metadata: Metadata = {
   title: { absolute: 'Livraison Colissimo — SP Barber | Offerte dès 59€ | France métropolitaine' },
   description:
-    'Livraison Colissimo offerte dès 59€. Préparation sous 2 jours ouvrés, livraison 3-5 jours en France métropolitaine, Corse comprise. Suivi inclus.',
+    `Livraison Colissimo offerte dès 59€. Préparation ${DELAI_EXPEDITION_FRAGMENT}, livraison ${TRANSIT_TEXTE_COMPACT} en France métropolitaine, Corse comprise. Suivi inclus.`,
   alternates: { canonical: 'https://spbarber.fr/livraison' },
   openGraph: {
     title: 'Livraison SP Barber — Colissimo Offerte dès 59€',
-    description: 'Livraison Colissimo 3-5 jours. Offerte dès 59€ en France métropolitaine.',
+    description: `Livraison Colissimo ${TRANSIT_TEXTE_COMPACT}. Offerte dès 59€ en France métropolitaine.`,
     url: 'https://spbarber.fr/livraison',
   },
 }
@@ -35,8 +36,8 @@ export default function LivraisonPage() {
         <section className="legal-section">
           <h2>Délais</h2>
           <ul>
-            <li><strong>Préparation :</strong> commande préparée sous 2 jours ouvrés après confirmation du paiement.</li>
-            <li><strong>Livraison :</strong> 3 à 5 jours ouvrés selon le transporteur et la destination.</li>
+            <li><strong>Préparation :</strong> commande préparée {DELAI_EXPEDITION_FRAGMENT} après confirmation du paiement.</li>
+            <li><strong>Livraison :</strong> {TRANSIT_TEXTE_PROSE} selon le transporteur et la destination.</li>
           </ul>
           <p>Un e-mail de confirmation d&apos;expédition avec numéro de suivi vous est envoyé dès la prise en charge par le transporteur.</p>
           <p>

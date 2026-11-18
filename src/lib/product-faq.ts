@@ -1,4 +1,6 @@
 import type { Product } from '@/types'
+import { estProduitCosmetique } from '@/lib/products'
+import { DELAI_EXPEDITION_FRAGMENT, TRANSIT_TEXTE_PROSE } from '@/lib/delais'
 
 /**
  * FAQ generique affichee sur CHAQUE fiche produit (accordeon, voir
@@ -20,7 +22,7 @@ export function getProductFAQ(product: Product): { q: string; a: string }[] {
       q: 'Quel est le délai de livraison ?',
       a: estTondeuse
         ? 'Cette tondeuse est envoyée directement par notre fournisseur : comptez environ 2 semaines de délai, colis séparé du reste de votre commande le cas échéant.'
-        : 'Votre commande est préparée sous 2 jours ouvrés, puis livrée en 3 à 5 jours ouvrés selon votre adresse.',
+        : `Votre commande est préparée ${DELAI_EXPEDITION_FRAGMENT}, puis livrée en ${TRANSIT_TEXTE_PROSE} selon votre adresse.`,
     },
     {
       q: 'La livraison est-elle offerte ?',
@@ -30,7 +32,9 @@ export function getProductFAQ(product: Product): { q: string; a: string }[] {
     },
     {
       q: 'Puis-je retourner ce produit ?',
-      a: 'Oui, vous disposez de 14 jours à compter de la réception pour le retourner et être remboursé intégralement, même ouvert.',
+      a: estProduitCosmetique(product.category)
+        ? 'Oui, vous disposez de 14 jours à compter de la réception pour changer d\'avis et le retourner, à condition qu\'il n\'ait pas été descellé ni utilisé (raisons d\'hygiène, article L. 221-28 du Code de la consommation).'
+        : 'Oui, vous disposez de 14 jours à compter de la réception pour changer d\'avis et le retourner, dans son emballage d\'origine et non utilisé.',
     },
     {
       q: 'Quels moyens de paiement acceptez-vous ?',

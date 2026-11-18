@@ -8,7 +8,7 @@ import { MapPin, Clock, Phone, Scissors, Star, ArrowRight } from 'lucide-react'
 import { SalonCarousel } from '@/components/salon/SalonCarousel'
 import { SalonAvisGrid } from '@/components/salon/SalonAvisGrid'
 import { GoogleMapEmbed } from '@/components/GoogleMapEmbed'
-import { DELAI_EXPEDITION_FRAGMENT } from '@/lib/delais'
+import { DELAI_EXPEDITION_FRAGMENT, TRANSIT_TEXTE_COMPACT } from '@/lib/delais'
 import { supabase } from '@/lib/supabase'
 import { type Salon, DEFAULT_SALONS, buildEmbedUrl, deVille } from '@/lib/salons'
 import { schemaSalon, jsonLd } from '@/lib/schema'
@@ -243,7 +243,7 @@ export default async function SalonDetailPage({ params }: Props) {
             <div className="salon-sec-ey">— Emportez le salon chez vous —</div>
             <h2 className="salon-sec-title">NOS PRODUITS EN LIGNE</h2>
             <p className="salon-sec-sub">
-              Les mêmes produits que nos barbiers utilisent en salon, expédiés {DELAI_EXPEDITION_FRAGMENT} partout en France (livraison 3-5 jours ouvrés, offerte dès 59€ — sauf tondeuses, livraison sous ~2 semaines).
+              Les mêmes produits que nos barbiers utilisent en salon, expédiés {DELAI_EXPEDITION_FRAGMENT} partout en France (livraison {TRANSIT_TEXTE_COMPACT}, offerte dès 59€ — sauf tondeuses, livraison sous ~2 semaines).
             </p>
             <Link href="/products" className="salon-shop-cta">
               Voir tous les produits <ArrowRight size={14} strokeWidth={2.5} />

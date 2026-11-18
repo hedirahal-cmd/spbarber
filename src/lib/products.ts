@@ -1,5 +1,5 @@
 import { Product, ProductImage, ProductVariant } from '@/types'
-import { DELAI_EXPEDITION_FRAGMENT, RETOUR_TEXTE } from '@/lib/delais'
+import { DELAI_EXPEDITION_FRAGMENT, RETOUR_TEXTE, TRANSIT_TEXTE_COMPACT } from '@/lib/delais'
 
 /**
  * Sous-ensemble de `images` qui correspond au coloris choisi (matching sur
@@ -11,6 +11,19 @@ export function imagesPourVariante(images: ProductImage[], variant?: ProductVari
   if (!variant?.imageMatch || variant.imageMatch.length === 0) return images
   const filtrees = images.filter((img) => variant.imageMatch!.some((m) => img.url.includes(m)))
   return filtrees.length > 0 ? filtrees : images
+}
+
+/**
+ * Produit formule (shampooing, creme, baume...) avec un sceau d'hygiene --
+ * seule categorie concernee par l'exception d'hygiene du droit de
+ * retractation (article L. 221-28 du Code de la consommation). Un peigne ou
+ * une tondeuse n'a pas de sceau d'hygiene : l'exception ne s'applique pas.
+ * Source unique (2026-11-18, demande Hedi) -- utilisee a la fois pour le
+ * bloc "benefices" de la fiche et pour la FAQ generique produit.
+ */
+const CATEGORIES_COSMETIQUES = new Set(['coiffant', 'soin', 'barbe'])
+export function estProduitCosmetique(category: string): boolean {
+  return CATEGORIES_COSMETIQUES.has(category)
 }
 
 export const PRODUCTS: Product[] = [
@@ -30,7 +43,7 @@ export const PRODUCTS: Product[] = [
     is_dropshipping: false,
     benefit: 'Cheveux noirs intenses dès 1 lavage',
     usageTag: 'Cheveux blancs ou gris à camoufler',
-    trust: ['Couleur ravivée en 1 lavage', 'Sans ammoniaque ni peroxyde', 'Livraison 3-5 jours ouvrés', RETOUR_TEXTE],
+    trust: ['Couleur ravivée en 1 lavage', 'Sans ammoniaque ni peroxyde', `Livraison ${TRANSIT_TEXTE_COMPACT}`, RETOUR_TEXTE],
     // Plus de recommandation fixe (2026-10-01, decision Hedi) : carrousel
     // generique a la place (voir genericRecommendations dans [slug]/page.tsx).
     genericRecommendations: true,
@@ -59,7 +72,7 @@ export const PRODUCTS: Product[] = [
     is_dropshipping: false,
     benefit: 'Boucles définies sans effet lourd',
     usageTag: 'Cheveux bouclés, frisés ou ondulés',
-    trust: ['Boucles définies & hydratées', 'Sans résidu, sans alourdissement', 'Livraison 3-5 jours ouvrés', RETOUR_TEXTE],
+    trust: ['Boucles définies & hydratées', 'Sans résidu, sans alourdissement', `Livraison ${TRANSIT_TEXTE_COMPACT}`, RETOUR_TEXTE],
     // Plus de recommandation fixe (2026-10-01, decision Hedi) : carrousel
     // generique a la place (voir genericRecommendations dans [slug]/page.tsx).
     genericRecommendations: true,
@@ -81,7 +94,7 @@ export const PRODUCTS: Product[] = [
     is_dropshipping: false,
     benefit: 'Précision pro — dents anti-casse',
     usageTag: 'Cheveux épais, texturés ou bouclés',
-    trust: ['Dents renforcées anti-casse', 'Idéal cheveux épais & texturés', 'Livraison 3-5 jours ouvrés', RETOUR_TEXTE],
+    trust: ['Dents renforcées anti-casse', 'Idéal cheveux épais & texturés', `Livraison ${TRANSIT_TEXTE_COMPACT}`, RETOUR_TEXTE],
     related: ['3'],
     seo_title: 'Peigne Homme Professionnel SP Barber | Texture Expert Dents Anti-Casse',
     seo_description:
@@ -107,7 +120,7 @@ export const PRODUCTS: Product[] = [
     // shampooing ni ciseaux, qui ne font pas partie du pack.
     benefit: '6 essentiels pour une barbe magnifique',
     usageTag: 'Toutes densités de barbe',
-    trust: ['6 produits complémentaires inclus', 'Formulé par des barbiers pro', 'Livraison 3-5 jours ouvrés', RETOUR_TEXTE],
+    trust: ['6 produits complémentaires inclus', 'Formulé par des barbiers pro', `Livraison ${TRANSIT_TEXTE_COMPACT}`, RETOUR_TEXTE],
     // Recommande les deux tondeuses (2026-10-01, decision Hedi) -- une barbe
     // bien entretenue va avec une coupe nette.
     related: ['8', '9'],
@@ -129,7 +142,7 @@ export const PRODUCTS: Product[] = [
     is_dropshipping: false,
     benefit: 'Volume & grip instantanés',
     usageTag: 'Cheveux fins, sans tenue',
-    trust: ['Volume instantané dès la racine', 'Effet mat naturel longue tenue', 'Livraison 3-5 jours ouvrés', RETOUR_TEXTE],
+    trust: ['Volume instantané dès la racine', 'Effet mat naturel longue tenue', `Livraison ${TRANSIT_TEXTE_COMPACT}`, RETOUR_TEXTE],
     // Une seule recommandation pertinente (2026-10-01, decision Hedi) : le
     // peigne, pas de carrousel generique ici.
     related: ['4'],

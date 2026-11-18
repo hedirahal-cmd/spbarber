@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { enumerationPaysLivrables } from '@/lib/shipping-countries'
-import { DELAI_EXPEDITION_FRAGMENT } from '@/lib/delais'
+import { DELAI_EXPEDITION_FRAGMENT, TRANSIT_TEXTE_PROSE } from '@/lib/delais'
 
 export const revalidate = 60
 
@@ -133,7 +133,7 @@ export default async function CGVPage() {
             Les commandes sont expédiées depuis la France vers les destinations suivantes : {enumerationPaysLivrables()}.
           </p>
           <p>
-            <strong>Délais :</strong> Les commandes sont traitées et expédiées {DELAI_EXPEDITION_FRAGMENT} après confirmation du paiement. La livraison est ensuite effectuée sous 3 à 5 jours ouvrés selon le transporteur.
+            <strong>Délais :</strong> Les commandes sont traitées et expédiées {DELAI_EXPEDITION_FRAGMENT} après confirmation du paiement. La livraison est ensuite effectuée sous {TRANSIT_TEXTE_PROSE} selon le transporteur.
           </p>
           <p>
             <strong>Frais de livraison :</strong> Offerts pour toute commande égale ou supérieure à 60 €. En dessous de ce seuil, les frais de port sont indiqués lors de la commande.

@@ -1,5 +1,6 @@
 import { Product } from '@/types'
 import { Salon } from '@/lib/salons'
+import { EXPEDITION_JOURS_OUVRES, TRANSIT_JOURS_MIN, TRANSIT_JOURS_MAX } from '@/lib/delais'
 
 const BASE = 'https://spbarber.fr'
 
@@ -225,10 +226,11 @@ export function schemaProduct(product: Product, reviewSummary?: { count: number;
           },
           cutoffTime: '16:00',
           // Tondeuses = dropshipping manuel, delai reel "sous ~2 semaines" --
-          // tres different du reste du catalogue (2-5 jours). Categorie
-          // utilisee plutot qu'un id en dur pour rester correct si d'autres
-          // tondeuses rejoignent le catalogue. Handling + transit doit rester
-          // <= 14 jours au total pour matcher le texte visible sur la fiche.
+          // tres different du reste du catalogue (voir src/lib/delais.ts pour
+          // le reste du catalogue). Categorie utilisee plutot qu'un id en dur
+          // pour rester correct si d'autres tondeuses rejoignent le catalogue.
+          // Handling + transit doit rester <= 14 jours au total pour matcher
+          // le texte visible sur la fiche.
           handlingTime: product.category === 'tondeuse' ? {
             '@type': 'QuantitativeValue',
             minValue: 1,
@@ -237,7 +239,7 @@ export function schemaProduct(product: Product, reviewSummary?: { count: number;
           } : {
             '@type': 'QuantitativeValue',
             minValue: 1,
-            maxValue: 2,
+            maxValue: EXPEDITION_JOURS_OUVRES,
             unitCode: 'DAY',
           },
           transitTime: product.category === 'tondeuse' ? {
@@ -247,8 +249,8 @@ export function schemaProduct(product: Product, reviewSummary?: { count: number;
             unitCode: 'DAY',
           } : {
             '@type': 'QuantitativeValue',
-            minValue: 2,
-            maxValue: 5,
+            minValue: TRANSIT_JOURS_MIN,
+            maxValue: TRANSIT_JOURS_MAX,
             unitCode: 'DAY',
           },
         },

@@ -11,6 +11,7 @@ import { PaymentLogos } from '@/components/PaymentLogos'
 import { formatPrice } from '@/lib/utils'
 import { imagesPourVariante } from '@/lib/products'
 import { MENTION_ZONE_LIVRABLE } from '@/lib/shipping-countries'
+import { TRANSIT_TEXTE_COMPACT } from '@/lib/delais'
 
 function euros(cents: number) {
   return (cents / 100).toFixed(2).replace('.', ',') + ' €'
@@ -217,7 +218,7 @@ export default function CheckoutPage() {
               <Lock size={12} strokeWidth={2} /> Paiement SSL securise
             </div>
             <div className="chk-trust-item">
-              <Truck size={12} strokeWidth={2} /> Colissimo 3-5 jours ouvrés
+              <Truck size={12} strokeWidth={2} /> Colissimo {TRANSIT_TEXTE_COMPACT}
             </div>
             <div className="chk-trust-item">
               <RotateCcw size={12} strokeWidth={2} /> Retours 14 jours

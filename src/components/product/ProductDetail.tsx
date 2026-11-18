@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useCart } from '@/hooks/useCart'
 import { formatPrice } from '@/lib/utils'
 import { Product, ProductVariant } from '@/types'
-import { imagesPourVariante } from '@/lib/products'
+import { imagesPourVariante, estProduitCosmetique } from '@/lib/products'
 import { PaymentLogos } from '@/components/PaymentLogos'
 import { ExpressCheckoutButton } from './ExpressCheckoutButton'
 import { AddToCartButton } from '@/components/AddToCartButton'
@@ -64,11 +64,11 @@ const FREE_SHIP = 5900
 // "Formule soignee", "Ingredients selectionnes"... n'a aucun sens sur un
 // peigne ou une tondeuse -- ce bloc de 4 benefices etait fige et identique
 // sur toutes les fiches produit, cosmetique ou non (2026-09-30, decision
-// Hedi). Categories cosmetiques (formulees) vs outils/accessoires.
-const CATEGORIES_COSMETIQUES = new Set(['coiffant', 'soin', 'barbe'])
+// Hedi). Categories cosmetiques (formulees) vs outils/accessoires -- voir
+// estProduitCosmetique dans src/lib/products.ts (source unique).
 
 function beneficesPourCategorie(category: string): { icon: ReactNode; titre: string; texte: string }[] {
-  if (CATEGORIES_COSMETIQUES.has(category)) {
+  if (estProduitCosmetique(category)) {
     return [
       { icon: <Dumbbell size={18} strokeWidth={1.6} />, titre: 'Qualité professionnelle', texte: "Les mêmes produits qu'en salon." },
       { icon: <Leaf size={18} strokeWidth={1.6} />, titre: 'Formule soignée', texte: 'Ingrédients sélectionnés, sans compromis.' },

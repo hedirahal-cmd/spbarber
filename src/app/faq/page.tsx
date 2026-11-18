@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { schemaFAQ, jsonLd } from '@/lib/schema'
 import { enumerationPaysLivrables } from '@/lib/shipping-countries'
-import { DELAI_EXPEDITION_FRAGMENT } from '@/lib/delais'
+import { DELAI_EXPEDITION_FRAGMENT, TRANSIT_TEXTE_PROSE } from '@/lib/delais'
 
 export const metadata: Metadata = {
   title: { absolute: 'FAQ — Questions Fréquentes SP Barber | Livraison, Retours, Produits' },
@@ -43,7 +43,7 @@ const FAQS = [
     items: [
       {
         q: 'Quel est le délai de livraison ?',
-        a: 'Vos commandes sont préparées sous 2 jours ouvrés. La livraison prend ensuite 3 à 5 jours ouvrés selon votre adresse. Exception : les tondeuses (envoyées directement par notre fournisseur), livraison sous ~2 semaines.',
+        a: `Vos commandes sont préparées ${DELAI_EXPEDITION_FRAGMENT}. La livraison prend ensuite ${TRANSIT_TEXTE_PROSE} selon votre adresse. Exception : les tondeuses (envoyées directement par notre fournisseur), livraison sous ~2 semaines.`,
       },
       {
         q: 'La livraison est-elle gratuite ?',
