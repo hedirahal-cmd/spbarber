@@ -6,6 +6,7 @@ import { PRODUCTS } from '@/lib/products'
 import { ProductsGrid } from '@/components/product/ProductsGrid'
 import { getProductOverrides } from '@/lib/product-overrides-server'
 import { applyOverride } from '@/lib/product-overrides'
+import { DELAI_EXPEDITION_FRAGMENT } from '@/lib/delais'
 
 export const metadata: Metadata = {
   title: 'Boutique Produits Capillaires Homme — Shampooing, Soins & Tondeuses',
@@ -14,7 +15,7 @@ export const metadata: Metadata = {
   alternates: { canonical: 'https://spbarber.fr/products' },
   openGraph: {
     title: 'Boutique SP Barber — Produits Capillaires Homme Premium',
-    description: 'Shampooing colorant, crème curl, kit barbe complet, tondeuses pro. Formules pro expédiées sous 48h.',
+    description: `Shampooing colorant, crème curl, kit barbe complet, tondeuses pro. Formules pro expédiées ${DELAI_EXPEDITION_FRAGMENT}.`,
     url: 'https://spbarber.fr/products',
     type: 'website',
   },

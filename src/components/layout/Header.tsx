@@ -10,7 +10,7 @@ interface HeaderProps {
   announcement: { text: string; visible: boolean }
 }
 
-// Le bandeau d'annonce (site_content.announcement_bar) promet "Expedition 48h"
+// Le bandeau d'annonce (site_content.announcement_bar) promet "Expedie sous 2 jours ouvres"
 // -- vrai pour tout le catalogue sauf les tondeuses (dropshipping manuel,
 // ~2 semaines). Sur leurs fiches specifiquement, ce texte generique est
 // remplace par un message neutre plutot que d'afficher une promesse fausse.

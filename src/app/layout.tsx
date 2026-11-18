@@ -10,6 +10,7 @@ import { getSiteContent } from '@/lib/site-content'
 import { getProductOverrides } from '@/lib/product-overrides-server'
 import { applyOverride } from '@/lib/product-overrides'
 import { PRODUCTS } from '@/lib/products'
+import { EXPEDITION_TEXTE, DELAI_EXPEDITION_FRAGMENT } from '@/lib/delais'
 
 /* ── Fonts via next/font (pas de requête externe, display=swap automatique) ── */
 const bebasNeue = Bebas_Neue({
@@ -40,11 +41,11 @@ const cormorantGaramond = Cormorant_Garamond({
 export const metadata: Metadata = {
   metadataBase: new URL('https://spbarber.fr'),
   title: {
-    default: 'SP Barber — Produits Capillaires Premium pour Hommes | Expédition 48h',
+    default: `SP Barber — Produits Capillaires Premium pour Hommes | ${EXPEDITION_TEXTE}`,
     template: '%s | SP Barber',
   },
   description:
-    'SP Barber — les formules professionnelles des barbiers, expédiées sous 48h. Shampooing colorant, crème curl, pack barbe, tondeuse. Livraison offerte dès 59€.',
+    `SP Barber — les formules professionnelles des barbiers, expédiées ${DELAI_EXPEDITION_FRAGMENT}. Shampooing colorant, crème curl, pack barbe, tondeuse. Livraison offerte dès 59€.`,
   keywords: [
     'produits capillaires homme',
     'crème curl cheveux bouclés',
@@ -75,12 +76,12 @@ export const metadata: Metadata = {
     siteName: 'SP Barber',
     title: 'SP Barber — Produits Capillaires Premium pour Hommes',
     description:
-      'Les formules professionnelles des barbiers, expédiées sous 48h. Livraison offerte dès 59€.',
+      `Les formules professionnelles des barbiers, expédiées ${DELAI_EXPEDITION_FRAGMENT}. Livraison offerte dès 59€.`,
   },
   twitter: {
     card: 'summary_large_image',
     title: 'SP Barber — Produits Capillaires Premium pour Hommes',
-    description: 'Les formules pro des barbiers, expédiées sous 48h. Livraison offerte dès 59€.',
+    description: `Les formules pro des barbiers, expédiées ${DELAI_EXPEDITION_FRAGMENT}. Livraison offerte dès 59€.`,
   },
   robots: {
     index: true,

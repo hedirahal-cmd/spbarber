@@ -159,7 +159,7 @@ async function main() {
 
   console.log('\n--- A. Valeurs par defaut (aucune ligne en base) = copie actuelle du site ---')
   const accueil = await page('/')
-  verifie('bandeau d annonce par defaut present', accueil.includes('Livraison offerte dès 59€ · Expédition 48h'))
+  verifie('bandeau d annonce par defaut present', accueil.includes('Livraison offerte dès 59€ · Expédié sous 2 jours ouvrés'))
   verifie('bannière CTA par defaut presente', accueil.includes('Rejoignez nos clients satisfaits'))
 
   const ficheCurl = await page('/products/creme-curl-control')
@@ -173,7 +173,7 @@ async function main() {
   verifie('sauvegarde bandeau => 200', r.statut === 200, 'obtenu ' + r.statut)
   let accueil2 = await page('/')
   verifie('nouveau texte du bandeau applique', accueil2.includes('TEXTE PERSO BANDEAU'))
-  verifie('ancien texte du bandeau disparu', !accueil2.includes('Livraison offerte dès 59€ · Expédition 48h'))
+  verifie('ancien texte du bandeau disparu', !accueil2.includes('Livraison offerte dès 59€ · Expédié sous 2 jours ouvrés'))
 
   r = await putAdmin('/api/admin/site-content', { key: 'home_cta_banner', text: 'Peu importe', visible: false })
   verifie('masquage bannière CTA => 200', r.statut === 200, 'obtenu ' + r.statut)

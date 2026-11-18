@@ -1,4 +1,5 @@
 import { Product, ProductImage, ProductVariant } from '@/types'
+import { DELAI_EXPEDITION_FRAGMENT } from '@/lib/delais'
 
 /**
  * Sous-ensemble de `images` qui correspond au coloris choisi (matching sur
@@ -42,7 +43,7 @@ export const PRODUCTS: Product[] = [
     ],
     seo_title: 'Shampooing Colorant Noir Homme — SP Barber | Masque les Cheveux Blancs',
     seo_description:
-      'Masquez vos cheveux blancs en quelques lavages. Shampooing colorant noir naturel pour homme. Résultat visible dès la 1ère utilisation. Sans ammoniaque. Expédition 48h.',
+      `Masquez vos cheveux blancs en quelques lavages. Shampooing colorant noir naturel pour homme. Résultat visible dès la 1ère utilisation. Sans ammoniaque. Expédition ${DELAI_EXPEDITION_FRAGMENT}.`,
     created_at: new Date().toISOString(),
   },
   {

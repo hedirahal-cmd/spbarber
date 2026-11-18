@@ -2,11 +2,12 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { schemaFAQ, jsonLd } from '@/lib/schema'
 import { enumerationPaysLivrables } from '@/lib/shipping-countries'
+import { DELAI_EXPEDITION_FRAGMENT } from '@/lib/delais'
 
 export const metadata: Metadata = {
   title: { absolute: 'FAQ — Questions Fréquentes SP Barber | Livraison, Retours, Produits' },
   description:
-    'Toutes les réponses à vos questions : commande, paiement, expédition sous 48h, retours 14 jours et informations produits SP Barber.',
+    `Toutes les réponses à vos questions : commande, paiement, expédition ${DELAI_EXPEDITION_FRAGMENT}, retours 14 jours et informations produits SP Barber.`,
   alternates: { canonical: 'https://spbarber.fr/faq' },
   openGraph: {
     title: 'FAQ SP Barber — Questions Fréquentes',

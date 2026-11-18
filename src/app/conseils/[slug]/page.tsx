@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Clock, User, ArrowRight } from 'lucide-react'
 import { schemaBreadcrumb, jsonLd } from '@/lib/schema'
+import { DELAI_EXPEDITION_FRAGMENT } from '@/lib/delais'
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -390,7 +391,7 @@ export default async function ArticlePage({ params }: Props) {
         {/* CTA */}
         <div className="article-cta-box">
           <p className="article-cta-txt">
-            Les produits mentionnés dans cet article sont disponibles dans notre boutique en ligne — expédiés sous 48h en France.
+            Les produits mentionnés dans cet article sont disponibles dans notre boutique en ligne — expédiés {DELAI_EXPEDITION_FRAGMENT} en France.
           </p>
           <Link href="/products" className="article-cta-btn">
             Voir tous les produits <ArrowRight size={14} strokeWidth={2.5} />

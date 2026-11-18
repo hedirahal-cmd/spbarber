@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ArrowRight, Clock, Scissors, User, Droplets } from 'lucide-react'
+import { DELAI_EXPEDITION_FRAGMENT } from '@/lib/delais'
 
 export const metadata: Metadata = {
   title: { absolute: 'Conseils Coiffure Homme — SP Barber | Guides et Astuces Barbier' },
@@ -92,7 +93,7 @@ export default function ConseilsPage() {
       {/* CTA boutique */}
       <div className="blog-cta-strip">
         <p className="blog-cta-txt">
-          Les produits recommandés dans nos articles, expédiés sous 48h
+          Les produits recommandés dans nos articles, expédiés {DELAI_EXPEDITION_FRAGMENT}
         </p>
         <Link href="/products" className="blog-cta-btn">
           Voir la boutique <ArrowRight size={14} strokeWidth={2.5} />

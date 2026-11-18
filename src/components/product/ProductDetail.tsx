@@ -71,7 +71,6 @@ function beneficesPourCategorie(category: string): { icon: ReactNode; titre: str
   if (CATEGORIES_COSMETIQUES.has(category)) {
     return [
       { icon: <Dumbbell size={18} strokeWidth={1.6} />, titre: 'Qualité professionnelle', texte: "Les mêmes produits qu'en salon." },
-      { icon: <Sparkles size={18} strokeWidth={1.6} />, titre: 'Résultats visibles', texte: 'Efficacité prouvée dès la première utilisation.' },
       { icon: <Leaf size={18} strokeWidth={1.6} />, titre: 'Formule soignée', texte: 'Ingrédients sélectionnés, sans compromis.' },
       { icon: <FlaskConical size={18} strokeWidth={1.6} />, titre: 'Testé par des barbiers', texte: 'Formulé et validé par des professionnels.' },
     ]
@@ -345,7 +344,7 @@ export function ProductDetail({ product, relatedProducts = [], reviews: productR
           )}
 
           {/* Tondeuse (dropshipping manuel) : delai reel plutot que la
-              promesse 48h/lendemain, qui serait fausse pour ce produit. */}
+              promesse "2 jours ouvres", qui serait fausse pour ce produit. */}
           {tondeuseContent ? (
             <>
               <div className="sn-stock">

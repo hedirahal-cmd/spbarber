@@ -7,6 +7,8 @@
  * composant React classique (<ImageContenuSocial/>), toujours appelee
  * directement (ImageContenuSocial()) et passee a `new ImageResponse(...)`.
  */
+import { EXPEDITION_TEXTE, RETOUR_TEXTE } from '@/lib/delais'
+
 export function ImageContenuSocial() {
   return (
     <div
@@ -52,7 +54,7 @@ export function ImageContenuSocial() {
 
       {/* Badges */}
       <div style={{ display: 'flex', gap: 24 }}>
-        {['Expédition 48h', 'Formules Pro', 'Retour 30j'].map((label) => (
+        {[EXPEDITION_TEXTE, 'Formules Pro', RETOUR_TEXTE].map((label) => (
           <div
             key={label}
             style={{

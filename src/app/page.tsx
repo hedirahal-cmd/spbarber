@@ -9,6 +9,7 @@ import { Scissors, Droplets, User, Zap, Sparkles, Truck, Gift, RotateCcw, Wind, 
 import { HomeSalonSection } from '@/components/home/HomeSalonSection'
 import { DEFAULT_SALONS, type Salon } from '@/lib/salons'
 import { supabase, supabaseAdmin } from '@/lib/supabase'
+import { EXPEDITION_TEXTE, RETOUR_TEXTE } from '@/lib/delais'
 
 async function getSalons(): Promise<Salon[]> {
   try {
@@ -290,9 +291,9 @@ export default async function HomePage() {
       <div className="rea-compact">
         <div className="rea-c-item"><Truck size={11} strokeWidth={1.8} /> Livraison offerte dès 59€</div>
         <div className="rea-c-sep">|</div>
-        <div className="rea-c-item"><RotateCcw size={11} strokeWidth={1.8} /> Retour 30j</div>
+        <div className="rea-c-item"><RotateCcw size={11} strokeWidth={1.8} /> {RETOUR_TEXTE}</div>
         <div className="rea-c-sep">|</div>
-        <div className="rea-c-item"><Zap size={11} strokeWidth={1.8} /> Expédié 48h</div>
+        <div className="rea-c-item"><Zap size={11} strokeWidth={1.8} /> {EXPEDITION_TEXTE}</div>
       </div>
 
       {/* ── PACK BARBE ── */}

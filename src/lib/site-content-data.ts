@@ -3,6 +3,8 @@
  * client (l'onglet admin Contenu) sans embarquer la cle service_role dans le
  * bundle navigateur. src/lib/site-content.ts (server-only) reexporte tout ceci.
  */
+import { EXPEDITION_TEXTE } from '@/lib/delais'
+
 export interface SiteContentBlock {
   text: string
   visible: boolean
@@ -17,7 +19,11 @@ export interface SiteContentBlock {
 export const SITE_CONTENT_DEFAULTS: Record<string, SiteContentBlock> = {
   // "Cadeau offert des 70e" retire (2026-09-29, decision Hedi) : mecanisme
   // jamais reellement en place, reste de la construction du site.
-  announcement_bar: { text: 'Livraison offerte dès 59€ · Expédition 48h', visible: true },
+  // "48h" remplace par le delai centralise (2026-11-18, demande Hedi, voir
+  // src/lib/delais.ts) -- valeur de repli uniquement : tant qu'aucune ligne
+  // n'existe en base, c'est celle-ci qui s'affiche ; Hedi garde la main pour
+  // editer la vraie valeur depuis l'onglet Contenu.
+  announcement_bar: { text: `Livraison offerte dès 59€ · ${EXPEDITION_TEXTE}`, visible: true },
   // "500+" retire (2026-09-28, decision Hedi) : chiffre invente, jamais
   // verifie. Texte neutre tant qu'aucun vrai chiffre n'est renseigne ici.
   home_cta_banner: { text: 'Rejoignez nos clients satisfaits', visible: true },
