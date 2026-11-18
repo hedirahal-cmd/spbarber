@@ -77,7 +77,7 @@ const FAQS = [
     items: [
       {
         q: 'Puis-je retourner un produit si je ne suis pas satisfait ?',
-        a: 'Oui, vous disposez de 14 jours à compter de la réception pour changer d\'avis et retourner votre produit, sans justification. Pour les produits cosmétiques, le produit ne doit pas avoir été descellé ni utilisé, pour des raisons d\'hygiène (article L. 221-28 du Code de la consommation).',
+        a: 'Oui, vous disposez de 14 jours à compter de la réception pour nous informer de votre décision de vous rétracter, puis de 14 jours supplémentaires pour nous renvoyer le produit. Pour les produits cosmétiques, le produit ne doit pas avoir été descellé ni utilisé, pour des raisons d\'hygiène (article L. 221-28 du Code de la consommation).',
       },
       {
         q: 'J\'ai reçu un produit endommagé. Que faire ?',

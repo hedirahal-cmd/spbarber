@@ -31,7 +31,7 @@ export default function RetoursPage() {
             </li>
             <li>Nous vous communiquons les instructions de retour sous 24h.</li>
             <li>Renvoyez le produit dans son emballage d&apos;origine.</li>
-            <li>Dès réception, nous procédons au remboursement dans un délai maximum de 14 jours.</li>
+            <li>Nous procédons au remboursement au plus tard 14 jours après avoir été informés de votre décision de rétractation (nous pouvons différer ce remboursement jusqu&apos;à réception du produit ou preuve d&apos;expédition).</li>
           </ol>
         </section>
 
@@ -45,7 +45,7 @@ export default function RetoursPage() {
         <section className="legal-section">
           <h2>Conditions de retour</h2>
           <ul>
-            <li>Produit retourné dans les 14 jours suivant la réception.</li>
+            <li>Le client informe SP Barber de sa décision de se rétracter dans les 14 jours suivant la réception, puis renvoie le produit au plus tard 14 jours après avoir communiqué cette décision.</li>
             <li>Produit dans son emballage d&apos;origine, non utilisé (boîte, notice, accessoires inclus).</li>
             <li>Exception d&apos;hygiène : les produits cosmétiques descellés ou ouverts ne peuvent pas être retournés (article L. 221-28 du Code de la consommation).</li>
           </ul>
@@ -54,7 +54,7 @@ export default function RetoursPage() {
         <section className="legal-section">
           <h2>Remboursement</h2>
           <p>
-            Le remboursement intégral (prix du produit + frais de livraison initiaux) est effectué sur le moyen de paiement utilisé lors de la commande, dans un délai maximum de <strong>14 jours</strong> suivant la réception du retour ou la preuve d&apos;expédition.
+            Le remboursement intégral (prix du produit + frais de livraison initiaux) est effectué sur le moyen de paiement utilisé lors de la commande. Il intervient au plus tard <strong>14 jours</strong> à compter de la date à laquelle SP Barber est informé de votre décision de rétractation — nous pouvons différer ce remboursement jusqu&apos;à la réception du produit ou jusqu&apos;à ce que vous fournissiez une preuve d&apos;expédition.
           </p>
         </section>
 

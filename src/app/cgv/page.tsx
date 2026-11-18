@@ -158,13 +158,13 @@ export default async function CGVPage() {
             <strong>Exercice du droit de rétractation :</strong> Le Client notifie sa décision de se rétracter en contactant le Vendeur par e-mail à spbarbershopexploitation@hotmail.com, en précisant le numéro de commande et les articles concernés. Il peut également utiliser le formulaire de rétractation type prévu à l&apos;annexe du Code de la consommation.
           </p>
           <p>
-            <strong>Retour des produits :</strong> Le Client retourne les produits dans leur emballage d&apos;origine, en parfait état, non utilisés, dans un délai de 14 jours suivant la notification de rétractation.
+            <strong>Retour des produits :</strong> Le Client informe SP Barber de sa décision de se rétracter dans les 14 jours suivant la réception, puis renvoie le produit au plus tard 14 jours après avoir communiqué cette décision, dans son emballage d&apos;origine, en parfait état et non utilisé.
           </p>
           <p>
             <strong>Frais de retour :</strong> Les frais de retour sont à la charge du Client, sauf si le produit retourné est défectueux ou si l&apos;erreur est imputable au Vendeur, auquel cas SP Barber prend en charge l&apos;intégralité des frais.
           </p>
           <p>
-            <strong>Remboursement :</strong> Le Vendeur procède au remboursement intégral (prix des produits + frais de livraison initiaux) dans un délai maximum de 14 jours suivant la réception des articles retournés ou la preuve d&apos;expédition, par le même moyen de paiement que celui utilisé lors de la commande.
+            <strong>Remboursement :</strong> Le Vendeur procède au remboursement intégral (prix des produits + frais de livraison initiaux), par le même moyen de paiement que celui utilisé lors de la commande. Le remboursement intervient au plus tard 14 jours à compter de la date à laquelle SP Barber est informé de la décision de rétractation. SP Barber peut différer le remboursement jusqu&apos;à la réception des produits ou jusqu&apos;à ce que le Client fournisse une preuve d&apos;expédition.
           </p>
           <p>
             <strong>Exception d&apos;hygiène (produits cosmétiques) :</strong> Pour des raisons d&apos;hygiène et de protection de la santé, le droit de rétractation ne s&apos;applique pas aux produits cosmétiques descellés ou ouverts après livraison, conformément à l&apos;article L. 221-28, 5° du Code de la consommation.
