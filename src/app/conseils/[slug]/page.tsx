@@ -311,7 +311,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description: article.description,
       url,
       type: 'article',
-      publishedTime: article.date,
+      // publishedTime retire (2026-11-18, demande Hedi) : aucune vraie date
+      // de publication disponible -- une date inventee est pire que son
+      // absence.
     },
   }
 }
@@ -332,7 +334,8 @@ export default async function ArticlePage({ params }: Props) {
     '@type': 'Article',
     headline: article.title,
     description: article.description,
-    datePublished: article.date,
+    // datePublished retire (2026-11-18, demande Hedi) : meme raison que
+    // publishedTime ci-dessus.
     author: {
       '@type': 'Organization',
       name: 'SP Barber',

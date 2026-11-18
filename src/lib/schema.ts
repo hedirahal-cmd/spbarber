@@ -90,17 +90,15 @@ export function openingHoursDepuisTexte(horaires: string | null | undefined): Re
   }]
 }
 
+// potentialAction/SearchAction retire (2026-11-18, demande Hedi) : /products
+// ne lit aucun parametre de recherche (q=...), la promesse etait fausse --
+// aucune recherche ne fonctionne reellement sur le site a ce jour.
 const WEBSITE = {
   '@type': 'WebSite',
   '@id': `${BASE}/#website`,
   url: BASE,
   name: 'SP Barber',
   publisher: { '@id': `${BASE}/#organization` },
-  potentialAction: {
-    '@type': 'SearchAction',
-    target: { '@type': 'EntryPoint', urlTemplate: `${BASE}/products?q={search_term_string}` },
-    'query-input': 'required name=search_term_string',
-  },
 }
 
 /**

@@ -115,7 +115,7 @@ export default function CheckoutPage() {
                     {(() => {
                       const photo = imagesPourVariante(item.product.images, item.variant)[0]
                       return photo?.url.startsWith('http') ? (
-                        <img src={photo.url} alt="" />
+                        <img src={photo.url} alt={item.product.name} />
                       ) : (
                         <CatIcon cat={item.product.category} size={22} />
                       )

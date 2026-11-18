@@ -232,7 +232,7 @@ export function CartDrawer({ products = [] }: { products?: Product[] }) {
 
                     <div className="cdr-item-thumb">
                       {photo?.url.startsWith('http') ? (
-                        <img src={photo.url} alt="" />
+                        <img src={photo.url} alt={item.product.name} />
                       ) : (
                         <CatIcon cat={item.product.category} size={22} />
                       )}
@@ -380,7 +380,7 @@ export function CartDrawer({ products = [] }: { products?: Product[] }) {
                       <li key={p.id} className="cdr-sugg-item">
                         <div className="cdr-sugg-icon">
                           {p.images[0]?.url.startsWith('http') ? (
-                            <img src={p.images[0].url} alt="" />
+                            <img src={p.images[0].url} alt={p.name} />
                           ) : (
                             <CatIcon cat={p.category} size={17} />
                           )}
