@@ -18,7 +18,7 @@ export default function RetoursPage() {
         <section className="legal-section">
           <h2>Droit de rétractation — 14 jours</h2>
           <p>
-            Conformément aux articles L. 221-18 et suivants du Code de la consommation, vous disposez de <strong>14 jours calendaires</strong> à compter de la réception de votre commande pour changer d&apos;avis et nous retourner votre achat, sans avoir à vous justifier.
+            Conformément aux articles L. 221-18 et suivants du Code de la consommation, vous disposez de <strong>14 jours calendaires</strong> à compter de la réception de votre commande pour nous informer de votre décision de vous rétracter, sans avoir à vous justifier, puis de <strong>14 jours</strong> à compter de votre message pour nous renvoyer le produit.
           </p>
         </section>
 
@@ -46,7 +46,8 @@ export default function RetoursPage() {
           <h2>Conditions de retour</h2>
           <ul>
             <li>Le client informe SP Barber de sa décision de se rétracter dans les 14 jours suivant la réception, puis renvoie le produit au plus tard 14 jours après avoir communiqué cette décision.</li>
-            <li>Produit dans son emballage d&apos;origine, non utilisé (boîte, notice, accessoires inclus).</li>
+            <li>Vous pouvez manipuler le produit pour en vérifier la nature et les caractéristiques, comme vous le feriez en boutique — seule une dépréciation due à des manipulations allant au-delà de cette vérification reste à votre charge.</li>
+            <li>Merci de le renvoyer dans son emballage d&apos;origine (boîte, notice, accessoires inclus).</li>
             <li>Exception d&apos;hygiène : les produits cosmétiques descellés ou ouverts ne peuvent pas être retournés (article L. 221-28 du Code de la consommation).</li>
           </ul>
         </section>
