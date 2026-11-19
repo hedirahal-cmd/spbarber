@@ -80,9 +80,9 @@ export default function CartPage() {
                   <span style={{ color: 'var(--gold)', opacity: 0.5, fontFamily: 'var(--fd)', fontSize: 14 }}>SP</span>
                 )}
               </Link>
-              <div style={{ flex: 1 }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
                 <Link href={`/products/${item.product.slug}`} style={{ textDecoration: 'none' }}>
-                  <p style={{ fontFamily: 'var(--fs)', fontSize: 16, color: 'var(--b)', marginBottom: 2 }}>{item.product.name}</p>
+                  <p style={{ fontFamily: 'var(--fs)', fontSize: 16, color: 'var(--b)', marginBottom: 2, overflowWrap: 'break-word' }}>{item.product.name}</p>
                 </Link>
                 {item.variant && <p style={{ fontSize: 12, color: 'var(--gt)', marginBottom: 4 }}>{item.variant.name}</p>}
                 <p style={{ color: 'var(--gold)', fontWeight: 600, fontSize: 14 }}>{formatPrice((item.variant?.price ?? item.product.price) * item.quantity)}</p>
