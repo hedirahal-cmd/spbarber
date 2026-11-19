@@ -94,6 +94,18 @@ export const useCart = create<CartStore>()(
       name: 'cart',
       storage: sessionCartStorage,
       partialize: (state) => ({ items: state.items }),
+      // SSR (2026-11-19, audit externe relaye par Hedi, cause reelle de
+      // l'erreur d'hydratation React #418 sur TOUTE page) : sans ceci, la
+      // rehydratation depuis localStorage se declenche a la creation du
+      // store, au chargement du bundle navigateur -- donc AVANT la passe
+      // d'hydratation React. Le serveur rend toujours un panier vide (pas
+      // de localStorage cote serveur) ; un visiteur avec un panier non vide
+      // voyait donc le badge du panier (Header, CartDrawer) differer entre
+      // le HTML serveur et le premier rendu client, exactement ce que
+      // #418 signale. La vraie rehydratation est desormais declenchee
+      // manuellement, apres le montage (voir SessionInit.tsx) -- le
+      // premier rendu client est alors garanti identique au serveur.
+      skipHydration: true,
     }
   )
 )

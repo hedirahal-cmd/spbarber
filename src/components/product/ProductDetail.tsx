@@ -24,10 +24,18 @@ const TRUST_ICONS: Record<string, ReactNode> = {
   trust_france: <span style={{ fontSize: 20, lineHeight: 1 }}>🇫🇷</span>,
 }
 
+// Fuseau horaire EXPLICITE (2026-11-19, audit externe relaye par Hedi,
+// cause reelle d'une erreur d'hydratation React #418) -- sans timeZone,
+// toLocaleDateString lit le fuseau du systeme d'EXECUTION : le serveur
+// (Vercel, UTC) et le navigateur du visiteur (ex. Europe/Paris) pouvaient
+// calculer un "demain" different pendant la fenetre ou l'un des deux a
+// deja change de jour calendaire et l'autre pas encore (~1h/jour, autour
+// de minuit heure de Paris). Fixe sur Europe/Paris, coherent avec un
+// commerce francais, independant d'ou tourne le serveur.
 function getTomorrowLabel() {
   const d = new Date()
   d.setDate(d.getDate() + 1)
-  return d.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })
+  return d.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Europe/Paris' })
 }
 
 function CategoryIcon({ category, size = 64 }: { category: string; size?: number }) {

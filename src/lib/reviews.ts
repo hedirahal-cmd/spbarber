@@ -75,7 +75,10 @@ export function toReviewDisplay(r: Record<string, unknown>): ReviewDisplay {
     product: Array.isArray(productIds) && productIds.length > 0
       ? resolveProductNames(productIds)
       : (r.product_name as string) ?? '',
-    date: r.created_at ? new Date(r.created_at as string).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }) : '',
+    // timeZone explicite par coherence avec getTomorrowLabel (ProductDetail.tsx)
+    // -- sans risque reel ici (toReviewDisplay n'est appele que cote serveur,
+    // voir le rapport), mais meme categorie de defaut a eviter par principe.
+    date: r.created_at ? new Date(r.created_at as string).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric', timeZone: 'Europe/Paris' }) : '',
     rating: noteValide(r.rating) ?? 5,
     verified: !!r.verified,
   }

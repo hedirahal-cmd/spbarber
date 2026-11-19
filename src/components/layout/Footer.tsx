@@ -2,6 +2,16 @@
 import Link from 'next/link'
 import { resetConsent } from '@/lib/cookie-consent'
 
+// Fuseau horaire explicite (2026-11-19, audit externe relaye par Hedi,
+// meme categorie de defaut que getTomorrowLabel dans ProductDetail.tsx) --
+// new Date().getFullYear() seul lit le fuseau du systeme d'execution :
+// autour du 31 decembre/1er janvier, le serveur (UTC) et un visiteur a
+// Paris (en avance sur UTC) peuvent litteralement etre sur deux annees
+// civiles differentes au meme instant.
+function anneeCourante(): number {
+  return Number(new Intl.DateTimeFormat('fr-FR', { year: 'numeric', timeZone: 'Europe/Paris' }).format(new Date()))
+}
+
 export function Footer() {
   return (
     <footer>
@@ -53,7 +63,7 @@ export function Footer() {
       </div>
 
       <div className="ft-bottom">
-        <span className="ft-copy">© {new Date().getFullYear()} SP Barber — Tous droits réservés</span>
+        <span className="ft-copy">© {anneeCourante()} SP Barber — Tous droits réservés</span>
         <div className="ft-legal">
           <Link href="/politique-confidentialite">Confidentialité</Link>
           <Link href="/cgv">CGV</Link>
