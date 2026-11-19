@@ -218,6 +218,16 @@ async function main() {
   verifie('JSON-LD n omet PAS geo par erreur globale mais l omet bien ICI (pas de lat/long)', !page.corps.includes('"geo"'))
   verifie('JSON-LD omet aggregateRating (pas de note)', !page.corps.includes('"aggregateRating"'))
 
+  console.log('\n--- C2. Bouton "Appeler le salon" : UNIQUEMENT si ce salon a un telephone en base (2026-11-19, decision Hedi) ---')
+  verifie('ernee SANS telephone : bouton absent (aucun repli generique)', !page.corps.includes('Appeler le salon'))
+  const fougeresSansTel = await html('/salon/fougeres')
+  verifie('fougeres SANS telephone : bouton absent (aucun repli generique)', !fougeresSansTel.corps.includes('Appeler le salon'))
+  salons[0].telephone = '01 23 45 67 89'
+  const fougeresAvecTel = await html('/salon/fougeres')
+  verifie('fougeres AVEC telephone : bouton present', fougeresAvecTel.corps.includes('Appeler le salon'))
+  verifie('lien tel: utilise exactement ce numero (espaces retires)', fougeresAvecTel.corps.includes('tel:0123456789'))
+  salons[0].telephone = null
+
   console.log('\n--- D. /salon/inconnu -> 404 ---')
   page = await html('/salon/ceci-n-existe-pas')
   verifie('statut 404', page.statut === 404, 'obtenu ' + page.statut)

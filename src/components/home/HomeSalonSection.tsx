@@ -2,7 +2,7 @@
 import { Fragment } from 'react'
 import Link from 'next/link'
 import { MapPin, Clock, Phone } from 'lucide-react'
-import { type Salon, DEFAULT_SALONS, TELEPHONE_SALON_REPLI, buildEmbedUrl } from '@/lib/salons'
+import { type Salon, DEFAULT_SALONS, buildEmbedUrl } from '@/lib/salons'
 import { SalonCarousel } from '@/components/salon/SalonCarousel'
 import { SalonAvisGrid } from '@/components/salon/SalonAvisGrid'
 import { GoogleMapEmbed } from '@/components/GoogleMapEmbed'
@@ -65,10 +65,13 @@ function SalonBlock({ salon }: { salon: Salon }) {
           <div className="hs-salon-actions">
             {/* Planity n'accepte pas (encore) de reservation en ligne pour
                 SP Barber -- remplace par un appel telephonique (2026-11-19,
-                audit externe relaye par Hedi). */}
-            <a href={`tel:${(salon.telephone || TELEPHONE_SALON_REPLI).replace(/\s/g, '')}`} className="hs-salon-btn-reserve">
-              APPELER LE SALON →
-            </a>
+                audit externe relaye par Hedi). N'apparait QUE si CE salon a
+                un numero en base -- aucun repli generique pour ce bouton. */}
+            {salon.telephone && (
+              <a href={`tel:${salon.telephone.replace(/\s/g, '')}`} className="hs-salon-btn-reserve">
+                APPELER LE SALON →
+              </a>
+            )}
             {salon.lien_google_maps && (
               <a href={salon.lien_google_maps} target="_blank" rel="noopener noreferrer" className="hs-salon-btn-route">
                 ITINÉRAIRE →

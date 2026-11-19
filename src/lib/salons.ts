@@ -1,15 +1,3 @@
-/**
- * Numero de telephone de repli (2026-11-19, audit externe relaye par Hedi,
- * point 9 : Planity n'accepte pas encore de reservation en ligne pour SP
- * Barber -- verifie en direct le 2026-11-19, la page affiche "Ce barbier
- * n'est pas encore reservable en ligne sur Planity"). Aucun salon n'a de
- * `telephone` renseigne en base a ce jour -- ce numero, celui de SP
- * BARBERSHOP (la societe), vient des mentions legales ET des CGV en base
- * (memes coordonnees aux deux endroits), seule source de telephone
- * verifiable actuellement.
- */
-export const TELEPHONE_SALON_REPLI = '09 81 27 32 29'
-
 export interface Salon {
   slug: string
   nom: string | null
