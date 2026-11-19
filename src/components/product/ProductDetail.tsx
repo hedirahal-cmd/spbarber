@@ -317,6 +317,7 @@ export function ProductDetail({ product, relatedProducts = [], reviews: productR
             <div className="sn-price">{formatPrice(price)}</div>
             <div className="sn-price-note">
               Prix TTC · {produitSeulSuffit ? 'Livraison offerte dès 59€' : 'Livraison 5,90€ — offerte dès 59€'}
+              {product.contenance && <> · {product.contenance}</>}
             </div>
           </div>
 
@@ -458,6 +459,19 @@ export function ProductDetail({ product, relatedProducts = [], reviews: productR
             <>
               <div className="sn-desc-ttl" style={{ marginTop: 20 }}>Pourquoi cette marque</div>
               <p className="sn-desc-txt">{tondeuseContent.pourquoiMarque.text}</p>
+            </>
+          )}
+          {/* Composition INCI (2026-11-19, demande Hedi) -- recopiee telle
+              qu'imprimee sur l'etiquette fournisseur, meme style que la
+              description (pas de nouveau composant/accordeon). */}
+          {product.compositionInci && product.compositionInci.length > 0 && (
+            <>
+              <div className="sn-desc-ttl" style={{ marginTop: 20 }}>Composition (INCI)</div>
+              <p className="sn-desc-txt">
+                {product.compositionInciTraces && product.compositionInciTraces.length > 0
+                  ? `${product.compositionInci.join(', ')}. Trace ingredients : ${product.compositionInciTraces.join(', ')}.`
+                  : `${product.compositionInci.join(', ')}.`}
+              </p>
             </>
           )}
 

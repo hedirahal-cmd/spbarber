@@ -58,6 +58,16 @@ export interface Product {
   lengthCm?: number
   widthCm?: number
   heightCm?: number
+  /** Contenance reelle (etiquette fournisseur), ex. "500 ml" -- cosmetiques
+   * uniquement (2026-11-19, demande Hedi), absente sur les accessoires. */
+  contenance?: string
+  /** Liste INCI recopiee TELLE QU'IMPRIMEE sur l'etiquette fournisseur --
+   * ordre et orthographe d'origine, jamais corriges (2026-11-19, demande
+   * Hedi). Cosmetiques uniquement. */
+  compositionInci?: string[]
+  /** Sous-liste "Trace ingredients" de l'etiquette, quand elle existe --
+   * distincte de compositionInci, jamais fusionnee avec elle. */
+  compositionInciTraces?: string[]
 }
 
 export interface ProductVariant {

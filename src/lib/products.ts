@@ -38,6 +38,22 @@ export const PRODUCTS: Product[] = [
     // tenir a jour manuellement a chaque changement de prix fait en admin.
     price: 4490,
     images: [{ url: '/images/products/shampooing-noir.jpg', alt: 'Flacon de Shampooing Noir Colorant SP Barber' }],
+    // Contenance + composition INCI (2026-11-19, demande Hedi) : recopiees
+    // TELLES QU'IMPRIMEES sur l'etiquette fournisseur, ordre et orthographe
+    // d'origine, jamais corriges (ex. m-aminophenol / p-phenyl-enediol,
+    // graphies differentes sur l'etiquette elle-meme).
+    contenance: '500 ml',
+    compositionInci: [
+      'Water', 'Cetearyl Alcohol', 'Ethanolamine', 'Propylene Glycol', 'Cetearyl Alcohol Poly-ether-25',
+      'Cetearyl Trimethylammonium Chloride', 'Ethanol', 'Ammonium Hydroxide', 'Glycerin Stearate', 'Mineral Oil',
+      'Para-phenylenediamine', 'Polydimethylsiloxane', 'Sodium Sulfite', 'Sodium Ascorbate', 'Fragrance',
+      'm-aminophenol', 'm-phenylenediol', 'p-phenyl-enediol', 'EDTA disodium',
+    ],
+    compositionInciTraces: [
+      'Camellia Japonica Seed Oil', 'Water', 'Butylene Glycol', 'Panax Ginseng Extract', 'Phenoxyethanol',
+      'Polygonum Multiflorum Extract', 'Angelica Sinensis Extract', 'Platycladus Orientalis Leaf Extract',
+      'Artemisia Argyi Leaf Extract',
+    ],
     category: 'soin',
     stock: 40,
     is_dropshipping: false,
@@ -67,6 +83,13 @@ export const PRODUCTS: Product[] = [
       'La Crème Curl Control SP Barber est spécialement formulée pour les hommes aux cheveux bouclés, frisés ou ondulés. Elle définit et discipline les boucles avec légèreté, sans l\'effet cartonné des gels classiques. Sa formule hydratante maintient l\'élasticité des boucles toute la journée tout en nourrissant les cheveux en profondeur. Sans résidu, sans alourdissement, elle offre un coiffage naturel et soigné façon salon. Adaptée à tous les types de boucles, de légèrement ondulées aux frisures serrées, c\'est l\'alliée indispensable de la routine capillaire bouclée masculine.',
     price: 2690,
     images: [{ url: '/images/products/creme-curl.jpg', alt: 'Pot de Crème Curl Control SP Barber pour cheveux bouclés' }],
+    // Contenance + composition INCI (2026-11-19, demande Hedi) : recopiees
+    // TELLES QU'IMPRIMEES sur l'etiquette fournisseur.
+    contenance: '280 ml',
+    compositionInci: [
+      'Aqua', 'Glycerin', 'Hydrogenated Avocado Oil', 'Hydrogenated Castor Oil', 'Argan Oil Polyglyceryl-6 Esters',
+      'Rosmarinus Officinalis (Rosemary) Leaf Oil', 'Prunus Amygdalus Dulcis (Sweet Almond) Oil', 'Cocos Nucifera (Coconut) Oil',
+    ],
     category: 'coiffant',
     stock: 35,
     is_dropshipping: false,
@@ -137,6 +160,10 @@ export const PRODUCTS: Product[] = [
       'La Poudre Texturante SP Barber apporte volume, grip et style mat instantanément aux cheveux fins ou sans tenue. Sa formule légère en poudre active les racines sans alourdir ni graisser. Facile à appliquer, elle crée une texture naturelle et un effet volume immédiat, idéal pour les coiffures structurées ou décoiffées-coiffées. Plébiscitée par les barbiers professionnels pour les cheveux fins, elle transforme chaque style en coiffure qui dure. Un indispensable de la routine capillaire masculine pour un look naturellement travaillé.',
     price: 2690, // aligne sur product_overrides (2026-11-17)
     images: [{ url: '/images/products/poudre-texturante.jpg', alt: 'Pot de Poudre Texturante SP Barber pour volume des cheveux' }],
+    // Contenance + composition INCI (2026-11-19, demande Hedi) : recopiees
+    // TELLES QU'IMPRIMEES sur l'etiquette fournisseur.
+    contenance: '30 g',
+    compositionInci: ['MAGNESIUM STEARATE', 'CORN STARCH', 'SILICA', 'CAMELLIA JAPONICA LEAF EXTRACT', 'ORCHID PLANT EXTRACT'],
     category: 'coiffant',
     stock: 45,
     is_dropshipping: false,
