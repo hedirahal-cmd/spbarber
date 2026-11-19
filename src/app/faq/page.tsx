@@ -81,7 +81,7 @@ const FAQS = [
       },
       {
         q: 'J\'ai reçu un produit endommagé. Que faire ?',
-        a: 'Contactez-nous sous 48h à spbarbershopexploitation@hotmail.com avec une photo du produit endommagé. Nous vous renvoyons un nouveau produit sans frais.',
+        a: 'Signalez-le-nous le plus tôt possible à spbarbershopexploitation@hotmail.com, avec une photo si possible — nous vous renvoyons un nouveau produit sans frais. Cela ne limite en rien vos droits légaux (garantie légale de conformité, droit de rétractation).',
       },
     ],
   },

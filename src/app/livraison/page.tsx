@@ -62,7 +62,7 @@ export default function LivraisonPage() {
         <section className="legal-section">
           <h2>Colis endommagé ou perdu</h2>
           <p>
-            En cas de colis endommagé à la réception, notez les dommages en présence du livreur et contactez-nous sous 48h à <strong>spbarbershopexploitation@hotmail.com</strong>.
+            En cas de colis endommagé à la réception, notez les dommages en présence du livreur et signalez-le-nous le plus tôt possible à <strong>spbarbershopexploitation@hotmail.com</strong>, avec une photo si possible — cela nous aide à traiter votre demande rapidement, mais ne limite en rien vos droits légaux (garantie légale de conformité, droit de rétractation).
           </p>
           <p>
             En cas de non-livraison après 15 jours ouvrés, contactez-nous : nous ouvrirons une enquête auprès du transporteur et vous proposerons un réenvoi ou un remboursement complet.
