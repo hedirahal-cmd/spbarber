@@ -3434,7 +3434,10 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
   letter-spacing: 3px;
   line-height: 1;
 }
-.sn-price-note { font-size: 11px; color: var(--gt); margin-top: 3px; }
+/* Contraste releve (2026-11-19, audit externe relaye par Hedi) : 11px en
+   var(--gt) ne tenait que ~2,75:1 sur le fond clair de cette fiche, bien
+   sous les 4,5:1 requis -- var(--b) a 13px minimum desormais. */
+.sn-price-note { font-size: 13px; color: var(--b); margin-top: 3px; }
 .sn-check-list { display: flex; flex-direction: column; gap: 8px; }
 .sn-check {
   display: flex;
