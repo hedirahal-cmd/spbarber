@@ -3,7 +3,7 @@ import { problemeConfigurationStripe, stripe } from '@/lib/stripe'
 import { CartValidationError, resolveCartItems } from '@/lib/pricing'
 import { imagesPourVariante } from '@/lib/products'
 import { PAYS_LIVRABLES } from '@/lib/shipping-countries'
-import { TRANSIT_TEXTE_COMPACT } from '@/lib/delais'
+import { DELAI_EXPEDITION_FRAGMENT, TRANSIT_TEXTE_COMPACT, TRANSIT_TEXTE_PROSE } from '@/lib/delais'
 
 function getBaseUrl(): string {
   if (process.env.VERCEL_PROJECT_PRODUCTION_URL) return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
     const delaiLigne = (item: (typeof resolved)[number]) =>
       item.product.category === 'tondeuse'
         ? 'Livraison sous ~2 semaines, envoi séparé'
-        : `Livraison ${TRANSIT_TEXTE_COMPACT}`
+        : `Préparation ${DELAI_EXPEDITION_FRAGMENT}, puis transport ${TRANSIT_TEXTE_PROSE}`
 
     const line_items = resolved.map((item) => ({
       price_data: {

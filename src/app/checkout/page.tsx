@@ -11,7 +11,7 @@ import { PaymentLogos } from '@/components/PaymentLogos'
 import { formatPrice } from '@/lib/utils'
 import { imagesPourVariante } from '@/lib/products'
 import { MENTION_ZONE_LIVRABLE } from '@/lib/shipping-countries'
-import { TRANSIT_TEXTE_COMPACT } from '@/lib/delais'
+import { DELAI_EXPEDITION_FRAGMENT, TRANSIT_TEXTE_COMPACT, TRANSIT_TEXTE_PROSE } from '@/lib/delais'
 
 function euros(cents: number) {
   return (cents / 100).toFixed(2).replace('.', ',') + ' €'
@@ -224,6 +224,9 @@ export default function CheckoutPage() {
               <RotateCcw size={12} strokeWidth={2} /> Retours 14 jours
             </div>
           </div>
+          {/* Precision du badge "Colissimo" ci-dessus, trop court pour la
+              porter lui-meme (2026-11-19, audit externe relaye par Hedi). */}
+          <p className="chk-trust-note">Préparation {DELAI_EXPEDITION_FRAGMENT}, puis transport {TRANSIT_TEXTE_PROSE}.</p>
 
           {/* Bouton paiement */}
           <button

@@ -2836,6 +2836,12 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
   display: flex; align-items: center; gap: 5px;
   font-size: 11px; color: var(--gt); font-family: var(--fb);
 }
+/* Precision du badge "Colissimo" (2026-11-19) -- var(--b), pas var(--gt),
+   pour tenir le contraste 4,5:1 minimum sur le fond clair de cette page. */
+.chk-trust-note {
+  font-size: 12px; color: var(--b); font-family: var(--fb);
+  margin: -10px 0 18px;
+}
 /* CTA */
 .chk-cta {
   display: flex; align-items: center; justify-content: center; gap: 8px;
@@ -3439,6 +3445,9 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
   font-family: var(--fb);
 }
 .sn-check svg { color: var(--gold); flex-shrink: 0; }
+/* Precision du badge "Livraison 3-5 jours ouvrés" (2026-11-19) -- var(--b),
+   pas var(--gt), pour tenir le contraste 4,5:1 minimum. */
+.sn-check-note { font-size: 12px; color: var(--b); font-family: var(--fb); margin-top: 2px; }
 .sn-stock {
   display: flex;
   align-items: center;

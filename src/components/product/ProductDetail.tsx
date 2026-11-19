@@ -15,6 +15,7 @@ import { ReviewsList } from '@/components/ReviewsList'
 import { ReviewForm } from '@/components/ReviewForm'
 import { ProductFAQ } from './ProductFAQ'
 import type { TrustItem, SiteContentBlock } from '@/lib/site-content'
+import { DELAI_EXPEDITION_FRAGMENT, TRANSIT_TEXTE_PROSE } from '@/lib/delais'
 
 const TRUST_ICONS: Record<string, ReactNode> = {
   trust_securise: <Lock size={20} strokeWidth={1.5} />,
@@ -341,6 +342,13 @@ export function ProductDetail({ product, relatedProducts = [], reviews: productR
                 </div>
               ))}
             </div>
+          )}
+          {/* Precision du badge "Livraison 3-5 jours ouvrés" ci-dessus, trop
+              court pour la porter lui-meme (2026-11-19, audit externe relaye
+              par Hedi). Pas pour les tondeuses : delai deja explicite
+              ("sous 2 semaines"), structure totalement differente. */}
+          {product.trust && product.trust.length > 0 && product.category !== 'tondeuse' && (
+            <p className="sn-check-note">Préparation {DELAI_EXPEDITION_FRAGMENT}, puis transport {TRANSIT_TEXTE_PROSE}.</p>
           )}
 
           {/* Tondeuse (dropshipping manuel) : delai reel plutot que la
