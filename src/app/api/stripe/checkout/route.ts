@@ -129,19 +129,16 @@ export async function POST(req: NextRequest) {
       cancel_url: `${base}/cart`,
       locale: 'fr',
       shipping_address_collection: { allowed_countries: PAYS_LIVRABLES },
-      // Telephone + prenom/nom separes (2026-10-21, chantier Boxtal) : Boxtal
-      // exige les deux pour generer une etiquette, et un decoupage automatise
-      // d'un nom complet est fragile (noms composes, particules...). Stripe
-      // Checkout collecte les deux directement comme champs dedies sur SA page
-      // hebergee -- aucun decoupage a deviner cote serveur pour ce flux. Le
-      // paiement express (Apple Pay/Google Pay) n'a pas cette option (feuille
-      // native du portefeuille) : il reste sur un decoupage best-effort, voir
-      // diviserNomComplet dans src/lib/noms.ts.
+      // Prenom/nom separes retires (2026-11-19, decision Hedi, audit externe
+      // point 10) : Stripe ne collecte qu'un nom complet unique de toute
+      // facon (voir shipping_details.name), ces deux champs personnalises
+      // faisaient donc doublon a l'ecran avec le nom natif de Stripe. Le
+      // decoupage (diviserNomComplet, voir src/lib/noms.ts) se fait
+      // desormais au webhook a partir du nom complet, puis est VERIFIE et
+      // corrigeable a la main dans l'admin avant la creation de l'etiquette
+      // Boxtal (voir /api/admin/boxtal/create-label) -- jamais fige a tort
+      // par une heuristique.
       phone_number_collection: { enabled: true },
-      custom_fields: [
-        { key: 'prenom', label: { type: 'custom', custom: 'Prénom' }, type: 'text', text: { minimum_length: 1, maximum_length: 100 } },
-        { key: 'nom', label: { type: 'custom', custom: 'Nom' }, type: 'text', text: { minimum_length: 1, maximum_length: 100 } },
-      ],
       shipping_options: [
         {
           shipping_rate_data: {

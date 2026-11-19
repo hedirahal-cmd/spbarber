@@ -1,8 +1,10 @@
 /**
  * Banc de verification du chantier Boxtal (etiquettes Colissimo/Chronopost
  * automatiques, 2026-10-21, demande Hedi) : generation d'etiquette, annulation,
- * webhook (DOCUMENT_CREATED / TRACKING_CHANGED), et collecte telephone/prenom/
- * nom au Checkout classique.
+ * webhook (DOCUMENT_CREATED / TRACKING_CHANGED), collecte telephone au
+ * Checkout classique, et prenom/nom du destinataire (deduits par
+ * diviserNomComplet depuis le nom complet, verifies/modifiables dans l'admin
+ * avant envoi -- voir cas A2/A3, 2026-11-19, decision Hedi).
  *
  * A lancer depuis la racine du depot :
  *     npx tsx scripts/verif-boxtal.ts
@@ -409,10 +411,10 @@ function evenementCheckoutComplete(): string {
             address: { line1: '1 rue du Test', line2: null, city: 'Fougeres', postal_code: '35300', country: 'FR' },
           },
         },
-        custom_fields: [
-          { key: 'prenom', text: { value: 'Jean' } },
-          { key: 'nom', text: { value: 'Dupont' } },
-        ],
+        // Plus de custom_fields prenom/nom (2026-11-19, decision Hedi, audit
+        // externe point 10, retires de /api/stripe/checkout) : le webhook
+        // deduit desormais prenom/nom via diviserNomComplet(shipping_details.name)
+        // -- voir le cas K ci-dessous, qui verifie precisement ce calcul.
         metadata: { items: JSON.stringify([{ id: '2', qty: 1 }]) },
       },
     },
@@ -526,6 +528,30 @@ async function main() {
   verifie('boxtal_order_id enregistré sur la commande', orders['cmd-1'].boxtal_order_id === 'bxt_test_123')
   verifie('tracking_number encore vide (pas connu avant le webhook)', orders['cmd-1'].tracking_number == null)
   verifie('shipped_at encore vide (pas encore pris en charge)', orders['cmd-1'].shipped_at == null)
+
+  console.log('\n--- A2. Création d\'étiquette : prénom/nom modifiés par l\'admin PRIMENT sur ceux déjà enregistrés (2026-11-19, decision Hedi, audit externe point 10) ---')
+  orders = { 'cmd-a2': { ...commandeDeBase(), id: 'cmd-a2' } }
+  requetesBoxtal.length = 0
+  const a2 = await createLabel({ id: 'cmd-a2', carrier: 'colissimo', poidsKg: 0.35, longueurCm: 25, largeurCm: 19, hauteurCm: 10, prenom: 'Marie', nom: 'Durand' })
+  verifie('=> 200', a2.statut === 200, 'obtenu ' + a2.statut + ' ' + JSON.stringify(a2.corps))
+  const requeteA2 = requetesBoxtal.find((r) => r.methode === 'POST' && r.chemin === '/v3.1/shipping-order')
+  if (requeteA2) {
+    const shipmentA2 = (requeteA2.corps as Record<string, unknown>).shipment as Record<string, unknown>
+    const toContactA2 = (shipmentA2.toAddress as Record<string, unknown>).contact as Record<string, unknown>
+    verifie(
+      'prénom/nom envoyés à Boxtal = ceux saisis par l\'admin (Marie Durand), pas ceux déjà enregistrés (Jean Dupont)',
+      toContactA2.firstName === 'Marie' && toContactA2.lastName === 'Durand',
+      JSON.stringify(toContactA2),
+    )
+  }
+
+  console.log('\n--- A3. Création d\'étiquette : prénom ou nom vide explicitement envoyé par l\'admin => refusée, message clair ---')
+  orders = { 'cmd-a3': { ...commandeDeBase(), id: 'cmd-a3' } }
+  requetesBoxtal.length = 0
+  const a3 = await createLabel({ id: 'cmd-a3', carrier: 'colissimo', poidsKg: 0.35, longueurCm: 25, largeurCm: 19, hauteurCm: 10, prenom: '', nom: 'Durand' })
+  verifie('=> 400', a3.statut === 400, 'obtenu ' + a3.statut)
+  verifie('message clair', String(a3.corps.error ?? '').includes('Prénom et nom'), JSON.stringify(a3.corps))
+  verifie('aucune requête envoyée à Boxtal', requetesBoxtal.length === 0)
 
   console.log('\n--- B. Téléphone manquant (commande antérieure à ce chantier) : refusée, pas d\'appel Boxtal ---')
   orders = { 'cmd-2': { ...commandeDeBase(), id: 'cmd-2', shipping_address: { name: 'Vieux Client', address: { line1: '1 rue', city: 'Fougeres', postal_code: '35300', country: 'FR' } } } }
@@ -830,7 +856,7 @@ async function main() {
   const j6 = await labelUrl('cmd-sans-etiquette')
   verifie('=> 404', j6.statut === 404, 'obtenu ' + j6.statut)
 
-  console.log('\n--- K. Checkout classique : téléphone + prénom/nom (custom_fields) jusque dans la commande enregistrée ---')
+  console.log('\n--- K. Checkout classique : téléphone + prénom/nom (diviserNomComplet du nom complet) jusque dans la commande enregistrée ---')
   recu.length = 0
   const chargeK = evenementCheckoutComplete()
   const sigK = stripeVerif.webhooks.generateTestHeaderString({ payload: chargeK, secret: STRIPE_WEBHOOK_SECRET })
@@ -842,8 +868,8 @@ async function main() {
     const ligne = JSON.parse(insertionK.corps)
     const sa = (Array.isArray(ligne) ? ligne[0] : ligne).shipping_address
     verifie('téléphone (customer_details.phone) enregistré', sa?.phone === '+33612345678', JSON.stringify(sa))
-    verifie('prénom (custom_field) enregistré', sa?.prenom === 'Jean', JSON.stringify(sa))
-    verifie('nom (custom_field) enregistré', sa?.nom === 'Dupont', JSON.stringify(sa))
+    verifie('prénom déduit du nom complet (diviserNomComplet)', sa?.prenom === 'Jean', JSON.stringify(sa))
+    verifie('nom déduit du nom complet (diviserNomComplet)', sa?.nom === 'Dupont', JSON.stringify(sa))
   }
 
   console.log('\n--- L. Route /api/admin/boxtal/content-categories : lecture seule, n\'appelle JAMAIS shipping-order ---')

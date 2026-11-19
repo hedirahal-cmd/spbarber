@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Boxtal indisponible — utilisez le suivi manuel.' }, { status: 503 })
   }
 
-  const { id, carrier, poidsKg, longueurCm, largeurCm, hauteurCm } = await req.json()
+  const { id, carrier, poidsKg, longueurCm, largeurCm, hauteurCm, prenom: prenomAdmin, nom: nomAdmin } = await req.json()
   if (!id) return NextResponse.json({ error: 'id requis' }, { status: 400 })
   if (carrier !== 'colissimo' && carrier !== 'chronopost') {
     return NextResponse.json({ error: 'transporteur invalide (colissimo ou chronopost attendu)' }, { status: 400 })
@@ -111,12 +111,30 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Chronopost indisponible en Corse (tarif ×4 environ) — Colissimo uniquement.' }, { status: 400 })
   }
 
-  let prenom = typeof sa.prenom === 'string' ? sa.prenom.trim() : ''
-  let nom = typeof sa.nom === 'string' ? sa.nom.trim() : ''
+  // Prenom/nom VALIDES A LA MAIN dans l'admin (2026-11-19, decision Hedi,
+  // audit externe point 10) -- l'admin les envoie desormais explicitement
+  // (pre-remplis par diviserNomComplet cote client, mais modifiables avant
+  // envoi). Si absents du corps (ancien client, appel direct), repli sur
+  // l'ancien calcul automatique -- jamais de confiance aveugle au-dela : un
+  // nom vide est refuse plutot que remplace silencieusement par un repli
+  // generique ("Client"/"SP Barber" n'a pas sa place sur une vraie
+  // etiquette d'expedition une fois qu'un humain est cense l'avoir verifie).
+  let prenom: string
+  let nom: string
+  if (typeof prenomAdmin === 'string' || typeof nomAdmin === 'string') {
+    prenom = typeof prenomAdmin === 'string' ? prenomAdmin.trim() : ''
+    nom = typeof nomAdmin === 'string' ? nomAdmin.trim() : ''
+  } else {
+    prenom = typeof sa.prenom === 'string' ? sa.prenom.trim() : ''
+    nom = typeof sa.nom === 'string' ? sa.nom.trim() : ''
+    if (!prenom || !nom) {
+      const division = diviserNomComplet(typeof sa.name === 'string' && sa.name ? sa.name : order.email)
+      prenom = prenom || division.prenom
+      nom = nom || division.nom
+    }
+  }
   if (!prenom || !nom) {
-    const division = diviserNomComplet(typeof sa.name === 'string' && sa.name ? sa.name : order.email)
-    prenom = prenom || division.prenom
-    nom = nom || division.nom
+    return NextResponse.json({ error: 'Prénom et nom du destinataire requis pour générer l\'étiquette.' }, { status: 400 })
   }
 
   const destinataire: BoxtalAdresse = {

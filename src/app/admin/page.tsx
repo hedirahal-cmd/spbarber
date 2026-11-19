@@ -6,6 +6,7 @@ import { CARTON_STANDARD, calculerPoidsSuggere } from '@/lib/colis'
 import { estCorse } from '@/lib/geo-france'
 import { lignesDuColis, nomsArticles, type LigneCommande } from '@/lib/shipping-email'
 import { lienAliExpressPour, construireBlocLivraisonFournisseur } from '@/lib/fournisseur-dropshipping'
+import { diviserNomComplet } from '@/lib/noms'
 
 type NavSection = 'produits' | 'commandes' | 'retractations' | 'legal' | 'avis' | 'salons' | 'barbers' | 'temoignages-pros' | 'contenu'
 
@@ -1393,7 +1394,7 @@ function TabCommandes() {
   const [categoriesBoxtal, setCategoriesBoxtal] = useState<{ id: string; label: string }[] | null>(null)
   const [categoriesBoxtalErr, setCategoriesBoxtalErr] = useState('')
   const [categoriesBoxtalLoading, setCategoriesBoxtalLoading] = useState(false)
-  const [boxtalInputs, setBoxtalInputs] = useState<Record<string, Partial<Record<'poidsKg' | 'longueurCm' | 'largeurCm' | 'hauteurCm' | 'carrier', string>>>>({})
+  const [boxtalInputs, setBoxtalInputs] = useState<Record<string, Partial<Record<'poidsKg' | 'longueurCm' | 'largeurCm' | 'hauteurCm' | 'carrier' | 'prenom' | 'nom', string>>>>({})
   const [boxtalBusy, setBoxtalBusy] = useState<string | null>(null)
   // Propre a chaque commande (2026-11-17, demande Hedi -- bug : l'erreur
   // d'annulation restait affichee en changeant de commande, un seul string
@@ -1542,8 +1543,27 @@ function TabCommandes() {
     }).catch(() => {})
   }, [])
 
-  function setChampBoxtal(id: string, champ: 'poidsKg' | 'longueurCm' | 'largeurCm' | 'hauteurCm' | 'carrier', valeur: string) {
+  function setChampBoxtal(id: string, champ: 'poidsKg' | 'longueurCm' | 'largeurCm' | 'hauteurCm' | 'carrier' | 'prenom' | 'nom', valeur: string) {
     setBoxtalInputs(b => ({ ...b, [id]: { ...b[id], [champ]: valeur } }))
+  }
+
+  /**
+   * Suggestion prenom/nom pour l'etiquette Boxtal (2026-11-19, decision Hedi,
+   * audit externe point 10) -- MEME precedence que le serveur
+   * (create-label/route.ts) : prenom/nom deja enregistres sur la commande
+   * (anciennes commandes, ex. ex-champs personnalises Stripe) sinon
+   * diviserNomComplet(nom complet). Seulement une SUGGESTION pre-remplie et
+   * MODIFIABLE -- la valeur reellement envoyee a Boxtal est celle validee a
+   * la main ci-dessous, jamais celle-ci directement.
+   */
+  function prenomNomSuggeres(order: Record<string, unknown> | undefined): { prenom: string; nom: string } {
+    const sa = (order?.shipping_address ?? {}) as Record<string, unknown>
+    const prenomExistant = typeof sa.prenom === 'string' ? sa.prenom.trim() : ''
+    const nomExistant = typeof sa.nom === 'string' ? sa.nom.trim() : ''
+    if (prenomExistant && nomExistant) return { prenom: prenomExistant, nom: nomExistant }
+    const nomComplet = typeof sa.name === 'string' && sa.name ? sa.name : (typeof order?.email === 'string' ? order.email : '')
+    const division = diviserNomComplet(nomComplet)
+    return { prenom: prenomExistant || division.prenom, nom: nomExistant || division.nom }
   }
 
   function lignesStandardDe(order: Record<string, unknown> | undefined): LigneCommande[] {
@@ -1558,6 +1578,13 @@ function TabCommandes() {
     const order = orders.find(o => String(o.id) === id)
     const suggestion = calculerPoidsSuggere(lignesStandardDe(order), produitsPoids)
     const champs = boxtalInputs[id] ?? {}
+    const suggestionNom = prenomNomSuggeres(order)
+    const prenom = (champs.prenom ?? suggestionNom.prenom).trim()
+    const nom = (champs.nom ?? suggestionNom.nom).trim()
+    if (!prenom || !nom) {
+      setBoxtalErr({ id, message: 'Prénom et nom du destinataire requis avant de générer l\'étiquette.' })
+      return
+    }
     const corps = {
       id,
       carrier: champs.carrier ?? 'colissimo',
@@ -1565,6 +1592,8 @@ function TabCommandes() {
       longueurCm: champs.longueurCm ?? String(CARTON_STANDARD.longueurCm),
       largeurCm: champs.largeurCm ?? String(CARTON_STANDARD.largeurCm),
       hauteurCm: champs.hauteurCm ?? String(CARTON_STANDARD.hauteurCm),
+      prenom,
+      nom,
     }
     setBoxtalBusy(id); setBoxtalErr(null)
     try {
@@ -1961,6 +1990,9 @@ function TabCommandes() {
 
               const suggestion = calculerPoidsSuggere(lignesStandardDe(selected), produitsPoids)
               const corseBoxtal = estCorse(codePostalDestination(selected))
+              const suggestionNom = prenomNomSuggeres(selected)
+              const prenomAffiche = champs.prenom ?? suggestionNom.prenom
+              const nomAffiche = champs.nom ?? suggestionNom.nom
               return (
                 <div style={{ ...S.card_, padding: 14, marginBottom: 16 }}>
                   <div style={{ fontSize: 12, fontWeight: 600, color: S.text, marginBottom: 8 }}>Étiquette automatique (Boxtal)</div>
@@ -1973,6 +2005,13 @@ function TabCommandes() {
                     <div style={{ fontSize: 12, fontWeight: 600, color: '#b91c1c', marginBottom: 8 }}>Poids manquant pour {suggestion.manquants.length} article(s). Renseignez-le dans l&apos;onglet Produits, ou utilisez le suivi manuel ci-dessous.</div>
                   )}
                   {boxtalErr?.id === id && <div style={{ fontSize: 12, color: '#b91c1c', marginBottom: 8 }}>Erreur : {boxtalErr.message}</div>}
+                  <div style={{ fontSize: 11, color: S.muted, marginBottom: 4 }}>
+                    Destinataire (prénom/nom déduits automatiquement du nom complet — à vérifier, modifiables) :
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 8 }}>
+                    <input value={prenomAffiche} onChange={e => setChampBoxtal(id, 'prenom', e.target.value)} style={S.input} placeholder="Prénom" />
+                    <input value={nomAffiche} onChange={e => setChampBoxtal(id, 'nom', e.target.value)} style={S.input} placeholder="Nom" />
+                  </div>
                   <select value={champs.carrier ?? 'colissimo'} onChange={e => setChampBoxtal(id, 'carrier', e.target.value)} style={{ ...S.input, marginBottom: 8 }}>
                     <option value="colissimo">Colissimo</option>
                     {!corseBoxtal && <option value="chronopost">Chronopost</option>}
@@ -1988,8 +2027,8 @@ function TabCommandes() {
                   </div>
                   <button
                     onClick={() => genererEtiquetteBoxtal(id)}
-                    disabled={busy || !!suggestion.manquants.length}
-                    style={{ ...S.btnPrimary, width: '100%', ...(suggestion.manquants.length ? { opacity: 0.5, cursor: 'not-allowed' } : {}) }}
+                    disabled={busy || !!suggestion.manquants.length || !prenomAffiche.trim() || !nomAffiche.trim()}
+                    style={{ ...S.btnPrimary, width: '100%', ...((suggestion.manquants.length || !prenomAffiche.trim() || !nomAffiche.trim()) ? { opacity: 0.5, cursor: 'not-allowed' } : {}) }}
                   >
                     {busy ? 'Génération…' : "Générer l'étiquette via Boxtal"}
                   </button>
