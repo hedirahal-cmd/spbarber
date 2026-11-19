@@ -4,13 +4,13 @@ export const revalidate = 0
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { MapPin, Clock, Phone, Scissors, Star, ArrowRight } from 'lucide-react'
+import { MapPin, Clock, Phone, Star, ArrowRight } from 'lucide-react'
 import { SalonCarousel } from '@/components/salon/SalonCarousel'
 import { SalonAvisGrid } from '@/components/salon/SalonAvisGrid'
 import { GoogleMapEmbed } from '@/components/GoogleMapEmbed'
 import { DELAI_EXPEDITION_FRAGMENT, TRANSIT_TEXTE_COMPACT } from '@/lib/delais'
 import { supabase } from '@/lib/supabase'
-import { type Salon, DEFAULT_SALONS, buildEmbedUrl, deVille } from '@/lib/salons'
+import { type Salon, DEFAULT_SALONS, TELEPHONE_SALON_REPLI, buildEmbedUrl, deVille } from '@/lib/salons'
 import { schemaSalon, jsonLd } from '@/lib/schema'
 
 const BASE = 'https://spbarber.fr'
@@ -85,6 +85,10 @@ export default async function SalonDetailPage({ params }: Props) {
   const hasRating = !!(salon.note_google && salon.nombre_avis)
   const embedSrc = buildEmbedUrl(salon)
   const localSchema = schemaSalon(salon)
+  // Planity n'accepte pas (encore) de reservation en ligne pour SP Barber --
+  // remplace par un appel telephonique plutot que de renvoyer vers une page
+  // "pas encore reservable" (2026-11-19, audit externe relaye par Hedi).
+  const telephoneAppel = salon.telephone || TELEPHONE_SALON_REPLI
 
   return (
     <>
@@ -164,18 +168,16 @@ export default async function SalonDetailPage({ params }: Props) {
               )}
             </div>
 
-            {salon.lien_planity && (
-              <div className="salon-info-card">
-                <div className="salon-info-icon"><Scissors size={24} strokeWidth={1.5} /></div>
-                <h2 className="salon-info-ttl">Réservation</h2>
-                <p className="salon-info-txt">
-                  Réservez en ligne 24h/24 ou passez directement au salon.
-                </p>
-                <a href={salon.lien_planity} target="_blank" rel="noopener noreferrer" className="salon-info-link">
-                  Réserver sur Planity →
-                </a>
-              </div>
-            )}
+            <div className="salon-info-card">
+              <div className="salon-info-icon"><Phone size={24} strokeWidth={1.5} /></div>
+              <h2 className="salon-info-ttl">Réservation</h2>
+              <p className="salon-info-txt">
+                Pour réserver, appelez-nous directement ou passez au salon.
+              </p>
+              <a href={`tel:${telephoneAppel.replace(/\s/g, '')}`} className="salon-info-link">
+                Appeler le salon →
+              </a>
+            </div>
 
           </div>
         </section>
@@ -191,20 +193,16 @@ export default async function SalonDetailPage({ params }: Props) {
         </section>
 
         {/* ── BOUTONS D'ACTION ── */}
-        {(salon.lien_planity || salon.lien_google_maps) && (
-          <div className="salon-map-actions">
-            {salon.lien_planity && (
-              <a href={salon.lien_planity} target="_blank" rel="noopener noreferrer" className="salon-btn-reserve">
-                Réserver en ligne →
-              </a>
-            )}
-            {salon.lien_google_maps && (
-              <a href={salon.lien_google_maps} target="_blank" rel="noopener noreferrer" className="salon-btn-route">
-                Itinéraire →
-              </a>
-            )}
-          </div>
-        )}
+        <div className="salon-map-actions">
+          <a href={`tel:${telephoneAppel.replace(/\s/g, '')}`} className="salon-btn-reserve">
+            Appeler le salon →
+          </a>
+          {salon.lien_google_maps && (
+            <a href={salon.lien_google_maps} target="_blank" rel="noopener noreferrer" className="salon-btn-route">
+              Itinéraire →
+            </a>
+          )}
+        </div>
 
         {/* ── PHOTOS DU SALON ── */}
         <section className="salon-photos-sec">
