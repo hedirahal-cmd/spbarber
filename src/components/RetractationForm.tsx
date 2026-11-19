@@ -70,34 +70,34 @@ export function RetractationForm() {
 
       <div className="rtn-row">
         <div>
-          <label className="rtn-label">Votre nom</label>
-          <input className="rtn-input" value={nom} onChange={(e) => setNom(e.target.value)} maxLength={120} required />
+          <label className="rtn-label" htmlFor="rtn-nom">Votre nom</label>
+          <input id="rtn-nom" className="rtn-input" value={nom} onChange={(e) => setNom(e.target.value)} maxLength={120} required />
         </div>
         <div>
-          <label className="rtn-label">Votre e-mail</label>
-          <input className="rtn-input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} maxLength={200} required />
+          <label className="rtn-label" htmlFor="rtn-email">Votre e-mail</label>
+          <input id="rtn-email" className="rtn-input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} maxLength={200} required />
         </div>
       </div>
 
       <div className="rtn-row">
         <div>
-          <label className="rtn-label">Numéro de commande <span className="rtn-optional">(facultatif)</span></label>
-          <input className="rtn-input" value={numeroCommande} onChange={(e) => setNumeroCommande(e.target.value)} maxLength={60} placeholder="Ex. AB12CD34" />
+          <label className="rtn-label" htmlFor="rtn-numero-commande">Numéro de commande <span className="rtn-optional">(facultatif)</span></label>
+          <input id="rtn-numero-commande" className="rtn-input" value={numeroCommande} onChange={(e) => setNumeroCommande(e.target.value)} maxLength={60} placeholder="Ex. AB12CD34" />
         </div>
         <div>
-          <label className="rtn-label">Date de commande <span className="rtn-optional">(facultatif)</span></label>
-          <input className="rtn-input" type="date" value={dateCommande} onChange={(e) => setDateCommande(e.target.value)} />
+          <label className="rtn-label" htmlFor="rtn-date-commande">Date de commande <span className="rtn-optional">(facultatif)</span></label>
+          <input id="rtn-date-commande" className="rtn-input" type="date" value={dateCommande} onChange={(e) => setDateCommande(e.target.value)} />
         </div>
       </div>
 
       <div>
-        <label className="rtn-label">Produit(s) concerné(s)</label>
-        <input className="rtn-input" value={produits} onChange={(e) => setProduits(e.target.value)} maxLength={500} required placeholder="Ex. Pack Barbe Complet" />
+        <label className="rtn-label" htmlFor="rtn-produits">Produit(s) concerné(s)</label>
+        <input id="rtn-produits" className="rtn-input" value={produits} onChange={(e) => setProduits(e.target.value)} maxLength={500} required placeholder="Ex. Pack Barbe Complet" />
       </div>
 
       <div>
-        <label className="rtn-label">Motif <span className="rtn-optional">(facultatif — aucune justification n&apos;est exigée par la loi)</span></label>
-        <textarea className="rtn-textarea" rows={3} value={motif} onChange={(e) => setMotif(e.target.value)} maxLength={1000} />
+        <label className="rtn-label" htmlFor="rtn-motif">Motif <span className="rtn-optional">(facultatif — aucune justification n&apos;est exigée par la loi)</span></label>
+        <textarea id="rtn-motif" className="rtn-textarea" rows={3} value={motif} onChange={(e) => setMotif(e.target.value)} maxLength={1000} />
       </div>
 
       {err && <div className="rtn-err">{err}</div>}

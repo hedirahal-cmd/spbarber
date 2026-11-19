@@ -61,12 +61,12 @@ export function ReviewForm({ productId }: { productId: string }) {
 
       <div className="rf-row">
         <div>
-          <label className="rf-label">Votre nom</label>
-          <input className="rf-input" value={author} onChange={(e) => setAuthor(e.target.value)} maxLength={80} required />
+          <label className="rf-label" htmlFor={`rf-author-${productId}`}>Votre nom</label>
+          <input id={`rf-author-${productId}`} className="rf-input" value={author} onChange={(e) => setAuthor(e.target.value)} maxLength={80} required />
         </div>
         <div>
-          <label className="rf-label">Note</label>
-          <select className="rf-select" value={rating} onChange={(e) => setRating(e.target.value)} required>
+          <label className="rf-label" htmlFor={`rf-rating-${productId}`}>Note</label>
+          <select id={`rf-rating-${productId}`} className="rf-select" value={rating} onChange={(e) => setRating(e.target.value)} required>
             {[5, 4, 3, 2, 1].map((n) => (
               <option key={n} value={n}>{'★'.repeat(n)} ({n})</option>
             ))}
@@ -75,13 +75,13 @@ export function ReviewForm({ productId }: { productId: string }) {
       </div>
 
       <div>
-        <label className="rf-label">Votre avis</label>
-        <textarea className="rf-textarea" rows={4} value={text} onChange={(e) => setText(e.target.value)} minLength={10} maxLength={1000} required />
+        <label className="rf-label" htmlFor={`rf-text-${productId}`}>Votre avis</label>
+        <textarea id={`rf-text-${productId}`} className="rf-textarea" rows={4} value={text} onChange={(e) => setText(e.target.value)} minLength={10} maxLength={1000} required />
       </div>
 
       <div>
-        <label className="rf-label">Email (facultatif, jamais affiché)</label>
-        <input className="rf-input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} maxLength={200} />
+        <label className="rf-label" htmlFor={`rf-email-${productId}`}>Email (facultatif, jamais affiché)</label>
+        <input id={`rf-email-${productId}`} className="rf-input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} maxLength={200} />
       </div>
 
       {err && <div className="rf-err">{err}</div>}
