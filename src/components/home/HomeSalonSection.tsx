@@ -93,10 +93,14 @@ function SalonBlock({ salon }: { salon: Salon }) {
         </div>
       </div>
 
-      <div className="hs-photos-sec">
-        <div className="hs-photos-title">LE SALON EN IMAGES</div>
-        <SalonCarousel photos={salon.photos ?? []} label={salon.nom ?? ''} />
-      </div>
+      {/* Masque tant qu'aucune photo n'est en base (2026-11-20, demande Hedi,
+          meme fix que la page salon) -- plutot que d'afficher "Photos a venir". */}
+      {(salon.photos ?? []).length > 0 && (
+        <div className="hs-photos-sec">
+          <div className="hs-photos-title">LE SALON EN IMAGES</div>
+          <SalonCarousel photos={salon.photos!} label={salon.nom ?? ''} />
+        </div>
+      )}
     </div>
   )
 }

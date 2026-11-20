@@ -1,7 +1,13 @@
 'use client'
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { Camera, ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 
+/**
+ * Les deux appelants (page salon, section accueil) ne rendent ce composant
+ * que lorsque photos.length > 0 (2026-11-20, demande Hedi) -- la rubrique
+ * entiere se masque sinon, plutot que d'afficher un placeholder "Photos a
+ * venir" ici.
+ */
 export function SalonCarousel({ photos, label }: { photos: string[]; label: string }) {
   const [current, setCurrent] = useState(0)
   const [paused, setPaused] = useState(false)
@@ -16,15 +22,6 @@ export function SalonCarousel({ photos, label }: { photos: string[]; label: stri
     const t = setInterval(next, 4000)
     return () => clearInterval(t)
   }, [count, paused, next])
-
-  if (!count) {
-    return (
-      <div className="sc-placeholder">
-        <Camera size={32} strokeWidth={1.2} />
-        <span>Photos à venir</span>
-      </div>
-    )
-  }
 
   return (
     <div

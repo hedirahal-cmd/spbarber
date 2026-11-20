@@ -212,13 +212,18 @@ export default async function SalonDetailPage({ params }: Props) {
         </div>
 
         {/* ── PHOTOS DU SALON ── */}
-        <section className="salon-photos-sec">
-          <div className="salon-photos-inner">
-            <div className="salon-sec-ey">— L&apos;ambiance en images —</div>
-            <h2 className="salon-sec-title">LE SALON</h2>
-            <SalonCarousel photos={salon.photos ?? []} label={salon.nom ?? 'SP Barber'} />
-          </div>
-        </section>
+        {/* Rubrique masquee tant qu'aucune photo n'est en base (2026-11-20,
+            demande Hedi) -- plutot que d'afficher "Photos a venir", meme
+            principe que la section Avis juste en dessous. */}
+        {(salon.photos ?? []).length > 0 && (
+          <section className="salon-photos-sec">
+            <div className="salon-photos-inner">
+              <div className="salon-sec-ey">— L&apos;ambiance en images —</div>
+              <h2 className="salon-sec-title">LE SALON</h2>
+              <SalonCarousel photos={salon.photos!} label={salon.nom ?? 'SP Barber'} />
+            </div>
+          </section>
+        )}
 
         {/* ── AVIS ── */}
         {(salon.avis_google ?? []).length > 0 && (

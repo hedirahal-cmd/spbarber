@@ -228,6 +228,15 @@ async function main() {
   verifie('lien tel: utilise exactement ce numero (espaces retires)', fougeresAvecTel.corps.includes('tel:0123456789'))
   salons[0].telephone = null
 
+  console.log('\n--- C3. Rubrique "LE SALON" (photos) : masquee si aucune photo, visible sinon (2026-11-20, decision Hedi) ---')
+  page = await html('/salon/ernee')
+  verifie('ernee SANS photo : rubrique "LE SALON" absente (pas de "Photos à venir")', !page.corps.includes('salon-photos-sec') && !page.corps.includes('Photos à venir'))
+  salons[1].photos = ['https://exemple.test/photo1.jpg']
+  const erneeAvecPhoto = await html('/salon/ernee')
+  verifie('ernee AVEC photo : rubrique "LE SALON" presente', erneeAvecPhoto.corps.includes('salon-photos-sec'))
+  verifie('la photo elle-meme est bien affichee', erneeAvecPhoto.corps.includes('photo1.jpg'))
+  salons[1].photos = []
+
   console.log('\n--- D. /salon/inconnu -> 404 ---')
   page = await html('/salon/ceci-n-existe-pas')
   verifie('statut 404', page.statut === 404, 'obtenu ' + page.statut)

@@ -4040,20 +4040,6 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
   object-fit: cover;
   display: block;
 }
-.sc-placeholder {
-  width: 100%;
-  aspect-ratio: 16 / 9;
-  border-radius: 8px;
-  background: #1a1a1a;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  color: rgba(255,255,255,0.25);
-  font-size: 13px;
-  letter-spacing: 1px;
-}
 .sc-arrow {
   position: absolute;
   top: 50%;
