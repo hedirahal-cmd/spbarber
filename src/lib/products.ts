@@ -79,13 +79,22 @@ export const PRODUCTS: Product[] = [
       { label: 'Laissez poser', texte: 'Laissez poser 20 à 30 minutes selon l\'intensité souhaitée.' },
       { label: 'Rincez', texte: 'Rincez abondamment jusqu\'à ce que l\'eau soit claire.' },
     ],
+    // Encadre "Bien utiliser votre shampooing colorant" (2026-11-20, demande
+    // Hedi) -- 3 groupes, texte repris tel que donne, rien retire des
+    // mises en garde precedentes (reserve aux adultes ajoute).
     precautions: [
-      'Contient des phénylènediamines.',
-      'Faites un test cutané 48 h avant chaque utilisation, même si vous avez déjà utilisé ce produit.',
-      'Ne l\'utilisez pas en cas de réaction antérieure à une coloration ou à un shampooing colorant, ni sur un cuir chevelu irrité, sensible ou abîmé.',
-      'Ne l\'utilisez pas sur les cils ni les sourcils (risque de lésion oculaire).',
-      'Tenez hors de portée des enfants.',
-      'En cas de grossesse, consultez un professionnel de santé avant utilisation.',
+      {
+        label: 'Avant la première utilisation',
+        texte: 'Faites un test cutané 48 h avant chaque application, même si vous avez déjà utilisé le produit. C\'est la règle pour toute coloration, et ça prend 2 minutes de préparation.',
+      },
+      {
+        label: 'Bon à savoir',
+        texte: 'Ce produit contient des phénylènediamines (PPD), des colorants courants dans les colorations capillaires, ainsi que de l\'ammoniaque. Ils peuvent provoquer une réaction allergique chez certaines personnes.',
+      },
+      {
+        label: 'À éviter',
+        texte: 'Après une réaction à une coloration, sur un cuir chevelu irrité, sensible ou abîmé, et sur les cils et sourcils (risque de lésion oculaire). Réservé aux adultes. En cas de grossesse, demandez l\'avis d\'un professionnel de santé. Tenir hors de portée des enfants.',
+      },
     ],
     seo_title: 'Shampooing Colorant Noir Homme — SP Barber | Masque les Cheveux Blancs',
     seo_description:

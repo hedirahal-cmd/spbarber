@@ -4,6 +4,10 @@
  * uniquement sur les fiches cosmetiques, jamais sur les accessoires, avec le
  * texte EXACT (recopie de l'etiquette fournisseur, sans correction).
  *
+ * Verifie aussi (2026-11-20) l'encadre "Bien utiliser votre shampooing
+ * colorant" : place apres les etapes d'utilisation, mention reglementaire
+ * des phenylenediamines conservee, ancien titre "Precautions" disparu.
+ *
  * A lancer depuis la racine du depot :
  *     npx tsx scripts/verif-composition-inci.ts
  *
@@ -70,6 +74,11 @@ async function main() {
   verifie('ingredient a casse particuliere non corrige ("m-aminophenol")', a.html.includes('m-aminophenol'))
   verifie('graphie differente non harmonisee ("p-phenyl-enediol")', a.html.includes('p-phenyl-enediol'))
   verifie('"Trace ingredients" distinct, present', a.html.includes('Trace ingredients : Camellia Japonica Seed Oil'))
+  verifie('nouvel encadre "Bien utiliser votre shampooing colorant" present', a.html.includes('Bien utiliser votre shampooing colorant'))
+  verifie('ancien titre "Précautions" disparu', !a.html.includes('Précautions'))
+  verifie('mention reglementaire phenylenediamines (PPD) conservee', a.html.includes('Ce produit contient des phénylènediamines (PPD)'))
+  verifie('mise en garde "Réservé aux adultes" presente', a.html.includes('Réservé aux adultes'))
+  verifie('encadre place APRES les etapes d\'utilisation', a.html.indexOf('Bien utiliser votre shampooing colorant') > a.html.indexOf('COMMENT ÇA FONCTIONNE'))
 
   console.log('\n--- B. Crème Curl Control (id 3) : contenance + composition exactes ---')
   const b = await page('/products/creme-curl-control')

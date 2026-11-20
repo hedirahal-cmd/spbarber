@@ -2827,25 +2827,24 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
   background: var(--gm); border: 1px solid var(--gold); border-radius: 2px;
 }
 .chk-zone-notice svg { flex-shrink: 0; margin-top: 1px; color: var(--gold); }
-/* Encadre "Precautions" fiche produit (2026-11-20, demande Hedi) -- meme
-   gabarit visuel que .chk-zone-notice (fond + bordure or), texte var(--b)
-   pour le contraste AA sur fond clair. */
+/* Encadre "Bien utiliser votre shampooing colorant" (2026-11-20, demande
+   Hedi) -- fond creme neutre (var(--w)), bordure or fine, pas d'icone
+   d'alerte ni de rouge ; place dans la section sombre "Comment ca
+   fonctionne" (.sn-how), juste apres les etapes, visible en permanence. */
 .sn-precautions {
-  margin-top: 20px; padding: 12px 14px;
-  background: var(--gm); border: 1px solid var(--gold); border-radius: 2px;
+  margin: 40px auto 0; max-width: 640px; text-align: left;
+  padding: 20px 24px;
+  background: var(--w); border: 1px solid var(--gold); border-radius: 2px;
 }
 .sn-precautions-ttl {
-  display: flex; align-items: center; gap: 6px;
-  font-size: 13px; font-weight: 600; color: var(--b); font-family: var(--fb);
-  margin-bottom: 6px;
+  font-size: 14px; font-weight: 600; color: var(--b); font-family: var(--fb);
+  margin-bottom: 12px;
 }
-.sn-precautions-ttl svg { flex-shrink: 0; color: var(--gold); }
-.sn-precautions ul { margin: 0; padding-left: 18px; }
-.sn-precautions li {
+.sn-precautions-item {
   font-size: 12px; color: var(--b); font-family: var(--fb);
-  line-height: 1.5; margin-bottom: 3px;
+  line-height: 1.6; margin-bottom: 10px;
 }
-.sn-precautions li:last-child { margin-bottom: 0; }
+.sn-precautions-item:last-child { margin-bottom: 0; }
 
 .chk-trust {
   display: flex; flex-wrap: wrap; gap: 8px;

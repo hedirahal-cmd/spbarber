@@ -475,17 +475,6 @@ export function ProductDetail({ product, relatedProducts = [], reviews: productR
             </>
           )}
 
-          {/* Encadre "Precautions" (2026-11-20, demande Hedi, lot shampooing
-              noir partie B) -- avertissements etiquette, visibles sans repli. */}
-          {product.precautions && product.precautions.length > 0 && (
-            <div className="sn-precautions">
-              <div className="sn-precautions-ttl"><AlertTriangle size={15} strokeWidth={2} />Précautions</div>
-              <ul>
-                {product.precautions.map((p) => <li key={p}>{p}</li>)}
-              </ul>
-            </div>
-          )}
-
           <div className="sn-bens">
             {beneficesPourCategorie(product.category).map((b) => (
               <div className="sn-ben" key={b.titre}>
@@ -520,6 +509,20 @@ export function ProductDetail({ product, relatedProducts = [], reviews: productR
                 </Fragment>
               ))}
             </div>
+
+            {/* Encadre "Bien utiliser votre shampooing colorant" (2026-11-20,
+                demande Hedi) -- fond creme, bordure or, pas d'icone d'alerte ;
+                place juste apres les etapes, visible en permanence. */}
+            {product.precautions && product.precautions.length > 0 && (
+              <div className="sn-precautions">
+                <div className="sn-precautions-ttl">Bien utiliser votre shampooing colorant</div>
+                {product.precautions.map((p) => (
+                  <p className="sn-precautions-item" key={p.label}>
+                    <strong>{p.label} : </strong>{p.texte}
+                  </p>
+                ))}
+              </div>
+            )}
           </div>
         </section>
       )}
