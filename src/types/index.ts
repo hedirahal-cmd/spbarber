@@ -68,6 +68,10 @@ export interface Product {
   /** Sous-liste "Trace ingredients" de l'etiquette, quand elle existe --
    * distincte de compositionInci, jamais fusionnee avec elle. */
   compositionInciTraces?: string[]
+  /** Encadre "Precautions" visible sur la fiche -- avertissements etiquette
+   * (test cutane, grossesse, enfants, etc.). Cosmetiques sensibles
+   * uniquement (2026-11-19, demande Hedi, lot shampooing noir partie B). */
+  precautions?: string[]
 }
 
 export interface ProductVariant {

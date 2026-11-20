@@ -31,8 +31,11 @@ export const PRODUCTS: Product[] = [
     id: '2',
     name: 'Shampooing Noir Colorant',
     slug: 'shampooing-noir-colorant',
+    // Texte aligne sur la description en base (corrigee par Hedi, verifiee en
+    // direct le 2026-11-20) -- ce champ ne sert que de repli si Supabase est
+    // injoignable, mais ne doit jamais reafficher l'ancien discours marketing.
     description:
-      'Le Shampooing Colorant Noir SP Barber est la solution naturelle pour masquer les cheveux blancs et raviver l\'intensité de votre couleur noire. Sans ammoniaque, sans peroxyde, sa formule douce respecte le cuir chevelu tout en déposant des pigments naturels à chaque lavage. Résultat visible dès la première utilisation, la couleur s\'intensifie progressivement pour un rendu naturel et homogène. Idéal pour les hommes qui souhaitent atténuer les reflets gris ou blancs sans passer par une coloration agressive. Compatible avec tous les types de cheveux noirs ou foncés.',
+      'Le Shampooing Noir Colorant SP Barber est un colorant capillaire 3 en 1 : il nettoie, colore et nourrit en un seul geste, pour masquer les cheveux blancs ou gris sur cheveux noirs ou foncés. Contenance : 500 ml. Produit de coloration réservé aux adultes : il contient des colorants capillaires, dont de la para-phénylènediamine (PPD), et de l\'ammoniaque, et peut provoquer une réaction allergique. Faites un test cutané 48 heures avant chaque utilisation, même si vous avez déjà utilisé ce produit. Ne l\'utilisez pas en cas de réaction antérieure à une coloration, de cuir chevelu irrité ou sensible, ni sur les cils et les sourcils. Portez des gants. Tenir hors de portée des enfants. Lisez attentivement les instructions avant l\'emploi.',
     // Prix aligne sur product_overrides (2026-11-17, verifie en base) -- ce
     // prix statique ne sert plus que de repli si la base est injoignable, a
     // tenir a jour manuellement a chaque changement de prix fait en admin.
@@ -59,20 +62,34 @@ export const PRODUCTS: Product[] = [
     is_dropshipping: false,
     benefit: 'Cheveux noirs intenses dès 1 lavage',
     usageTag: 'Cheveux blancs ou gris à camoufler',
-    trust: ['Couleur ravivée en 1 lavage', 'Sans ammoniaque ni peroxyde', `Livraison ${TRANSIT_TEXTE_COMPACT}`, RETOUR_TEXTE],
+    trust: ['Couleur ravivée en 1 lavage', `Livraison ${TRANSIT_TEXTE_COMPACT}`, RETOUR_TEXTE],
     // Plus de recommandation fixe (2026-10-01, decision Hedi) : carrousel
     // generique a la place (voir genericRecommendations dans [slug]/page.tsx).
     genericRecommendations: true,
     beforeAfterEnabled: true,
-    pills: ['Sans ammoniaque', 'Résultat en 1 lavage', 'Tient 3–4 semaines'],
+    // Nouveaux badges + consignes etiquette + precautions (2026-11-19/20,
+    // demande Hedi, lot shampooing noir partie B) -- remplacent les anciennes
+    // allegations ("Sans ammoniaque", "Resultat en 1 lavage", "naturel"...)
+    // qui contredisaient la composition reelle (Ammonium Hydroxide present).
+    pills: ['Colorant capillaire 3 en 1', 'Test cutané 48 h obligatoire', '500 ml'],
     usageSteps: [
-      { label: 'Appliquez', texte: 'Utilisez comme un shampooing ordinaire sur cheveux mouillés' },
-      { label: 'Laissez poser', texte: 'Laissez agir 3 minutes — les pigments pénètrent en profondeur' },
-      { label: 'Rincez', texte: 'Rincez abondamment — couleur ravivée, cheveux brillants' },
+      { label: 'Protégez vos mains', texte: 'Mettez des gants avant d\'ouvrir le flacon.' },
+      { label: 'Mélangez', texte: 'Pompez le shampooing colorant dans la paume gantée et mélangez bien.' },
+      { label: 'Appliquez', texte: 'Appliquez sur cheveux secs.' },
+      { label: 'Laissez poser', texte: 'Laissez poser 20 à 30 minutes selon l\'intensité souhaitée.' },
+      { label: 'Rincez', texte: 'Rincez abondamment jusqu\'à ce que l\'eau soit claire.' },
+    ],
+    precautions: [
+      'Contient des phénylènediamines.',
+      'Faites un test cutané 48 h avant chaque utilisation, même si vous avez déjà utilisé ce produit.',
+      'Ne l\'utilisez pas en cas de réaction antérieure à une coloration ou à un shampooing colorant, ni sur un cuir chevelu irrité, sensible ou abîmé.',
+      'Ne l\'utilisez pas sur les cils ni les sourcils (risque de lésion oculaire).',
+      'Tenez hors de portée des enfants.',
+      'En cas de grossesse, consultez un professionnel de santé avant utilisation.',
     ],
     seo_title: 'Shampooing Colorant Noir Homme — SP Barber | Masque les Cheveux Blancs',
     seo_description:
-      `Masquez vos cheveux blancs en quelques lavages. Shampooing colorant noir naturel pour homme. Résultat visible dès la 1ère utilisation. Sans ammoniaque. Expédition ${DELAI_EXPEDITION_FRAGMENT}.`,
+      `Masquez vos cheveux blancs en quelques lavages. Shampooing colorant noir pour homme. Résultat visible dès la 1ère utilisation. Expédition ${DELAI_EXPEDITION_FRAGMENT}.`,
     created_at: new Date().toISOString(),
   },
   {

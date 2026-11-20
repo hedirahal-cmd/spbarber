@@ -475,6 +475,17 @@ export function ProductDetail({ product, relatedProducts = [], reviews: productR
             </>
           )}
 
+          {/* Encadre "Precautions" (2026-11-20, demande Hedi, lot shampooing
+              noir partie B) -- avertissements etiquette, visibles sans repli. */}
+          {product.precautions && product.precautions.length > 0 && (
+            <div className="sn-precautions">
+              <div className="sn-precautions-ttl"><AlertTriangle size={15} strokeWidth={2} />Précautions</div>
+              <ul>
+                {product.precautions.map((p) => <li key={p}>{p}</li>)}
+              </ul>
+            </div>
+          )}
+
           <div className="sn-bens">
             {beneficesPourCategorie(product.category).map((b) => (
               <div className="sn-ben" key={b.titre}>

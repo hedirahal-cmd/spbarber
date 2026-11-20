@@ -190,7 +190,7 @@ const ARTICLES: Record<string, {
           <li><strong>Barbe longue :</strong> huile + baume + peigne barbe + ciseaux</li>
           <li><strong>Poils blancs ou grisonnants :</strong> notre{' '}
             <Link href="/products/shampooing-noir-colorant">Shampooing Colorant Noir</Link>{' '}
-            pour raviver la couleur naturellement, sans ammoniaque.
+            pour raviver la couleur.
           </li>
         </ul>
 

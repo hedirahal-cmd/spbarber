@@ -125,15 +125,11 @@ export function BeforeAfterSlider({ bare = false, className = '', before = null,
         <div className="aa-head">
           <div className="aa-eyebrow">Résultat constaté</div>
           <h2 className="aa-title">RÉSULTAT VISIBLE DÈS LE 1<sup>ER</sup> LAVAGE</h2>
-          <p className="aa-sub">Sans ammoniaque · Formule douce · Tient jusqu&apos;à 4 semaines</p>
         </div>
 
         {sliderEl}
 
         <div className="aa-checks">
-          <div className="aa-check"><CheckCircle2 size={14} strokeWidth={2} />Colorant naturel à la kératine</div>
-          <div className="aa-check"><CheckCircle2 size={14} strokeWidth={2} />Résultat durable 3–4 semaines</div>
-          <div className="aa-check"><CheckCircle2 size={14} strokeWidth={2} />Sans ammoniaque ni oxydant</div>
           <div className="aa-check"><CheckCircle2 size={14} strokeWidth={2} />Utilisable seul, sans préparation</div>
         </div>
       </div>
