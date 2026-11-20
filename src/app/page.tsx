@@ -278,7 +278,7 @@ export default async function HomePage() {
                 </Link>
                 <div className="pc-bottom">
                   <div className="pc-price">{formatPrice(product.price)}</div>
-                  <AddToCartButton product={product} className="pc-atc" label="Ajouter" />
+                  <AddToCartButton product={product} className="pc-atc" label="Ajouter au panier" />
                 </div>
               </div>
             </div>

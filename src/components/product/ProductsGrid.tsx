@@ -97,7 +97,7 @@ export function ProductsGrid({ products }: { products: Product[] }) {
                     : formatPrice(product.price)}
                 </div>
                 {!product.is_dropshipping && (
-                  <AddToCartButton product={product} className="pc-atc" label="Ajouter" />
+                  <AddToCartButton product={product} className="pc-atc" label="Ajouter au panier" />
                 )}
                 {product.is_dropshipping && (
                   <Link href={`/products/${product.slug}`} className="pc-atc" style={{ display: 'block', textAlign: 'center', textDecoration: 'none' }}>
