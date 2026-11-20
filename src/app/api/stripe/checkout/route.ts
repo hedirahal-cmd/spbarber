@@ -100,6 +100,11 @@ export async function POST(req: NextRequest) {
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
       customer_creation: 'if_required',
+      // Tarification adaptative desactivee (2026-11-20, demande Hedi) : la
+      // boutique ne vend et ne livre qu'en France en euros, Adaptive Pricing
+      // (conversion automatique de devise selon le pays du visiteur) n'a donc
+      // aucun usage ici et pourrait semer la confusion sur le montant du.
+      adaptive_pricing: { enabled: false },
       // Case "j'accepte les CGV" obligatoire avant paiement (2026-11-18,
       // demande Hedi) -- l'URL des CGV est desormais configuree dans le
       // Dashboard Stripe (Parametres > Details publics de l'entreprise),
