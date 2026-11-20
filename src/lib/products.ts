@@ -62,7 +62,7 @@ export const PRODUCTS: Product[] = [
     is_dropshipping: false,
     benefit: 'Cheveux noirs intenses dès 1 lavage',
     usageTag: 'Cheveux blancs ou gris à camoufler',
-    trust: ['Couleur ravivée en 1 lavage', `Livraison ${TRANSIT_TEXTE_COMPACT}`, RETOUR_TEXTE],
+    trust: ['500 ml', `Livraison ${TRANSIT_TEXTE_COMPACT}`, RETOUR_TEXTE],
     // Plus de recommandation fixe (2026-10-01, decision Hedi) : carrousel
     // generique a la place (voir genericRecommendations dans [slug]/page.tsx).
     genericRecommendations: true,
@@ -89,7 +89,7 @@ export const PRODUCTS: Product[] = [
     ],
     seo_title: 'Shampooing Colorant Noir Homme — SP Barber | Masque les Cheveux Blancs',
     seo_description:
-      `Masquez vos cheveux blancs en quelques lavages. Shampooing colorant noir pour homme. Résultat visible dès la 1ère utilisation. Expédition ${DELAI_EXPEDITION_FRAGMENT}.`,
+      `Masquez vos cheveux blancs en quelques lavages. Shampooing colorant noir pour homme. Expédition ${DELAI_EXPEDITION_FRAGMENT}.`,
     created_at: new Date().toISOString(),
   },
   {
