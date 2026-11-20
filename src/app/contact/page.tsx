@@ -44,6 +44,30 @@ export default function ContactPage() {
           <p>
             <strong>Horaires :</strong> Lundi – Samedi, 9h – 19h
           </p>
+          <p>
+            <Link href="/salon/fougeres">Voir la page du salon →</Link>
+          </p>
+        </section>
+
+        {/* Salon Ernée (2026-11-20, demande Hedi) -- meme structure que
+            Fougères ci-dessus ; pas de numero de telephone tant qu il n est
+            pas renseigne en base (verifie en direct : champ vide). */}
+        <section className="legal-section">
+          <h2>Salon SP Barber — Ernée</h2>
+          <p>
+            Retrouvez-nous également en boutique physique :
+          </p>
+          <p>
+            <strong>SP Barber</strong><br />
+            5 rue Nationale<br />
+            53500 Ernée, France
+          </p>
+          <p>
+            <strong>Horaires :</strong> Mardi – Samedi, 9h – 19h
+          </p>
+          <p>
+            <Link href="/salon/ernee">Voir la page du salon →</Link>
+          </p>
         </section>
 
         <section className="legal-section">
