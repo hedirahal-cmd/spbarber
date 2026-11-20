@@ -3501,7 +3501,7 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
 .sn-atc:hover { background: var(--goldl); }
 .sn-atc-added { background: var(--green) !important; color: #fff !important; }
 .sn-express-pay {
-  margin-top: 10px;
+  margin-top: 20px;
   min-height: 52px;
 }
 .sn-express-pay-loading {
@@ -3515,17 +3515,33 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
   0% { background-position: 100% 50%; }
   100% { background-position: 0 50%; }
 }
+/* Hierarchie achat (2026-11-20, demande Hedi) : separateur "ou" + petit
+   libelle avant le bouton express, pour le relayer au second plan derriere
+   "Ajouter au panier". var(--b) (pas var(--gt)/var(--gold), ~2,7:1 et
+   ~2,8:1 sur fond blanc) pour rester lisible. */
+.sn-express-sep { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.sn-express-sep-line { flex: 1; height: 1px; background: var(--gm); }
+.sn-express-sep-label {
+  font-size: 12px; color: var(--b); font-family: var(--fb);
+  text-transform: uppercase; letter-spacing: 1px;
+}
+.sn-express-eyebrow {
+  font-size: 12px; color: var(--b); font-family: var(--fb);
+  text-transform: uppercase; letter-spacing: 1px;
+  text-align: center; margin-bottom: 8px;
+}
 /* Case CGV + survoile bloquant au-dessus du bouton Apple Pay/Google Pay
-   (2026-11-18, demande Hedi, "item 8 bis") -- var(--b) plutot que var(--gt)
-   ou var(--gold) : les deux ne tiennent que ~2,7:1 et ~2,8:1 sur le fond
-   blanc de ce bloc (.sn-hero-right), bien sous les 4,5:1 requis. */
+   (2026-11-18, demande Hedi, "item 8 bis"), desormais collee SOUS le bouton
+   (2026-11-20) -- var(--b) plutot que var(--gt) ou var(--gold) : les deux
+   ne tiennent que ~2,7:1 et ~2,8:1 sur le fond blanc de ce bloc
+   (.sn-hero-right), bien sous les 4,5:1 requis. */
 .sn-express-pay-cgu {
   display: flex;
   align-items: flex-start;
-  gap: 8px;
+  gap: 6px;
   font-size: 12px;
   color: var(--b);
-  margin-bottom: 8px;
+  margin-top: 6px;
   cursor: pointer;
 }
 .sn-express-pay-cgu input { margin-top: 2px; flex-shrink: 0; cursor: pointer; }

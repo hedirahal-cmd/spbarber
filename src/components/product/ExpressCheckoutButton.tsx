@@ -231,24 +231,20 @@ export function ExpressCheckoutButton({
     <div className="sn-express-pay">
       {supporte === null && <div className="sn-express-pay-loading" aria-hidden="true" />}
 
+      {/* Hierarchie achat (2026-11-20, demande Hedi) : le bouton or "Ajouter
+          au panier" reste l'action principale (voir ProductDetail.tsx) ;
+          l'express passe en second plan derriere un separateur + un petit
+          libelle, et la case CGV descend sous le bouton natif plutot que de
+          le precéder -- comportement de blocage inchange (voir le survoile
+          ci-dessous), seule la disposition change. */}
       {supporte && (
-        <label className="sn-express-pay-cgu">
-          <input
-            type="checkbox"
-            checked={cguAcceptees}
-            onChange={(e) => {
-              const coche = e.target.checked
-              setCguAcceptees(coche)
-              cguAccepteesRef.current = coche
-              if (coche) setCguAlerte(false)
-            }}
-          />
-          <span>
-            J&apos;accepte les{' '}
-            <Link href="/cgv" target="_blank" rel="noopener noreferrer">Conditions Générales de Vente</Link>
-          </span>
-        </label>
+        <div className="sn-express-sep" aria-hidden="true">
+          <span className="sn-express-sep-line" />
+          <span className="sn-express-sep-label">ou</span>
+          <span className="sn-express-sep-line" />
+        </div>
       )}
+      {supporte && <div className="sn-express-eyebrow">Paiement express</div>}
 
       <div className="sn-express-pay-wrap">
         <div ref={containerRef} />
@@ -267,6 +263,25 @@ export function ExpressCheckoutButton({
           />
         )}
       </div>
+
+      {supporte && (
+        <label className="sn-express-pay-cgu">
+          <input
+            type="checkbox"
+            checked={cguAcceptees}
+            onChange={(e) => {
+              const coche = e.target.checked
+              setCguAcceptees(coche)
+              cguAccepteesRef.current = coche
+              if (coche) setCguAlerte(false)
+            }}
+          />
+          <span>
+            J&apos;accepte les{' '}
+            <Link href="/cgv" target="_blank" rel="noopener noreferrer">Conditions Générales de Vente</Link>
+          </span>
+        </label>
+      )}
 
       {cguAlerte && <p className="sn-express-pay-err" role="alert">Merci d&apos;accepter les CGV avant d&apos;utiliser le paiement express.</p>}
       {erreur && <p className="sn-express-pay-err" role="alert">{erreur}</p>}
