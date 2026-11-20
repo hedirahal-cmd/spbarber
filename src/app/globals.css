@@ -3590,6 +3590,25 @@ footer { background: #060606; border-top: 1px solid rgba(255,255,255,.05); paddi
   line-height: 1.85;
   font-family: var(--fb);
 }
+/* Accordeon "Ingredients" (2026-11-20, demande Hedi) -- <details> natif,
+   replie par defaut ; chevron +/- en var(--gold), deja utilise partout
+   ailleurs sur le site (aucune nouvelle couleur ni police introduite). */
+.sn-ingredients summary {
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.sn-ingredients summary::-webkit-details-marker { display: none; }
+.sn-ingredients summary::after {
+  content: '+';
+  color: var(--gold);
+  font-family: var(--fb);
+  font-size: 14px;
+  font-weight: 400;
+}
+.sn-ingredients[open] summary::after { content: '−'; }
 .sn-bens {
   display: grid;
   grid-template-columns: 1fr 1fr;

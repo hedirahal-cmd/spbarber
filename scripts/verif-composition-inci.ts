@@ -8,6 +8,11 @@
  * colorant" : place apres les etapes d'utilisation, mention reglementaire
  * des phenylenediamines conservee, ancien titre "Precautions" disparu.
  *
+ * Et l'accordeon "Ingredients" (<details>, 2026-11-20) : replie par
+ * defaut (pas d'attribut "open"), texte quand meme present dans le HTML
+ * brut (pas de chargement differe -- lu par Google et les lecteurs
+ * d'ecran meme replie).
+ *
  * A lancer depuis la racine du depot :
  *     npx tsx scripts/verif-composition-inci.ts
  *
@@ -69,7 +74,8 @@ async function main() {
   const a = await page('/products/shampooing-noir-colorant')
   verifie('=> 200', a.statut === 200, 'obtenu ' + a.statut)
   verifie('contenance "500 ml" affichee pres du prix', a.html.includes('500 ml'))
-  verifie('titre "Composition (INCI)" present', a.html.includes('Composition (INCI)'))
+  verifie('accordeon "Ingrédients" present (<details><summary>)', a.html.includes('<details class="sn-ingredients"') && a.html.includes('<summary class="sn-desc-ttl">Ingrédients</summary>'))
+  verifie('accordeon replie par defaut (pas d\'attribut "open")', !a.html.includes('<details class="sn-ingredients" open'))
   verifie('premier ingredient exact ("Water")', a.html.includes('Water, Cetearyl Alcohol'))
   verifie('ingredient a casse particuliere non corrige ("m-aminophenol")', a.html.includes('m-aminophenol'))
   verifie('graphie differente non harmonisee ("p-phenyl-enediol")', a.html.includes('p-phenyl-enediol'))
@@ -96,12 +102,12 @@ async function main() {
   console.log('\n--- D. Peigne Texture Expert (id 4, accessoire) : AUCUN bloc composition/contenance ---')
   const d = await page('/products/peigne-texture-expert')
   verifie('=> 200', d.statut === 200, 'obtenu ' + d.statut)
-  verifie('pas de titre "Composition (INCI)"', !d.html.includes('Composition (INCI)'))
+  verifie('pas d\'accordeon "Ingrédients"', !d.html.includes('sn-ingredients'))
 
   console.log('\n--- E. Pack Barbe Complet (id 5, kit multi-produits, pas de donnee fournie) : AUCUN bloc composition/contenance ---')
   const e = await page('/products/pack-barbe-complet')
   verifie('=> 200', e.statut === 200, 'obtenu ' + e.statut)
-  verifie('pas de titre "Composition (INCI)"', !e.html.includes('Composition (INCI)'))
+  verifie('pas d\'accordeon "Ingrédients"', !e.html.includes('sn-ingredients'))
 
   console.log('\n=======================================')
   console.log('  ' + ok + ' OK, ' + ko + ' ECHEC')

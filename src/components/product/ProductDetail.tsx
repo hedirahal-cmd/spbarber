@@ -462,17 +462,20 @@ export function ProductDetail({ product, relatedProducts = [], reviews: productR
             </>
           )}
           {/* Composition INCI (2026-11-19, demande Hedi) -- recopiee telle
-              qu'imprimee sur l'etiquette fournisseur, meme style que la
-              description (pas de nouveau composant/accordeon). */}
+              qu'imprimee sur l'etiquette fournisseur. Accordeon natif
+              <details> (2026-11-20, demande Hedi) : replie par defaut,
+              accessible clavier/lecteur d'ecran sans JS (role/aria-expanded
+              geres nativement), texte toujours dans le HTML (lu par Google
+              et les lecteurs d'ecran meme replie). */}
           {product.compositionInci && product.compositionInci.length > 0 && (
-            <>
-              <div className="sn-desc-ttl" style={{ marginTop: 20 }}>Composition (INCI)</div>
-              <p className="sn-desc-txt">
+            <details className="sn-ingredients" style={{ marginTop: 20 }}>
+              <summary className="sn-desc-ttl">Ingrédients</summary>
+              <p className="sn-desc-txt" style={{ marginTop: 10 }}>
                 {product.compositionInciTraces && product.compositionInciTraces.length > 0
                   ? `${product.compositionInci.join(', ')}. Trace ingredients : ${product.compositionInciTraces.join(', ')}.`
                   : `${product.compositionInci.join(', ')}.`}
               </p>
-            </>
+            </details>
           )}
 
           <div className="sn-bens">
