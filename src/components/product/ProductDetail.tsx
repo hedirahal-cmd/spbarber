@@ -301,17 +301,18 @@ export function ProductDetail({ product, relatedProducts = [], reviews: productR
             </div>
           )}
 
-          <div className="sn-stars-row">
-            {hasReviews ? (
-              <>
-                <span className="sn-stars">{'★'.repeat(Math.round(avgRating))}</span>
-                <span className="sn-stars-lbl">{avgRatingLabel}/5 · {productReviews.length} avis</span>
-                <a href="#avis" className="sn-stars-lbl">Voir les avis →</a>
-              </>
-            ) : (
-              <a href="#avis" className="sn-stars-lbl">Soyez le premier à donner votre avis →</a>
-            )}
-          </div>
+          {/* "Soyez le premier a donner votre avis" retire de la zone prix
+              (2026-11-20, demande Hedi) -- le message equivalent vit deja
+              plus bas dans la section avis (#avis, voir ReviewsList
+              emptyMessage) ; rien a afficher ici tant qu'il n'y a pas
+              d'avis, plutot qu'un lien duplique. */}
+          {hasReviews && (
+            <div className="sn-stars-row">
+              <span className="sn-stars">{'★'.repeat(Math.round(avgRating))}</span>
+              <span className="sn-stars-lbl">{avgRatingLabel}/5 · {productReviews.length} avis</span>
+              <a href="#avis" className="sn-stars-lbl">Voir les avis →</a>
+            </div>
+          )}
 
           <div className="sn-price-block">
             <div className="sn-price">{formatPrice(price)}</div>
